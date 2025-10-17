@@ -1,0 +1,30 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const example_route_1 = __importDefault(require("./routes/example.route"));
+const auth_route_1 = __importDefault(require("./routes/auth.route"));
+const category_route_1 = __importDefault(require("./routes/category.route"));
+const subCategory_route_1 = __importDefault(require("./routes/subCategory.route"));
+const product_route_1 = __importDefault(require("./routes/product.route"));
+const banner_route_1 = __importDefault(require("./routes/banner.route"));
+const blog_route_1 = __importDefault(require("./routes/blog.route"));
+const cart_route_1 = __importDefault(require("./routes/cart.route"));
+const coupon_route_1 = __importDefault(require("./routes/coupon.route"));
+const order_route_1 = __importDefault(require("./routes/order.route"));
+// import other routers here
+const rootRouter = (0, express_1.Router)();
+rootRouter.use("/example", example_route_1.default);
+rootRouter.use("/auth", auth_route_1.default);
+rootRouter.use("/category", category_route_1.default);
+rootRouter.use("/banner", banner_route_1.default);
+rootRouter.use("/subcategory", subCategory_route_1.default);
+rootRouter.use("/product", product_route_1.default);
+rootRouter.use("/blog", blog_route_1.default);
+rootRouter.use("/cart", cart_route_1.default);
+rootRouter.use("/coupon", coupon_route_1.default);
+rootRouter.use("/order", order_route_1.default);
+// rootRouter.use("/other", otherRouter);
+exports.default = rootRouter;
