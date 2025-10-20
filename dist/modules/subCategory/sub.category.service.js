@@ -66,6 +66,9 @@ class SubCategoryService {
             }
         }
         // Update the database with the new data
+        if (payload.name) {
+            payload.slug = (0, slugGenerate_1.slugGenerate)(payload.name);
+        }
         const subCategoryData = await this.repository.updateSubCategory(slug, payload, tx);
         // Remove old files if they’re being replaced
         if ((files === null || files === void 0 ? void 0 : files.length) && subCategoryData) {

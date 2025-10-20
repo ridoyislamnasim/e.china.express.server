@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
+const pagination_1 = require("../../utils/pagination");
 const prisma = new client_1.PrismaClient();
 class BannerRepository {
     async createBanner(payload) {
@@ -16,19 +17,29 @@ class BannerRepository {
         });
     }
     async getBannerWithPagination(payload) {
-        try {
-            const banners = await prisma.banner.findMany({
-                skip: payload.offset,
-                take: payload.limit,
-                orderBy: { createdAt: payload.sortOrder },
-            });
-            const totalBanner = await prisma.banner.count();
-            return { doc: banners, totalDoc: totalBanner };
-        }
-        catch (error) {
-            console.error('Error getting banners with pagination:', error);
-            throw error;
-        }
+        // try {
+        //   const banners = await prisma.banner.findMany({
+        //     skip: payload.offset,
+        //     take: payload.limit,
+        //     orderBy: { createdAt: payload.sortOrder },
+        //   });
+        //   const totalBanner = await prisma.banner.count();
+        //   return { doc: banners, totalDoc: totalBanner };
+        // } catch (error) {
+        //   console.error('Error getting banners with pagination:', error);
+        //   throw error;
+        // }
+        return await (0, pagination_1.pagination)(payload, async (limit, offset) => {
+            const [doc, totalDoc] = await Promise.all([
+                await prisma.banner.findMany({
+                    skip: payload.offset,
+                    take: payload.limit,
+                    orderBy: { createdAt: payload.sortOrder },
+                }),
+                await prisma.banner.count(),
+            ]);
+            return { doc, totalDoc };
+        });
     }
     async getSingleBanner(id) {
         const banner = await prisma.banner.findUnique({

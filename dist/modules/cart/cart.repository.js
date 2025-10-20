@@ -3,10 +3,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const pagination_1 = require("../../utils/pagination");
 const base_repository_1 = require("../base/base.repository");
+const errors_1 = require("../../utils/errors");
 class CartRepository extends base_repository_1.BaseRepository {
     constructor(prisma) {
         super(prisma.cart);
         this.prisma = prisma;
+    }
+    async getSingleBuyNowCart(id) {
+        const cartData = await this.prisma.buyNowCart.findUnique({
+            where: { id },
+        });
+        if (!cartData)
+            throw new errors_1.NotFoundError('Cart Not Found');
+        return cartData;
     }
     async findCartByUserAndProduct(query) {
         console.log('Finding cart with query:', query);
@@ -74,6 +83,7 @@ class CartRepository extends base_repository_1.BaseRepository {
                 userRef: true,
                 inventoryRef: true,
             },
+            orderBy: { createdAt: 'desc' },
         });
         let appliedCoupon = null;
         let message = `Viewing carts`;
@@ -213,6 +223,12 @@ class CartRepository extends base_repository_1.BaseRepository {
         });
         return deletedCart;
     }
+    async deleteBuyNowCart(id) {
+        const deletedCart = await this.prisma.buyNowCart.delete({
+            where: { id: Number(id) },
+        });
+        return deletedCart;
+    }
     // Buy now Cart
     async createBuyNowCart(payload) {
         console.log("payload", payload);
@@ -226,6 +242,12 @@ class CartRepository extends base_repository_1.BaseRepository {
                 : undefined,
         };
         console.log("payload 999", data);
+        if (payload.userRef) {
+            data.userRef = { connect: { id: Number(payload.userRef) } };
+        }
+        else if (payload.correlationId) {
+            data.correlationId = payload.correlationId;
+        }
         if (payload.userRef) {
             data.userRef = { connect: { id: Number(payload.userRef) } };
         }
@@ -335,6 +357,13 @@ class CartRepository extends base_repository_1.BaseRepository {
             },
             message,
         };
+    }
+    async updateBuyNowCartQuantity(cartId, quantity) {
+        console.log("cart info", cartId, quantity);
+        return await this.prisma.buyNowCart.update({
+            where: { id: cartId },
+            data: { quantity },
+        });
     }
 }
 const prisma = new client_1.PrismaClient();

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CartService = void 0;
 const errors_1 = require("../../utils/errors");
 const base_service_1 = require("../base/base.service");
+const product_repository_1 = __importDefault(require("../product/product.repository"));
 const cart_repository_1 = __importDefault(require("./cart.repository"));
 class CartService extends base_service_1.BaseService {
     constructor(repository) {
@@ -14,28 +15,32 @@ class CartService extends base_service_1.BaseService {
     }
     async createCart(payload, tx) {
         const { quantity, userRef, productRef, inventoryRef } = payload;
+        console.log('Creating cart with query 1:', payload);
         if (!productRef && !inventoryRef) {
-            throw new Error('Product ID & Inventory ID is required');
+            throw new Error('Product  & Inventory  is required');
         }
+        const productExists = await product_repository_1.default.getSingleProduct(productRef);
+        console.log('Product exists:', productExists);
         const query = {};
         console.log('Creating cart with query 2:', payload);
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
             .test((payload === null || payload === void 0 ? void 0 : payload.userRef) || '');
-        console.log('Creating cart with query 3:', isUUID);
+        // console.log('Creating cart with query 3:', isUUID);
         if (!isUUID) {
-            console.log('Creating cart with query 4:', isUUID);
+            // console.log('Creating cart with query 4:', isUUID);
             query.userRef = Number(userRef);
-            query.productRef = productRef;
+            query.productRef = productExists === null || productExists === void 0 ? void 0 : productExists.id;
             query.inventoryRef = inventoryRef;
         }
         else {
-            console.log('Creating cart with query 5:', isUUID);
+            // console.log('Creating cart with query 5:', isUUID);
             query.correlationId = userRef;
-            query.productRef = productRef;
+            query.productRef = productExists === null || productExists === void 0 ? void 0 : productExists.id;
             query.inventoryRef = inventoryRef;
         }
         console.log('Creating cart with query:', query);
         const existingCart = await this.repository.findCartByUserAndProduct(query);
+        query.quantity = Number(quantity);
         console.log('Existing cart found:', existingCart);
         let cartData;
         if (existingCart) {
@@ -45,7 +50,7 @@ class CartService extends base_service_1.BaseService {
         }
         else {
             // Create a new cart document
-            cartData = await this.repository.createCart(payload);
+            cartData = await this.repository.createCart(query);
         }
         return cartData;
     }
@@ -60,7 +65,13 @@ class CartService extends base_service_1.BaseService {
         return cart;
     }
     async getSingleCart(id) {
-        const cartData = await this.repository.findById(id);
+        const cartData = await this.repository.getSingleCart(id);
+        if (!cartData)
+            throw new errors_1.NotFoundError('Cart Not Find');
+        return cartData;
+    }
+    async getSingleBuyNowCart(id) {
+        const cartData = await this.repository.getSingleBuyNowCart(id);
         if (!cartData)
             throw new errors_1.NotFoundError('Cart Not Find');
         return cartData;
@@ -87,20 +98,27 @@ class CartService extends base_service_1.BaseService {
         if (!productRef && !inventoryRef) {
             throw new Error('Product ID & Inventory ID is required');
         }
+        console.log("Creating cart with query buy now 1:", payload);
+        const productExists = await product_repository_1.default.getSingleProduct(productRef);
+        console.log('Product exists:', productExists);
+        payload.productRef = productExists === null || productExists === void 0 ? void 0 : productExists.id;
         const query = {};
-        console.log('Creating cart with query 2:', payload);
+        console.log('Creating cart with query buy now 2:', payload);
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
             .test((payload === null || payload === void 0 ? void 0 : payload.userRef) || '');
         console.log('Creating cart with query 3:', isUUID);
         if (!isUUID) {
             console.log('Creating cart with query 4:', isUUID);
             query.userRef = Number(userRef);
+            payload.userRef = query.userRef;
             // query.productRef = productRef;
             // query.inventoryRef = inventoryRef;
         }
         else {
             console.log('Creating cart with query 5:', isUUID);
             query.correlationId = userRef;
+            payload.correlationId = query.correlationId;
+            delete payload.userRef;
             // query.productRef = productRef;
             // query.inventoryRef = inventoryRef;
         }
@@ -110,7 +128,7 @@ class CartService extends base_service_1.BaseService {
         let cartData;
         if (existingCart) {
             // Update the existing cart's quantity
-            await this.repository.deleteCart(String(existingCart.id));
+            await this.repository.deleteBuyNowCart(String(existingCart.id));
             // const updatedQuantity = Number(existingCart.quantity) + Number(quantity);
             // cartData = await this.repository.updateCartQuantity(
             //   existingCart.id,
@@ -123,6 +141,14 @@ class CartService extends base_service_1.BaseService {
     }
     async getAllBuyNowCartByUser(payload) {
         return await this.repository.getAllBuyNowCartByUser(payload);
+    }
+    async updateBuyNowCartQuantity(cartId, newQuantity) {
+        const updatedCart = await this.repository.updateBuyNowCartQuantity(cartId, newQuantity);
+        if (!updatedCart) {
+            throw new Error('Cart not found');
+        }
+        // Optionally, calculate totals and return them here
+        return updatedCart;
     }
 }
 exports.CartService = CartService;

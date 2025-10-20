@@ -37,7 +37,7 @@ class BannerController {
                 order: req.query.order,
             };
             const banner = await banner_service_1.default.getBannerWithPagination(payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Banners get successfully', banner);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Banners get successfully', { ...banner });
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getSingleBanner = (0, catchError_1.default)(async (req, res, next) => {

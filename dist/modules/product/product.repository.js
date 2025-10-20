@@ -46,29 +46,108 @@ class ProductRepository {
         return await prismadatabase_1.default.product.update({ where: { slug }, data: payload });
     }
     async getProductWithPagination(payload) {
+        console.log("getProductWithPagination payload", payload);
         // You will need to convert all MongoDB filter logic to Prisma style here
         // This is a simplified version, you can expand as needed
-        const { sortBy = 'createdAt', minPrice, maxPrice, categoryId, subCategoryId, childCategoryId, subChildCategoryId, brandId, isNewArrival, color, size, popular, bestSell, featured, gender, } = payload;
-        const where = {};
+        const { sortBy = 'createdAt', minPrice, maxPrice, categoryId, subCategoryId, childCategoryId, subChildCategoryId, brandId, isNewArrival, color, level, popular, bestSell, featured, gender, } = payload;
+        // Build AND array for all filters
+        const and = [];
         if (minPrice && maxPrice) {
-            where.price = { gte: parseFloat(minPrice), lte: parseFloat(maxPrice) };
+            and.push({
+                inventories: {
+                    some: {
+                        price: { gte: parseFloat(minPrice), lte: parseFloat(maxPrice) },
+                    },
+                },
+            });
         }
-        if (categoryId)
-            where.categoryRef = Number(categoryId);
-        if (subCategoryId)
-            where.subCategoryRef = Number(subCategoryId);
-        if (childCategoryId)
-            where.childCategoryRef = Number(childCategoryId);
-        if (subChildCategoryId)
-            where.subChildCategoryRef = Number(subChildCategoryId);
+        if (categoryId) {
+            if (Array.isArray(categoryId)) {
+                and.push({ categoryRefId: { in: categoryId.map(Number) } });
+            }
+            else {
+                and.push({ categoryRefId: Number(categoryId) });
+            }
+        }
+        if (subCategoryId) {
+            if (Array.isArray(subCategoryId)) {
+                and.push({ subCategoryRefId: { in: subCategoryId.map(Number) } });
+            }
+            else {
+                and.push({ subCategoryRefId: Number(subCategoryId) });
+            }
+        }
+        if (childCategoryId) {
+            if (Array.isArray(childCategoryId)) {
+                and.push({ childCategoryRefId: { in: childCategoryId.map(Number) } });
+            }
+            else {
+                and.push({ childCategoryRefId: Number(childCategoryId) });
+            }
+        }
+        if (subChildCategoryId) {
+            if (Array.isArray(subChildCategoryId)) {
+                and.push({ subChildCategoryRefId: { in: subChildCategoryId.map(Number) } });
+            }
+            else {
+                and.push({ subChildCategoryRefId: Number(subChildCategoryId) });
+            }
+        }
+        if (color) {
+            if (Array.isArray(color)) {
+                and.push({
+                    inventories: {
+                        some: {
+                            OR: color.map((clr) => ({
+                                name: { equals: clr, mode: 'insensitive' }
+                            }))
+                        }
+                    }
+                });
+            }
+            else {
+                and.push({
+                    inventories: {
+                        some: {
+                            name: { equals: color, mode: 'insensitive' }
+                        }
+                    }
+                });
+            }
+        }
+        if (level) {
+            if (Array.isArray(level)) {
+                and.push({
+                    inventories: {
+                        some: {
+                            OR: level.map((lvl) => ({
+                                level: { equals: lvl, mode: 'insensitive' }
+                            }))
+                        }
+                    }
+                });
+            }
+            else {
+                and.push({
+                    inventories: {
+                        some: {
+                            level: { equals: level, mode: 'insensitive' }
+                        }
+                    }
+                });
+            }
+        }
         if (brandId)
-            where.brandRef = Number(brandId);
+            and.push({ brandRef: Number(brandId) });
         if (gender)
-            where.gender = gender;
+            and.push({ gender });
+        and.push({ publishStatus: "Publish" });
+        const where = and.length > 0 ? { AND: and } : {};
         // Add more filters as needed
         // Sorting
         const orderBy = {};
         orderBy[sortBy] = 'desc';
+        console.log("where", where);
         // Pagination
         return await (0, pagination_1.pagination)(payload, async (limit, offset) => {
             const [doc, totalDoc] = await Promise.all([
@@ -83,7 +162,7 @@ class ProductRepository {
                         childCategoryRef: true,
                         subChildCategoryRef: true,
                         brandRef: true,
-                        // inventoryRef: true,
+                        inventories: true,
                     },
                 }),
                 prismadatabase_1.default.product.count({ where }),
@@ -216,6 +295,49 @@ class ProductRepository {
                 brandRef: true,
             },
         });
+    }
+    async getShopOption() {
+        // all category and this category under e subcategory , all unique color , all unique level and other
+        const categories = await prismadatabase_1.default.category.findMany({
+            select: {
+                id: true,
+                slug: true,
+                name: true,
+                subCategories: {
+                    select: {
+                        id: true,
+                        slug: true,
+                        name: true,
+                    },
+                },
+            },
+        });
+        // Get unique colors and levels from inventories
+        const colors = await prismadatabase_1.default.inventory.findMany({
+            select: {
+                color: true,
+                name: true,
+            },
+            distinct: ['color', 'name'],
+        });
+        const levels = await prismadatabase_1.default.inventory.findMany({
+            select: {
+                level: true,
+            },
+            distinct: ['level'],
+        });
+        // Get min and max price from inventory
+        const priceAgg = await prismadatabase_1.default.inventory.aggregate({
+            _min: { price: true },
+            _max: { price: true },
+        });
+        return {
+            categories,
+            colors,
+            levels,
+            minPrice: priceAgg._min.price,
+            maxPrice: priceAgg._max.price,
+        };
     }
     //   async getSearchProduct(payload: any) {
     //     const { search } = payload;

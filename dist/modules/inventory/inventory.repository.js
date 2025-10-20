@@ -46,7 +46,7 @@ class InventoryRepository {
                     where: { warehouseRefId },
                     skip: offset,
                     take: limit,
-                    orderBy: { createdAt: sortOrder === 1 ? 'asc' : 'desc' },
+                    orderBy: sortOrder,
                     include: { productRef: true },
                 }),
                 prismadatabase_1.default.inventory.count({ where: { warehouseRefId } }),

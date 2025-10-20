@@ -29,7 +29,10 @@ class SubCategoryRepository {
     async updateSubCategory(slug, payload, tx) {
         return await prismadatabase_1.default.subCategory.update({
             where: { slug },
-            data: payload,
+            data: {
+                ...payload,
+                categoryRef: { connect: { id: Number(payload.categoryRef) } },
+            },
         });
     }
     async getSubCategoryWithPagination(payload) {

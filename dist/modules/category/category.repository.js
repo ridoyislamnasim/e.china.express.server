@@ -63,7 +63,7 @@ class CategoryRepository {
                 prismadatabase_1.default.category.findMany({
                     skip: offset,
                     take: limit,
-                    orderBy: { createdAt: sortOrder === 1 ? 'asc' : 'desc' },
+                    // orderBy: sortOrder,
                 }),
                 prismadatabase_1.default.category.count(),
             ]);

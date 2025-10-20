@@ -14,6 +14,7 @@ const blog_route_1 = __importDefault(require("./routes/blog.route"));
 const cart_route_1 = __importDefault(require("./routes/cart.route"));
 const coupon_route_1 = __importDefault(require("./routes/coupon.route"));
 const order_route_1 = __importDefault(require("./routes/order.route"));
+const wishlist_route_1 = __importDefault(require("./routes/wishlist.route"));
 // import other routers here
 const rootRouter = (0, express_1.Router)();
 rootRouter.use("/example", example_route_1.default);
@@ -26,5 +27,5 @@ rootRouter.use("/blog", blog_route_1.default);
 rootRouter.use("/cart", cart_route_1.default);
 rootRouter.use("/coupon", coupon_route_1.default);
 rootRouter.use("/order", order_route_1.default);
-// rootRouter.use("/other", otherRouter);
+rootRouter.use("/wishlist", wishlist_route_1.default);
 exports.default = rootRouter;

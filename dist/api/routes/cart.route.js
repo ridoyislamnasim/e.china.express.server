@@ -14,6 +14,8 @@ CartRoute.route("/")
 CartRoute.route("/buy-now")
     .post(cart_controller_1.default.createBuyNowCart)
     .get(cart_controller_1.default.getAllBuyNowCartByUser);
+CartRoute.route("/buy-now/:id")
+    .put(cart_controller_1.default.updateBuyNowCartQuantity);
 CartRoute.get("/user-all-cart/:id", cart_controller_1.default.getUserAllCartById);
 CartRoute.get("/pagination", cart_controller_1.default.getCartWithPagination);
 CartRoute.route("/:id")

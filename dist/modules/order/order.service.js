@@ -106,6 +106,10 @@ class OrderService extends base_service_1.BaseService {
         const order = await this.repository.getOrderWithPagination(payload);
         return order;
     }
+    async getIncompleteOrderWithPagination(payload) {
+        const order = await this.repository.getIncompleteOrderWithPagination(payload);
+        return order;
+    }
     async getSingleOrder(id) {
         const orderData = await this.repository.getSingleOrder(id);
         if (!orderData)

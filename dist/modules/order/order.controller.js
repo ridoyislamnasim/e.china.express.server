@@ -78,6 +78,17 @@ class OrderController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Orders get successfully', order);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.getIncompleteOrderWithPagination = (0, catchError_1.default)(async (req, res) => {
+            let payload = {
+                page: req.query.page,
+                limit: req.query.limit,
+                order: req.query.order,
+                warehouseRef: req.query.warehouseRef,
+            };
+            const order = await order_service_1.default.getIncompleteOrderWithPagination(payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Orders get successfully', order);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         this.getSingleOrder = (0, catchError_1.default)(async (req, res) => {
             const id = req.params.id;
             const orderResult = await order_service_1.default.getSingleOrder(id);

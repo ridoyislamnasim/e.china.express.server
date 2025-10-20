@@ -23,8 +23,8 @@ function calculateDiscountAmount(mrpPrice, discountType, discount) {
         }
     }
     return {
-        price: Math.round(price),
-        discountAmount: Math.round(calculatedDiscountAmount),
+        price: Number(Math.round(price)),
+        discountAmount: Number(Math.round(calculatedDiscountAmount)),
     };
 }
 function calculateVat(discounted_price, vat) {

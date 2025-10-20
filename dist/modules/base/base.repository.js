@@ -19,8 +19,8 @@ class BaseRepository {
         // This method assumes identifier is a unique field name
         return await this.model.findFirst({ orderBy: { [identifier]: 'desc' }, select: { [identifier]: true } });
     }
-    async findById(id, include = {}) {
-        return await this.model.findUnique({ where: { id }, include });
+    async getSingleCart(id) {
+        return await this.model.findUnique({ where: { id } });
     }
     async findBySlug(slug, include = {}) {
         return await this.model.findFirst({ where: { slug }, include });

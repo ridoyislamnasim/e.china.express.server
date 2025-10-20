@@ -52,8 +52,7 @@ class SubCategoryController {
             const payload = {
                 name: req.body.name,
                 status: typeof req.body.status === 'boolean' ? req.body.status : req.body.status === 'true' || req.body.status === true,
-                slug: req.body.slug,
-                categoryRef: req.body.categoryRef,
+                categoryRef: Number(req.body.categoryRef),
             };
             const subCategoryResult = await sub_category_service_1.default.updateSubCategory(slug, payloadFiles, payload);
             const resDoc = (0, responseHandler_1.responseHandler)(201, 'SubCategory Update successfully');

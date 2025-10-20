@@ -186,29 +186,95 @@ class OrderRepository {
         return updatedOrder;
     }
     async getOrderWithPagination(payload) {
-        try {
-            const orders = await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
-                const orders = await this.prisma.order.findMany({
-                    orderBy: { createdAt: sortOrder },
+        return await (0, pagination_1.pagination)(payload, async (limit, offset) => {
+            const [doc, totalDoc] = await Promise.all([
+                this.prisma.order.findMany({
+                    orderBy: { createdAt: 'desc' },
                     skip: offset,
                     take: limit,
                     include: {
                         userRef: {
                             select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                                // add other fields you want to include
                                 password: false,
                             },
                         },
+                        products: {
+                            include: {
+                                productRef: true,
+                                inventoryRef: true,
+                            },
+                        },
+                        // couponRef: true,
                     },
-                });
-                const totalOrder = await this.prisma.order.count();
-                return { doc: orders, totalDoc: totalOrder };
+                }),
+                this.prisma.order.count(),
+            ]);
+            return { doc, totalDoc };
+        });
+    }
+    async getIncompleteOrderWithPagination(payload) {
+        // Group carts by userRef and return paginated grouped data for all users
+        return await (0, pagination_1.pagination)(payload, async (limit, offset) => {
+            // Get all unique userRefIds with carts
+            // Group by userRefId (not null)
+            const userGroups = await this.prisma.cart.groupBy({
+                by: ['userRefId'],
             });
-            return orders;
-        }
-        catch (error) {
-            console.error('Error getting orders with pagination:', error);
-            throw error;
-        }
+            // Group by correlationId (where userRefId is null)
+            const correlationGroups = await this.prisma.cart.groupBy({
+                by: ['correlationId'],
+                where: { userRefId: null },
+            });
+            const totalDoc = userGroups.length + correlationGroups.length;
+            // Paginate both groups together
+            const allGroups = [
+                ...userGroups.map(g => ({ type: 'user', id: g.userRefId })),
+                ...correlationGroups.map(g => ({ type: 'correlation', id: g.correlationId })),
+            ];
+            const pagedGroups = allGroups.slice(offset, offset + limit);
+            // For each group, get info and carts
+            const doc = await Promise.all(pagedGroups.map(async (group) => {
+                let info = null;
+                let carts = [];
+                if (group.type === 'user' && typeof group.id === 'number') {
+                    info = await this.prisma.user.findUnique({
+                        where: { id: group.id },
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            phone: true,
+                            // add other fields as needed
+                        },
+                    });
+                    carts = await this.prisma.cart.findMany({
+                        where: { userRefId: group.id },
+                        include: {
+                            productRef: true,
+                            inventoryRef: true,
+                        },
+                    });
+                }
+                else if (group.type === 'correlation' && group.id) {
+                    info = { correlationId: group.id };
+                    const correlationIdStr = typeof group.id === 'string' ? group.id : String(group.id);
+                    carts = await this.prisma.cart.findMany({
+                        where: { correlationId: correlationIdStr },
+                        include: {
+                            productRef: true,
+                            inventoryRef: true,
+                        },
+                    });
+                }
+                return { info, carts };
+            }));
+            return { doc, totalDoc };
+        });
     }
     async updateOrderStatus(id, status) {
         const updatedOrder = await this.prisma.order.update({

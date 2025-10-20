@@ -42,7 +42,7 @@ class BlogRepository {
                 prismadatabase_1.default.blog.findMany({
                     skip: offset,
                     take: limit,
-                    orderBy: { createdAt: sortOrder === 1 ? 'asc' : 'desc' },
+                    orderBy: sortOrder,
                 }),
                 prismadatabase_1.default.blog.count(),
             ]);

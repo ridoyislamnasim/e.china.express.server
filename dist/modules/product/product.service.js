@@ -17,8 +17,8 @@ class ProductService {
     constructor(repository) {
         this.repository = repository;
     }
-    async createProduct(payloadFiles, payload, session) {
-        var _a, _b, _c, _d, _e, _f;
+    async createProduct(payloadFiles, payload, tx) {
+        var _a, _b, _c, _d, _e, _f, _g;
         // --- Begin migrated logic ---
         const { files } = payloadFiles;
         const { barcode, mrpPrice, discountType, discount, inventoryType, inventory, inventoryArray, inventorys, } = payload;
@@ -120,67 +120,69 @@ class ProductService {
             }
         }
         else if (inventoryType === "colorLevelInventory") {
+            console.log('Creating color level inventory');
             let newInventoryID = "";
             for (const item of inventoryArray) {
                 const level = item.level || "Unknown";
                 const variants = item.colorLevel;
                 const title = "INV-";
-                for (const variant of variants) {
-                    if (newInventoryID === "") {
-                        newInventoryID = await (0, IdGenerator_1.idGenerate)(title, "inventoryID", prismadatabase_1.default.inventory);
-                    }
-                    else {
-                        let id = Number(newInventoryID.slice(title.length + 6)) + 1;
-                        let prefix = newInventoryID.slice(0, title.length + 6);
-                        newInventoryID = prefix + id;
-                    }
-                    const newInventory = {
-                        quantity: variant.quantity,
-                        availableQuantity: variant.quantity,
-                        color: variant.colorCode || "#000000",
-                        name: variant.color || "Unknown",
-                        level: level,
-                        barcode: variant.barcode || (0, barcodeGenerate_1.generateEAN13Barcode)(),
-                        inventoryID: newInventoryID,
-                        mrpPrice: variant.mrpPrice,
-                        inventoryType: inventoryType,
-                    };
-                    if (discountType && discount) {
-                        // @ts-ignore
-                        const { price, discountAmount } = (0, calculation_1.calculateDiscountAmount)(Number(variant.mrpPrice), discountType, discount);
-                        newInventory.price = price;
-                        newInventory.discountAmount = discountAmount;
-                        newInventory.discountType = discountType;
-                    }
-                    else {
-                        newInventory.price = variant.mrpPrice;
-                    }
-                    maxPrice = (newInventory === null || newInventory === void 0 ? void 0 : newInventory.price) && Math.min(maxPrice, newInventory === null || newInventory === void 0 ? void 0 : newInventory.price);
-                    const createdInventory = await inventory_repository_1.default.createNewInventory(newInventory);
-                    inventoryIds.push(createdInventory.id);
+                // for (const variant of variants) {
+                if (newInventoryID === "") {
+                    newInventoryID = await (0, IdGenerator_1.idGenerate)(title, "inventoryID", prismadatabase_1.default.inventory);
                 }
+                else {
+                    let id = Number(newInventoryID.slice(title.length + 6)) + 1;
+                    let prefix = newInventoryID.slice(0, title.length + 6);
+                    newInventoryID = prefix + id;
+                }
+                const newInventory = {
+                    quantity: Number(item.quantity),
+                    availableQuantity: Number(item.quantity),
+                    color: item.colorCode || "#000000",
+                    name: item.color || "Unknown",
+                    level: level,
+                    barcode: item.barcode || (0, barcodeGenerate_1.generateEAN13Barcode)(),
+                    inventoryID: newInventoryID,
+                    mrpPrice: Number(item.mrpPrice),
+                    inventoryType: inventoryType,
+                };
+                if (discountType && discount) {
+                    // @ts-ignore
+                    const { price, discountAmount } = (0, calculation_1.calculateDiscountAmount)(Number(item.mrpPrice), discountType, discount);
+                    newInventory.price = price;
+                    newInventory.discountAmount = discountAmount;
+                    newInventory.discountType = discountType;
+                }
+                else {
+                    newInventory.price = Number(item.mrpPrice);
+                }
+                maxPrice = (newInventory === null || newInventory === void 0 ? void 0 : newInventory.price) && Math.min(maxPrice, newInventory === null || newInventory === void 0 ? void 0 : newInventory.price);
+                const createdInventory = await inventory_repository_1.default.createNewInventory(newInventory);
+                inventoryIds.push(createdInventory.id);
+                // }
             }
         }
         else {
             payload.inventoryType = "inventory";
             const newInventoryID = await (0, IdGenerator_1.idGenerate)("INV-", "inventoryID", prismadatabase_1.default.inventory);
             const newInventory = {
-                quantity: ((_a = inventoryArray[0]) === null || _a === void 0 ? void 0 : _a.quantity) || 0,
-                mrpPrice: (_b = inventoryArray[0]) === null || _b === void 0 ? void 0 : _b.mrpPrice,
-                barcode: ((_c = inventoryArray[0]) === null || _c === void 0 ? void 0 : _c.barcode) || (0, barcodeGenerate_1.generateEAN13Barcode)(),
-                availableQuantity: ((_d = inventoryArray[0]) === null || _d === void 0 ? void 0 : _d.quantity) || 0,
+                costPrice: Number(((_a = inventoryArray[0]) === null || _a === void 0 ? void 0 : _a.costPrice) || 0),
+                quantity: Number(((_b = inventoryArray[0]) === null || _b === void 0 ? void 0 : _b.quantity) || 0),
+                mrpPrice: Number(((_c = inventoryArray[0]) === null || _c === void 0 ? void 0 : _c.mrpPrice) || 0),
+                barcode: ((_d = inventoryArray[0]) === null || _d === void 0 ? void 0 : _d.barcode) || (0, barcodeGenerate_1.generateEAN13Barcode)(),
+                availableQuantity: Number(((_e = inventoryArray[0]) === null || _e === void 0 ? void 0 : _e.quantity) || 0),
                 inventoryType: inventoryType,
                 inventoryID: newInventoryID,
             };
             if (discountType && discount) {
                 // @ts-ignore
-                const { price, discountAmount } = (0, calculation_1.calculateDiscountAmount)(Number((_e = inventoryArray[0]) === null || _e === void 0 ? void 0 : _e.mrpPrice), discountType, discount);
+                const { price, discountAmount } = (0, calculation_1.calculateDiscountAmount)(Number((_f = inventoryArray[0]) === null || _f === void 0 ? void 0 : _f.mrpPrice), discountType, discount);
                 newInventory.price = price;
                 newInventory.discountAmount = discountAmount;
                 newInventory.discountType = discountType;
             }
             else {
-                newInventory.price = (_f = inventoryArray[0]) === null || _f === void 0 ? void 0 : _f.mrpPrice;
+                newInventory.price = Number((_g = inventoryArray[0]) === null || _g === void 0 ? void 0 : _g.mrpPrice);
             }
             maxPrice = newInventory === null || newInventory === void 0 ? void 0 : newInventory.price;
             const createdInventory = await inventory_repository_1.default.createNewInventory(newInventory);
@@ -198,10 +200,15 @@ class ProductService {
         delete payload.inventoryRef;
         // Add Prisma relation connect for categoryRef and subCategoryRef
         if (payload.categoryRef) {
-            payload.categoryRef = { connect: { id: Number(payload.categoryRef) } };
+            payload.categoryRefId = Number(payload.categoryRef);
+            delete payload.categoryRef;
         }
         if (payload.subCategoryRef) {
-            payload.subCategoryRef = { connect: { id: Number(payload.subCategoryRef) } };
+            payload.subCategoryRefId = Number(payload.subCategoryRef);
+            delete payload.subCategoryRef;
+        }
+        else {
+            delete payload.subCategoryRef;
         }
         if (!(files === null || files === void 0 ? void 0 : files.length)) {
             const error = new Error("Thumbnail Image is required");
@@ -249,14 +256,10 @@ class ProductService {
         const product = await this.repository.getAllDiscountedProduct(payload);
         return product;
     }
-    //   async getAllProductByBrandOrGender(payload: any) {
-    //     const { brandRef, gender } = payload;
-    //     const filter: any = {};
-    //     if (brandRef) filter.brandRef = brandRef;
-    //     if (gender) filter.gender = gender;
-    //     const products = await this.repository.findAll(filter);
-    //     return { products };
-    //   }
+    async getShopOption() {
+        const products = await this.repository.getShopOption();
+        return { products };
+    }
     //   async getAllProductForHomePage(payload: any) {
     //     const { limit, viewType } = payload;
     //     if (!viewType) throw new NotFoundError('viewType is required');

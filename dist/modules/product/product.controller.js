@@ -10,8 +10,8 @@ const product_service_1 = __importDefault(require("./product.service"));
 const helpers_1 = require("../../utils/helpers");
 class ProductController {
     constructor() {
-        this.createProduct = (0, withTransaction_1.default)(async (req, res, next, session) => {
-            var _a, _b, _c;
+        this.createProduct = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+            var _a, _b;
             const payloadFiles = {
                 files: req.files,
             };
@@ -31,14 +31,13 @@ class ProductController {
                 // childCategoryRef: ensureNullIfUndefined(req.body.childCategoryRef),
                 // subChildCategoryRef: ensureNullIfUndefined(req.body.subChildCategoryRef),
                 inventoryType: req.body.inventoryType,
-                inventory: (_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a.inventory,
-                inventoryArray: ((_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b.inventoryArray) ? JSON.parse((_c = req === null || req === void 0 ? void 0 : req.body) === null || _c === void 0 ? void 0 : _c.inventoryArray) : [],
+                inventoryArray: ((_a = req === null || req === void 0 ? void 0 : req.body) === null || _a === void 0 ? void 0 : _a.inventoryArray) ? JSON.parse((_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b.inventoryArray) : [],
                 slug: req.body.slug,
                 barcode: req.body.barcode,
                 publishStatus: req.body.publishStatus
             };
             console.log("Payload in updateProduct:", payload);
-            const productResult = await product_service_1.default.createProduct(payloadFiles, payload, session);
+            const productResult = await product_service_1.default.createProduct(payloadFiles, payload, tx);
             const resDoc = (0, responseHandler_1.responseHandler)(201, 'Product Created successfully', productResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
@@ -63,19 +62,11 @@ class ProductController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Get All Discounted Products', productResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
-        //   getAllProductByBrandOrGender = catchError(async (req: Request, res: Response) => {
-        //     const payload = {
-        //       limit: req?.query?.limit,
-        //       gender: req?.query?.gender,
-        //       brandRef: req?.query?.brandRef,
-        //     };
-        //     const productResult = await ProductService.getAllProductByBrandOrGender(payload);
-        //     const data = {
-        //       result: productResult?.product,
-        //     };
-        //     const resDoc = responseHandler(200, 'Get All Products By Brand Or gender', data);
-        //     res.status(resDoc.statusCode).json(resDoc);
-        //   });
+        this.getShopOption = (0, catchError_1.default)(async (req, res) => {
+            const productResult = await product_service_1.default.getShopOption();
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Get Shop Options", productResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         //   getAllProductForHomePage = catchError(async (req: Request, res: Response) => {
         //     const payload = {
         //       limit: req.query.limit,
@@ -97,14 +88,14 @@ class ProductController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Get All Products', productResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
-        //   getSearchProduct = catchError(async (req: Request, res: Response) => {
-        //     const payload = {
-        //       search: req.query.search,
-        //     };
-        //     const productResult = await ProductService.getSearchProduct(payload);
-        //     const resDoc = responseHandler(200, 'Get All Products', productResult);
-        //     res.status(resDoc.statusCode).json(resDoc);
-        //   });
+        // getSearchProduct = catchError(async (req: Request, res: Response) => {
+        //   const payload = {
+        //     search: req.query.search,
+        //   };
+        //   const productResult = await ProductService.getSearchProduct(payload);
+        //   const resDoc = responseHandler(200, 'Get All Products', productResult);
+        //   res.status(resDoc.statusCode).json(resDoc);
+        // });
         this.getProductWithPagination = (0, catchError_1.default)(async (req, res) => {
             let payload = {
                 page: req.query.page,
@@ -143,6 +134,7 @@ class ProductController {
                 warehouseRef: req.query.warehouseRef,
             };
             const product = await product_service_1.default.getProductWithPaginationForAdmin(payload);
+            // console.log("product", product);
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Products retrieved successfully', { ...product });
             res.status(resDoc.statusCode).json(resDoc);
         });

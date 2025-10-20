@@ -17,6 +17,7 @@ OrderRoute.route("/admin").post(order_controller_1.default.createAdminOrder);
 OrderRoute.route("/user/:id").get(order_controller_1.default.getUserAllOrder);
 OrderRoute.route("/track").get(order_controller_1.default.orderTracking);
 OrderRoute.get("/pagination", order_controller_1.default.getOrderWithPagination);
+OrderRoute.get("/incomplete/pagination", order_controller_1.default.getIncompleteOrderWithPagination);
 OrderRoute.route(":id")
     .get(order_controller_1.default.getSingleOrder)
     .put(upload_1.upload.any(), order_controller_1.default.updateOrder)
