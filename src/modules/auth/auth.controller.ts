@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import authRepository from './auth.repository';
 import { AuthService as AuthServiceClass } from './auth.service';
 import { responseHandler } from '../../utils/responseHandler';
+import config from '../../config/config';
 import withTransaction from '../../middleware/transactions/withTransaction';
 const authService = new AuthServiceClass(authRepository);
 
@@ -25,8 +26,53 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   try {
     const { email, phone, password } = req.body;
     const payload = { email, phone, password };
-    const user = await authService.authUserSignIn(payload);
-    const resDoc = responseHandler(201, 'Login successfully', user);
+    // authService returns { accessToken, refreshToken, user }
+    const authResult = await authService.authUserSignIn(payload);
+
+    // Set secure, HttpOnly cookies. Adjust maxAge as needed.
+    try {
+      const accessToken = authResult.accessToken;
+      const refreshToken = authResult.refreshToken;
+
+      // access token: short lived (e.g., 15 minutes)
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: config.isProduction, // send only over HTTPS in production
+        sameSite: 'lax',
+        maxAge: 15 * 60 * 1000, // 15 minutes
+        path: '/',
+      });
+
+      // refresh token: longer lived (e.g., 7 days)
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: config.isProduction,
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/',
+      });
+
+      // Also set a non-httpOnly user cookie so frontend can read basic user info
+      // NOTE: this cookie should NOT contain sensitive data (passwords, tokens)
+      try {
+        const userCookieValue = encodeURIComponent(JSON.stringify(authResult.user || {}));
+        res.cookie('user', userCookieValue, {
+          httpOnly: false, // allow frontend JS to read
+          secure: config.isProduction,
+          sameSite: 'lax',
+          maxAge: 15 * 60 * 1000, // match access token life
+          path: '/',
+        });
+      } catch (e) {
+        console.warn('Failed to set user cookie:', e);
+      }
+    } catch (cookieErr) {
+      // If cookie set fails for any reason, continue and return token in body as fallback
+      console.warn('Failed to set auth cookies:', cookieErr);
+    }
+
+    // Return user info (omit tokens in body for extra safety)
+    const resDoc = responseHandler(200, 'Login successfully', { user: authResult.user });
     res.status(resDoc.statusCode).json(resDoc);
   } catch (error) {
     next(error);

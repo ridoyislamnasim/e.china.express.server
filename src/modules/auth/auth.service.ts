@@ -73,6 +73,7 @@ export class AuthService {
   async authUserSignIn(payload: any) {
     const { email, phone, password } = payload;
     const user = await this.repository.getAuthByEmailOrPhone(email, phone);
+    console.log('AuthService - authUserSignIn - retrieved user:', user);
     if (!user) {
       const error = new Error('unauthorized access');
       (error as any).statusCode = 401;
@@ -88,7 +89,7 @@ export class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
-      // role: user.role,
+      roleId: user.role?.id || 0,
     };
     const accessToken = generateAccessToken({ userInfo: { user_info_encrypted } });
     const refreshToken = generateRefreshToken({ userInfo: { user_info_encrypted } });

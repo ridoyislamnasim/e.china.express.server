@@ -23,10 +23,13 @@ interface Config {
   e1688ApiBaseUrl?: string | undefined;
   e1688UriPath?: string | undefined;
   e1688DefaultOfferId?: string | undefined;
+  nodeEnv?: string | undefined;
+  isProduction?: boolean | undefined;
 }
 console.log('Configuring application with environment variables:', {
   port: process.env.PORT,
   host: process.env.HOST,
+  nodeEnv: process.env.NODE_ENV,
   databaseUrl: process.env.DATABASE_URL,
   databasePassword: process.env.MONGO_PASSWORD,
   jwtAccessSecretKey: process.env.JWT_ACCESS_SECRET_KEY,
@@ -61,6 +64,8 @@ const config: Config = {
   e1688ApiBaseUrl: process.env.E1688_API_BASE_URL,
   e1688UriPath: process.env.E1688_URI_PATH,
   e1688DefaultOfferId: process.env.E1688_DEFAULT_OFFER_ID,
+  nodeEnv: process.env.NODE_ENV || 'development',
+  isProduction: (process.env.NODE_ENV || 'development') === 'production',
 };
 
 export default config;
