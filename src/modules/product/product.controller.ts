@@ -3,9 +3,32 @@ import catchError from '../../middleware/errors/catchError';
 import { responseHandler } from '../../utils/responseHandler';
 import withTransaction from '../../middleware/transactions/withTransaction';
 import ProductService from './product.service';
+import e1688Service from './e1688.service';
 import { ensureNullIfUndefined } from '../../utils/helpers';
 
 class ProductController {
+  // 1688 API Controllers
+  get1688ProductDetails = catchError(async (req: Request, res: Response) => {
+    const payload = {
+      productId: req.params.productId,
+    };
+    const productResult = await ProductService.get1688ProductDetails(payload);
+    console.log("productResult", productResult);
+    const resDoc = responseHandler(200, 'Product Details Retrieved Successfully', productResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  get1688Products = catchError(async (req: Request, res: Response) => {
+    const payload = {
+      q: typeof req.query.q === 'string' ? req.query.q : String(req.query.q ?? ''),
+      page: typeof req.query.page === 'string' ? req.query.page : String(req.query.page ?? '1'),
+      limit: typeof req.query.limit === 'string' ? req.query.limit : String(req.query.limit ?? '20'),
+    };
+    const result = await e1688Service.search1688Products(payload);
+    const resDoc = responseHandler(200, '1688 Products retrieved successfully', result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
   createProduct = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     const payloadFiles = {
       files: req.files,

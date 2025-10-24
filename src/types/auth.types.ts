@@ -5,5 +5,5 @@ export interface AuthUserSignUpPayload {
   email?: string;
   phone?: string;
   password: string;
-  role?: string; 
+  roleId?: number; 
 }

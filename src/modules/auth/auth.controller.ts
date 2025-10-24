@@ -5,32 +5,28 @@ import { AuthService } from './auth.service';
 import authRepository from './auth.repository';
 import { AuthService as AuthServiceClass } from './auth.service';
 import { responseHandler } from '../../utils/responseHandler';
+import withTransaction from '../../middleware/transactions/withTransaction';
 const authService = new AuthServiceClass(authRepository);
 
-export const authUserSignUp = async (req: Request, res: Response, next: NextFunction) => {
+export const authUserSignUp = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
   try {
-    const { name, email, phone, role, password } = req.body;
+    const { name, email, phone, password } = req.body;
     // console.log('Received signup request with data:', { name, email, phone, role, password });
-    const payload = { name, email, phone, role, password };
-    const user = await authService.authUserSignUp(payload);
-    // res.status(201).json({ message: 'User signed up successfully', user });
-        const resDoc = responseHandler(
-          201,
-          'User Created successfully',
-          user
-        );
-        res.status(resDoc.statusCode).json(resDoc);
+    const payload = { name, email, phone, password };
+    const user = await authService.authUserSignUp(payload, tx);
+    const resDoc = responseHandler(201, 'User Created successfully', user);
+    res.status(resDoc.statusCode).json(resDoc);
   } catch (error) {
     next(error);
   }
-};
+});
 
 export const authUserSignIn = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, phone, password } = req.body;
     const payload = { email, phone, password };
     const user = await authService.authUserSignIn(payload);
-    const resDoc = responseHandler(201, 'Login successfully', user );
+    const resDoc = responseHandler(201, 'Login successfully', user);
     res.status(resDoc.statusCode).json(resDoc);
   } catch (error) {
     next(error);

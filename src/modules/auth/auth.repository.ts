@@ -6,8 +6,20 @@ import { AuthUserSignUpPayload } from '../../types/auth.types';
 export class AuthRepository {
   private prisma = prisma;
 
-  async createUser(payload: AuthUserSignUpPayload) {
-    const { name, email, password, role, phone } = payload;
+  createCustomRoleIfNotExists = async (roleName: string, tx?: any) => {
+    const prismaClient: PrismaClient = tx || this.prisma;
+
+    // Try to find existing role first
+    let role = await prismaClient.role.findUnique({ where: { role: roleName } });
+    if (role) return role;
+
+      const permission = await prismaClient.permission.create({});
+      role = await prismaClient.role.create({ data: { role: roleName, permissionId: permission.id } });
+      return role;
+  };
+
+  async createUser(payload: AuthUserSignUpPayload, tx?: any) {
+    const { name, email, password, roleId, phone } = payload;
     if (!name || !password) {
       const error = new Error('name and password are required');
       (error as any).statusCode = 400;
@@ -19,7 +31,7 @@ export class AuthRepository {
       password,
     };
     if (phone) userData.phone = phone;
-    if (role) userData.role = role;
+    if (roleId) userData.roleId = roleId;
     // console.log('Creating user with data:', userData);
     const newUser = await this.prisma.user.create({
       data: userData,
@@ -43,7 +55,7 @@ export class AuthRepository {
     return await this.prisma.user.findUnique({ where: { email } });
   }
 
-  // Prisma does not support $or in the same way as Mongoose, so we use OR array
+
   async getAuthByEmailOrPhone(email?: string, phone?: string) {
     if (!email && !phone) return null;
     // Only include phone if it exists in the schema

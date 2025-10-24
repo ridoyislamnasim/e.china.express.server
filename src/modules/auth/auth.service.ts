@@ -19,7 +19,7 @@ export class AuthService {
     this.repository = repository;
   }
 
-  async authUserSignUp(payload: AuthUserSignUpPayload, session?: any) {
+  async authUserSignUp(payload: AuthUserSignUpPayload, tx?: any) {
     const { name, email, phone, password } = payload;
     if (!name || !phone || !password) {
       const error = new Error('name, phone and password are required');
@@ -39,9 +39,13 @@ export class AuthService {
         throw error;
       }
     }
+    // create Role 
+    const role = await this.repository.createCustomRoleIfNotExists('customer', tx);
+    payload.roleId = role.id;
+    
     // Add phone unique check if phone is in schema
     const hashedPassword = await bcrypt.hash(String(password), 10);
-    const user = await this.repository.createUser({ ...payload, password: hashedPassword });
+    const user = await this.repository.createUser({ ...payload, password: hashedPassword }, tx);
     return user;
   }
 
@@ -84,7 +88,7 @@ export class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      // role: user.role,
     };
     const accessToken = generateAccessToken({ userInfo: { user_info_encrypted } });
     const refreshToken = generateRefreshToken({ userInfo: { user_info_encrypted } });

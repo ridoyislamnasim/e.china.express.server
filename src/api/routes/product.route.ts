@@ -6,6 +6,11 @@ import { upload } from "../../middleware/upload/upload";
 const ProductRoute = Router();
 // ProductRoute.use(jwtAuth());
 
+// 1688 API Routes
+// ProductRoute.post("/1688/product", controller.create1688Product);
+ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails);
+ProductRoute.get("/1688/search", controller.get1688Products);
+
 ProductRoute.route("/")
   .post(upload.any(), controller.createProduct)
   .get(controller.getAllProduct);
