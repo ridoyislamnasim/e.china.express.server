@@ -32,18 +32,23 @@ const allowedOrigins = [
   'http://localhost:3010',
   'https://e-china-express-customer.vercel.app',
 ];
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps, curl, postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true, // allow cookies to be sent
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true, // ✅ cookie পাঠানো এবং নেওয়া allow করবে
+  })
+);
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     // allow requests with no origin (like mobile apps, curl, postman)
+//     if (!origin) return callback(null, true);
+//     if (allowedOrigins.indexOf(origin) !== -1) {
+//       return callback(null, true);
+//     }
+//     return callback(new Error('Not allowed by CORS'));
+//   },
+//   credentials: true, // allow cookies to be sent
+// }));
 
 
 // Mount all API routers at /api

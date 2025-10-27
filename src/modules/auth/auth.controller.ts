@@ -46,7 +46,7 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   console.log('Refresh Token:', {
     httpOnly: true,
     secure: isProduction,
-    sameSite:  'none',
+    sameSite:  isProduction ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
@@ -54,7 +54,7 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   console.log('User Cookie:', {
     httpOnly: false,
     secure: isProduction,
-    sameSite:  'none',
+    sameSite:isProduction ? 'none' : 'lax',
     maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
     path: '/',
   });
@@ -63,7 +63,7 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite:  'none',
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
     path: '/',
   });
@@ -72,7 +72,7 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite:  'none',
+    sameSite:  isProduction ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
@@ -82,7 +82,7 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   res.cookie('user', userCookieValue, {
     httpOnly: false,
     secure: isProduction,
-    sameSite:  'none',
+    sameSite:  isProduction ? 'none' : 'lax',
     maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
     path: '/',
   });
