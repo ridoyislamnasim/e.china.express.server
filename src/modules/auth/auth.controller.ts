@@ -39,8 +39,8 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    sameSite:  'none',
+    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
     path: '/',
   });
 
@@ -48,7 +48,7 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
+    sameSite:  'none',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
@@ -58,8 +58,8 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   res.cookie('user', userCookieValue, {
     httpOnly: false,
     secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    maxAge: 15 * 60 * 1000,
+    sameSite:  'none',
+    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
     path: '/',
   });
 

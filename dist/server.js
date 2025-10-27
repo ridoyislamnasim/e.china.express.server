@@ -27,7 +27,7 @@ app.use((0, cors_1.default)());
 app.use("/api/v1", index_1.default);
 // Health check or welcome endpoint
 app.get("/api", (req, res, next) => {
-    res.send("welcome to PrimeCode");
+    res.send("welcome to eChinaExpress");
 });
 // Global error handler for uncaught errors
 app.use(globalErrorHandler_1.default);

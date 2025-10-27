@@ -51,7 +51,7 @@ app.use("/api/v1", rootRouter);
 
 // Health check or welcome endpoint
 app.get("/api", (req: Request, res: Response, next: NextFunction) => {
-  res.send("welcome to PrimeCode");
+  res.send("welcome to eChinaExpress");
 });
 
 // Global error handler for uncaught errors
