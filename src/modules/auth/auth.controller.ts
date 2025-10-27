@@ -23,6 +23,7 @@ export const authUserSignUp = withTransaction(async (req: Request, res: Response
 });
 
 export const authUserSignIn = async (req: Request, res: Response, next: NextFunction) => {
+  console.log('SignIn request body:', req.body);
   try {
     const { email, phone, password } = req.body;
     const payload = { email, phone, password };
@@ -64,17 +65,15 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
     res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
     // User Cookie (readable by frontend)
-    const userCookieValue = encodeURIComponent(JSON.stringify(authResult.user || {}));
+
     const userCookieOptions: any = {
-      httpOnly: false,
-      secure: false,
+      httpOnly: true,
+      secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
       maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
       path: '/',
     };
-    if (cookieDomain) userCookieOptions.domain = cookieDomain;
-    console.log('Setting user cookie with options user:', userCookieOptions);
-    res.cookie('user', userCookieValue, userCookieOptions);
+    authResult.user = { ...authResult.user, ...userCookieOptions }; // Remove password from user object
 
     const resDoc = responseHandler(200, 'Login successfully', { user: authResult.user });
     return res.status(resDoc.statusCode).json(resDoc);
