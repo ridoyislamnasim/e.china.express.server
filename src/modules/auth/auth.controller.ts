@@ -29,66 +29,55 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
     // authService returns { accessToken, refreshToken, user }
     const authResult = await authService.authUserSignIn(payload);
 
-  const accessToken = authResult.accessToken;
-  const refreshToken = authResult.refreshToken;
+    const accessToken = authResult.accessToken;
+    const refreshToken = authResult.refreshToken;
 
-  const isProduction = config.isProduction || false; // fallback to false in local
-  console.log('Setting auth cookies for user:', isProduction);
-  console.log('Access Token:', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite:  'none',
-    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
-    path: '/',
-  });
+    const isProduction = config.isProduction || false; // fallback to false in local
+    console.log('Setting auth cookies for user:', isProduction);
 
-  // Refresh Token Cookie
-  console.log('Refresh Token:', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite:  isProduction ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/',
-  });
-  // User Cookie (readable by frontend)
-  console.log('User Cookie:', {
-    httpOnly: false,
-    secure: isProduction,
-    sameSite:isProduction ? 'none' : 'lax',
-    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
-    path: '/',
-  });
+    // Access Token Cookie
+    // Make cookies usable for local development by setting a local domain and disabling secure when not in production.
+    const cookieDomain = !isProduction ? 'localhost' : undefined;
+    console.log('Cookie Domain:', cookieDomain);
 
-  // Access Token Cookie
-  res.cookie('accessToken', accessToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
-    path: '/',
-  });
+    const accessCookieOptions: any = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
+      path: '/',
+    };
+    if (cookieDomain) accessCookieOptions.domain = cookieDomain;
+    console.log('Setting access token cookie with options access:', accessCookieOptions);
+    res.cookie('accessToken', accessToken, accessCookieOptions);
 
-  // Refresh Token Cookie
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite:  isProduction ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/',
-  });
+    // Refresh Token Cookie
+    const refreshCookieOptions: any = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    };
+    if (cookieDomain) refreshCookieOptions.domain = cookieDomain;
+    console.log('Setting refresh token cookie with options refresh:', refreshCookieOptions);
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
-  // User Cookie (readable by frontend)
-  const userCookieValue = encodeURIComponent(JSON.stringify(authResult.user || {}));
-  res.cookie('user', userCookieValue, {
-    httpOnly: false,
-    secure: isProduction,
-    sameSite:  isProduction ? 'none' : 'lax',
-    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
-    path: '/',
-  });
+    // User Cookie (readable by frontend)
+    const userCookieValue = encodeURIComponent(JSON.stringify(authResult.user || {}));
+    const userCookieOptions: any = {
+      httpOnly: false,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
+      path: '/',
+    };
+    if (cookieDomain) userCookieOptions.domain = cookieDomain;
+    console.log('Setting user cookie with options user:', userCookieOptions);
+    res.cookie('user', userCookieValue, userCookieOptions);
 
-  const resDoc = responseHandler(200, 'Login successfully', { user: authResult.user });
-  return res.status(resDoc.statusCode).json(resDoc);
+    const resDoc = responseHandler(200, 'Login successfully', { user: authResult.user });
+    return res.status(resDoc.statusCode).json(resDoc);
 
 
 
