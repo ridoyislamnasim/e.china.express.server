@@ -67,7 +67,7 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
     const userCookieValue = encodeURIComponent(JSON.stringify(authResult.user || {}));
     const userCookieOptions: any = {
       httpOnly: false,
-      secure: isProduction,
+      secure: false,
       sameSite: isProduction ? 'none' : 'lax',
       maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
       path: '/',
