@@ -34,6 +34,30 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
 
   const isProduction = config.isProduction || false; // fallback to false in local
   console.log('Setting auth cookies for user:', isProduction);
+  console.log('Access Token:', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite:  'none',
+    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
+    path: '/',
+  });
+
+  // Refresh Token Cookie
+  console.log('Refresh Token:', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite:  'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: '/',
+  });
+  // User Cookie (readable by frontend)
+  console.log('User Cookie:', {
+    httpOnly: false,
+    secure: isProduction,
+    sameSite:  'none',
+    maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
+    path: '/',
+  });
 
   // Access Token Cookie
   res.cookie('accessToken', accessToken, {
