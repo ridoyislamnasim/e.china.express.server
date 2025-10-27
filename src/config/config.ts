@@ -55,7 +55,7 @@ const config: Config = {
   uploadFolder: process.env.UPLOAD_FOLDER,
   uploadPath: process.env.UPLOAD_PATH,
   clientBaseURL: process.env.CLIENT_BASE_URL,
-    smtpService: process.env.SMTP_SERVICE || 'gmail',
+  smtpService: process.env.SMTP_SERVICE || 'gmail',
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
   // 1688 config
