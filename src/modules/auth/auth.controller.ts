@@ -14,6 +14,7 @@ export const authUserSignUp = withTransaction(async (req: Request, res: Response
     const { name, email, phone, password } = req.body;
     // console.log('Received signup request with data:', { name, email, phone, role, password });
     const payload = { name, email, phone, password };
+    console.log('SignUp request payload:', payload);
     const user = await authService.authUserSignUp(payload, tx);
     const resDoc = responseHandler(201, 'User Created successfully', user);
     res.status(resDoc.statusCode).json(resDoc);
@@ -85,6 +86,17 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
   }
 };
 
+export const authUserSignOut = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Clear the authentication cookies
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/' });
+    res.status(200).json({ message: 'Sign out successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, email, phone, password } = req.body;
@@ -106,8 +118,6 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
     next(error);
   }
 };
-
-
 
 export const authForgetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {

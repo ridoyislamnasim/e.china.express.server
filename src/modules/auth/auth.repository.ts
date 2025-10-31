@@ -36,6 +36,7 @@ export class AuthRepository {
     const newUser = await this.prisma.user.create({
       data: userData,
     });
+    console.log('User created successfully:', newUser);
     return newUser;
   }
 

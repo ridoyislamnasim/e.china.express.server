@@ -7,6 +7,7 @@ const AuthRouter = Router();
 AuthRouter
   .post('/signup', controller.authUserSignUp)
   .post('/signin', controller.authUserSignIn)
+  .post('/signout', controller.authUserSignOut)
   .post('/create', controller.createUser)
   .get('/create', controller.getUser)
   .post('/forget-password', controller.authForgetPassword)

@@ -30,6 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 // Allowlist for frontends that are allowed to make credentialed requests
 const allowedOrigins = [
   'http://localhost:3010',
+  'http://localhost:3012',
   'https://e-china-express-customer.vercel.app',
 ];
 app.use(
