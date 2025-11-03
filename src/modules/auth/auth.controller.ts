@@ -121,8 +121,11 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
 
 export const authForgetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // TODO: Implement forget password logic in AuthService
-    res.status(501).json({ message: 'Forget Password not implemented' });
+    // body theke data distrcaret
+    const { email, phone } = req.body;
+    const payload = { email, phone };
+    const user = await authService.authForgetPassword(payload);
+    res.status(200).json({ message: 'Forget Password OTP sent email successfully' });
   } catch (error) {
     next(error);
   }

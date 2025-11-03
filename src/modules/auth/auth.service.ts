@@ -7,8 +7,10 @@ import { NotFoundError } from '../../utils/errors';
 
 import { idGenerate } from '../../utils/IdGenerator';
 
-import { AuthUserSignUpPayload } from '../../types/auth.types';
+import { AuthUserSignUpPayload } from '../../types/auth/auth.types';
 import { BaseRepository } from '../base/base.repository';
+import { OTPGenerate } from '../../utils/OTPGenerate';
+import Email from '../../utils/Email';
 
 
 export class AuthService {
@@ -107,6 +109,47 @@ export class AuthService {
       (error as any).statusCode = 404;
       throw error;
     }
+    return user;
+  }
+
+  async authForgetPassword(payload: any) {
+    // check if user exists
+    const { email, phone } = payload;
+    const user = await this.repository.getAuthByEmailOrPhone(email, phone);
+    if (!user) {
+      const error = new Error('User not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    const OTP = await OTPGenerate()
+    // if email than send otp to email
+    // if phone than send otp to phone
+    if (email) {
+      // Send OTP to email
+      const emailObj = { email: user.email, name: user.name || '' };
+      console.log('Sending OTP to email:', emailObj, 'OTP:', OTP);
+      // construct Email with user and OTP, then call the appropriate instance method
+      await new Email(emailObj, OTP).sendForgetPasswordOTP();
+      // sendSignInAlert expects individual params (device, browser, location, time, detailsUrl)
+  //     await new Email(emailObj, OTP).sendSignInAlert(
+  // 'Windows',                 // device
+  // 'Chrome',                  // browser
+  // 'USA',                     // location
+  // new Date().toLocaleString(),
+  // 'https://example.com/details',
+  // [
+  //   // inline image shown in template via src="cid:loginImage"
+  //   { filename: 'login.png', path: './email-assets/login.png', cid: 'loginImage' },
+
+  //   // additional attachment (downloadable)
+  //   { filename: 'report.pdf', path: './email-assets/report.pdf' },
+  // ]
+// );
+    } else if (phone) {
+      // Send OTP to phone
+      // await this.sendOtpToPhone(phone);
+    }
+
     return user;
   }
 

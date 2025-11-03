@@ -1,7 +1,7 @@
 
 import prisma from '../../config/prismadatabase';
 import { PrismaClient } from '@prisma/client';
-import { AuthUserSignUpPayload } from '../../types/auth.types';
+import { AuthUserSignUpPayload } from '../../types/auth/auth.types';
 
 export class AuthRepository {
   private prisma = prisma;
