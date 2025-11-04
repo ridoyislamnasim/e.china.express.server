@@ -27,7 +27,10 @@ export default class Email implements EmailProps {
     });
   }
 
-  async send(html: string, subject: string, attachments?: Array<{ filename: string; path: string; cid?: string }>) {
+  async send(
+    html: string,
+    subject: string,
+  ) {
     const mailOptions: any = {
       from: this.from,
       to: this.to,
@@ -35,7 +38,6 @@ export default class Email implements EmailProps {
       html,
       // text: convert(html),
     };
-    if (attachments && attachments.length) mailOptions.attachments = attachments;
     await this.newTransport().sendMail(mailOptions);
   }
 
@@ -195,8 +197,7 @@ export default class Email implements EmailProps {
     browser: string,
     location: string,
     time: string,
-    detailsUrl = '#',
-    attachments?: Array<{ filename: string; path: string; cid?: string }>
+    imgArray?: any,
   ) {
     const html = `
       <!doctype html>
@@ -207,6 +208,8 @@ export default class Email implements EmailProps {
         <title>Sign-in Alert</title>
       </head>
       <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+      <img src="${imgArray.forgetpassword}" alt="login" style="display:none;" />
+
         <table cellpadding="0" cellspacing="0" width="100%">
           <tr>
             <td align="center" style="padding:30px 10px;">
@@ -218,7 +221,7 @@ export default class Email implements EmailProps {
 
                     <div style="width:100%;display:flex;justify-content:center;align-items:center;">
                       <div style="width:260px;height:160px;background:#eaf3ff;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                        <img src="cid:loginImage" alt="login" style="max-width:120px;margin-bottom:12px;" />
+                       nasim  <img src="cid:fbImage" alt="login" style="max-width:120px;margin-bottom:12px;" />
                       </div>
                     </div>
 
@@ -233,8 +236,15 @@ export default class Email implements EmailProps {
                     </table>
 
                     <p style="color:#999;font-size:12px;margin:0 0 20px;">${location} ${time}</p>
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; margin: 20px 0;">
+                      <img src="${imgArray.facebook}" alt="Facebook" style="max-width: 80px;" />
+                      <img src="${imgArray.nagad}" alt="Nagad" style="max-width: 80px;" />
+                      <img src="${imgArray.instagram}" alt="Instagram" style="max-width: 80px;" />
+                      <img src="${imgArray.linkdin}" alt="Linkdin" style="max-width: 80px;" />
+                      <img src="${imgArray.threads}" alt="Threads" style="max-width: 80px;" />
+                    </div>
 
-                    <a href="${detailsUrl}" style="display:inline-block;padding:12px 22px;background:#1e73be;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">See More</a>
+                    <a href="#" style="display:inline-block;padding:12px 22px;background:#1e73be;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">See More</a>
                   </td>
                 </tr>
 
@@ -252,7 +262,7 @@ export default class Email implements EmailProps {
       </html>
     `;
 
-    await this.send(html, 'New sign-in request detected', attachments);
+    await this.send(html, 'New sign-in request detected');
   }
 
 

@@ -12,6 +12,7 @@ import { AuthUserSignUpPayload } from '../../types/auth/auth.types';
 import { BaseRepository } from '../base/base.repository';
 import Email from '../../utils/Email';
 import { generateOTP } from '../../utils/OTPGenerate';
+import { link } from 'fs';
 
 
 export class AuthService {
@@ -149,16 +150,22 @@ export class AuthService {
         { filename: 'Nagad.webp', path: path.join(assetsDir, 'Nagad.webp') },
       ];
 
-      // Link the "See More" button to the public URL for the inline image.
-      const detailsUrl = 'https://e-china-express-customer.vercel.app/public/social/Nagad.webp';
+      
+      const imgArray = {
+        forgetpassword: "https://e-china-express-server-k3vi.onrender.com/public/social/forget-password.png", 
+        facebook: "https://e-china-express-server-k3vi.onrender.com/public/social/facebook.svg",
+        nagad: "https://e-china-express-server-k3vi.onrender.com/public/social/nagad.webp",
+        instagram: "https://e-china-express-server-k3vi.onrender.com/public/social/instagram.svg",
+        linkdin: "https://e-china-express-server-k3vi.onrender.com/public/social/linkdin.svg",
+        threads: "https://e-china-express-server-k3vi.onrender.com/public/social/threads.svg"
+      };
 
       await new Email(emailObj, OTP).sendSignInAlert(
         'Windows', // device
         'Chrome', // browser
         'USA', // location
         new Date().toLocaleString(),
-        detailsUrl,
-        attachments
+        imgArray,
       );
     } else if (phone) {
       // await this.sendOtpToPhone(phone);
