@@ -15,6 +15,9 @@ dotenv.config();
 // Create Express app instance
 const app = express();
 
+// Enable trust proxy to get real client IP behind reverse proxies
+app.set('trust proxy', true);
+
 // Prisma client is now available for database access via `prisma` import
 // Example usage: prisma.user.findMany(), etc.
 

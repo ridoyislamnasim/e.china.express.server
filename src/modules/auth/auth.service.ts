@@ -116,7 +116,12 @@ export class AuthService {
 
   async authForgetPassword(payload: any) {
     // check if user exists
-    const { email, phone } = payload;
+    const { email, phone,ip,
+      browser,
+      os,
+      date,
+      time,
+      geoLocation } = payload;
     const user = await this.repository.getAuthByEmailOrPhone(email, phone);
     if (!user) {
       const error = new Error('User not found');
@@ -138,19 +143,20 @@ export class AuthService {
     if (email) {
       // Send OTP to email
       const emailObj = { email: user.email, name: user.name || '' };
-      console.log('Sending OTP to email:', emailObj, 'OTP:', OTP);
-      // construct Email with user and OTP, then call the appropriate instance method
-      // await new Email(emailObj, OTP).sendForgetPasswordOTP();
-
-      // Build attachments from the public uploads folder so nodemailer can read files from disk.
-      // Use process.cwd() to resolve paths relative to the project root at runtime.
-      const assetsDir = path.join(process.cwd(), 'uploads', 'social');
-      const attachments = [
-        { filename: 'Facebook.svg', path: path.join(assetsDir, 'Facebook.svg'), cid: 'loginImage' },
-        { filename: 'Nagad.webp', path: path.join(assetsDir, 'Nagad.webp') },
-      ];
-// https://e-china-express-server-k3vi.onrender.com/
-      
+      // ip,
+      // browser,
+      // os,
+      // date,
+      // time,
+      // geoLocation  make email template dynamic data
+      const dynamicTemplateData = {
+        ip,
+        browser,
+        os,
+        date,
+        time,
+        geoLocation
+      };
       const imgArray = {
         forgetpassword: "https://e-china-express-server-k3vi.onrender.com/public/social/forget-password.png", 
         facebook: "https://e-china-express-server-k3vi.onrender.com/public/social/facebook.png",
@@ -166,10 +172,7 @@ export class AuthService {
       };
 
       await new Email(emailObj, OTP).sendSignInAlert(
-        'Windows', // device
-        'Chrome', // browser
-        'USA', // location
-        new Date().toLocaleString(),
+        dynamicTemplateData,
         imgArray,
       );
     } else if (phone) {

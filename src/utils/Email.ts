@@ -193,10 +193,14 @@ export default class Email implements EmailProps {
 
 
   async sendSignInAlert(
-    device: string,
-    browser: string,
-    location: string,
-    time: string,
+    dynamicTemplateData?: {
+      ip: string;
+      browser: string;
+      os: string;
+      date: string;
+      time: string;
+      geoLocation: string;
+    },
     imgArray?: any,
   ) {
     const html = `
@@ -300,11 +304,11 @@ export default class Email implements EmailProps {
             We noticed you signed in from a new location or device
         </h1>
 
-        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px; padding: 0 15px;">
+        <div style="display: flex; min-width: 100%; justify-content: space-between; align-items: stretch; gap: 15px;">
             <div style="
                 flex: 1; 
-                min-width: 0; 
-                padding: 20px; 
+                min-width: 30%;  
+                padding: 1%; 
                 background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.05);
@@ -312,17 +316,20 @@ export default class Email implements EmailProps {
             ">
                 <div style="margin-bottom: 15px;">
                     <img src="${imgArray.deviceIcon }" alt="Device" 
-                        style="width: 38px; height: 38px; margin: 0 auto 12px; display: block;" />
+                        style="width: 50px; height: 50px; margin: 0 auto 12px; display: block;" 
+                        onmouseover="this.style.transform='scale(1.1)'" 
+                                onmouseout="this.style.transform='scale(1)'"
+                                />
                 </div>
                 <p style="font-size: 15px; font-weight: 600; color: #222; margin: 0 0 10px;">Device</p>
-                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">Chrome 111.0.0</p>
-                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">Windows 10</p>
+                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">${dynamicTemplateData?.browser}</p>
+                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">${dynamicTemplateData?.os}</p>
             </div>
 
             <div style="
                 flex: 1; 
-                min-width: 0; 
-                padding: 20px; 
+                min-width: 30%;  
+                padding: 1%; 
                 background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.05);
@@ -330,29 +337,29 @@ export default class Email implements EmailProps {
             ">
                 <div style="margin-bottom: 15px;">
                     <img src="${imgArray.locationIcon}" alt="Location" 
-                        style="width: 38px; height: 38px; margin: 0 auto 12px; display: block;" />
+                        style="width: 50px; height: 50px; margin: 0 auto 12px; display: block;" />
                 </div>
                 <p style="font-size: 13px; font-weight: 600; color: #222; margin: 0 0 10px;">Location</p>
-                <p style="font-size: 13px; color: #222; margin: 0; line-height: 1.5;">San Francisco,</p>
-                <p style="font-size: 13px; color: #222; margin: 0; line-height: 1.5;">CA 94114</p>
+                <p style="font-size: 13px; color: #222; margin: 0; line-height: 1.5;">${dynamicTemplateData?.geoLocation}</p>
+                <p style="font-size: 13px; color: #222; margin: 0; line-height: 1.5;">${dynamicTemplateData?.ip}</p>
             </div>
 
             <div style="
                 flex: 1; 
-                min-width: 0; 
-                padding: 20px; 
+                min-width: 30%; 
+                padding: 1%; 
                 background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.05);
                 transition: transform 0.3s ease;
             ">
                 <div style="margin-bottom: 15px;">
-                    <img src="${imgArray.dateIconk}" alt="Calendar" 
-                        style="width: 38px; height: 38px; margin: 0 auto 12px; display: block;" />
+                    <img src="${imgArray.dateIcon}" alt="Calendar" 
+                        style="width: 50px; height: 50px; margin: 0 auto 12px; display: block;" />
                 </div>
                 <p style="font-size: 15px; font-weight: 600; color: #222; margin: 0 0 10px;">Date</p>
-                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">Monday, 20 March 2023</p>
-                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">11:31:10 pm</p>
+                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">${dynamicTemplateData?.date}</p>
+                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">${dynamicTemplateData?.time}</p>
             </div>
         </div>
     </div>

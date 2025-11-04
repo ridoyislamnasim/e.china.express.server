@@ -6,7 +6,7 @@ import prisma from '../../config/prismadatabase';
 
 import { Prisma, PrismaClient } from '@prisma/client';
 import { parsePostgreSQLError } from '../../utils/errorParser';
-import { sleep } from '../../utils/sleep';
+import { sleep } from '../../utils/date';
 // import { sleep } from '../../utils/sleep'; // Utility function for retry delays
 
 const withTransaction = (

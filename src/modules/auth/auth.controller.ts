@@ -1,12 +1,14 @@
 // AuthController (TypeScript version)
 import { Request, Response, NextFunction } from 'express';
 import { AuthService } from './auth.service';
-
+import geoip from "geoip-lite";
 import authRepository from './auth.repository';
 import { AuthService as AuthServiceClass } from './auth.service';
 import { responseHandler } from '../../utils/responseHandler';
 import config from '../../config/config';
 import withTransaction from '../../middleware/transactions/withTransaction';
+import { getRequestInfo } from '../../utils/requestInfo';
+import { console } from 'inspector';
 const authService = new AuthServiceClass(authRepository);
 
 export const authUserSignUp = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
@@ -120,11 +122,35 @@ export const getUser = async (req: Request, res: Response, next: NextFunction) =
 };
 
 export const authForgetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("AuthController - authForgetPassword - request body:", req.body);
   try {
     // body theke data distrcaret
     const { email, phone } = req.body;
-    const payload = { email, phone };
-    
+    // console.log("AuthController - authForgetPassword - request payload:", req);
+
+
+        // Get request information including device details
+    const requestInfo = getRequestInfo(req);
+    const { ip, browser, os, date, time, location: geoLocation } = requestInfo;
+    const payload ={
+      email, phone,
+      ip,
+      browser,
+      os,
+      date,
+      time,
+      geoLocation
+    }
+
+    console.log("========= Request Info =========");
+    console.log("IP Address:", ip);
+    console.log("Browser:", browser);       // Will show like "Chrome 111.0.0"
+    console.log("Operating System:", os);   // Will show like "Windows 10"
+    console.log("Date:", date);            // Will show like "Monday, 20 March 2023"
+    console.log("Time:", time);            // Will show like "11:31:10 pm"
+    console.log("Location:", geoLocation);
+    console.log("================================");
+
     const user = await authService.authForgetPassword(payload);
     res.status(200).json({ message: 'Forget Password OTP sent email successfully' });
   } catch (error) {
