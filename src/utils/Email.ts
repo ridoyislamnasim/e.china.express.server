@@ -70,7 +70,7 @@ export default class Email implements EmailProps {
   // }
 
   async sendForgetPasswordOTP() {
-  const html = `
+    const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -188,8 +188,8 @@ export default class Email implements EmailProps {
   `;
 
 
-  await this.send(html, "Your OTP — Reset Password (valid for 50 minutes)");
-}
+    await this.send(html, "Your OTP — Reset Password (valid for 50 minutes)");
+  }
 
 
   async sendSignInAlert(
@@ -208,49 +208,243 @@ export default class Email implements EmailProps {
         <title>Sign-in Alert</title>
       </head>
       <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
-      <img src="${imgArray.forgetpassword}" alt="login" style="display:none;" />
-
         <table cellpadding="0" cellspacing="0" width="100%">
+          
           <tr>
             <td align="center" style="padding:30px 10px;">
-              <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;">
+              <table width="550" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;">
+              <tr>
+            <td align="center" style="padding: 20px 0;">
+              <img src="${imgArray.forgetpassword}" alt="login" style="display: block; max-width: 150px; margin: 0 auto;" />
+            </td>
+          </tr>
                 <tr>
                   <td style="padding:30px 40px;text-align:center;">
-                    <h2 style="margin:0;color:#1e73be;font-size:22px;">Are you trying to log-in from new device?</h2>
-                    <p style="color:#666;margin:12px 0 24px;">Please confirm your sign-in request</p>
+                    <h2 style="
+                      margin: 0;
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #ff4a4e;
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                      background-clip: text;
+                      display: inline-block;
+                    ">Reset Your Password</h2>
+                    <p style="color:#666;margin:5px 0 8px;">Enter this code to reset your password and secure your account</p>
 
-                    <div style="width:100%;display:flex;justify-content:center;align-items:center;">
-                      <div style="width:260px;height:160px;background:#eaf3ff;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                       nasim  <img src="cid:fbImage" alt="login" style="max-width:120px;margin-bottom:12px;" />
-                      </div>
-                    </div>
+                   <div style="width: 100%; text-align: center; margin: 20px 0;">
+  <div style="
+      display: inline-flex;
+      padding: 2px 62px;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(90deg,#ff4a4e 0%,#ff7b00 50%,#ffe600 100%);
+      border-radius: 5px;
+      box-shadow: 0 10px 25px rgba(255, 107, 107, 0.2);
+  ">
+    <!-- OTP DIGITS -->
+    ${this.OTP.split("").map(num => `
+      <div style="
+        padding: 8px 12px;
+        margin: 7px;
+        border-radius: 5px;
+        display: flex;
+        font-size: 18px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 700;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+      ">
+        ${num}
+      </div>
+    `).join("")}
+  </div>
 
-                    <p style="color:#444;font-size:15px;margin:22px 0 6px;">We have detected an account sign-in request from a device we don't recognize.</p>
-                    <p style="color:#777;font-size:13px;margin:0 0 22px;">If this was you, no action is needed. If not, please secure your account.</p>
+  <p style="
+    font-size: 16px;
+    color: #444;
+    margin-top: 5px;
+    font-weight: 500;
+    padding: 5px 20px;
+    line-height: 1.5;
+  ">
+    Enter this verification code to continue
+    <br>
+    <span style="color: #888; font-size: 14px; margin-top: 8px; display: block;">
+      This code will expire in 5 minutes
+    </span>
+  </p>
+</div>
 
-                    <table cellpadding="0" cellspacing="0" style="margin:12px auto 22px;">
-                      <tr>
-                        <td style="padding:8px 14px;background:#f1f7fb;border-radius:6px;color:#333;font-size:13px;margin-right:8px;">${device} · ${browser}</td>
-                        <td style="padding:8px 14px;background:#f1f7fb;border-radius:6px;color:#333;font-size:13px;margin-left:8px;">${location}</td>
-                      </tr>
-                    </table>
 
-                    <p style="color:#999;font-size:12px;margin:0 0 20px;">${location} ${time}</p>
-                    <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; margin: 20px 0;">
-                      <img src="${imgArray.facebook}" alt="Facebook" style="max-width: 80px;" />
-                      <img src="${imgArray.nagad}" alt="Nagad" style="max-width: 80px;" />
-                      <img src="${imgArray.instagram}" alt="Instagram" style="max-width: 80px;" />
-                      <img src="${imgArray.linkdin}" alt="Linkdin" style="max-width: 80px;" />
-                      <img src="${imgArray.threads}" alt="Threads" style="max-width: 80px;" />
-                    </div>
+<div style="max-width: 550px; width: 100%; margin: 20px auto; text-align: center; padding: 0;">
+        <h1 style="
+            font-size: 16px; 
+            font-weight: bold; 
+            margin: 0 0 15px;
+            padding: 0 15px;
+            background: linear-gradient(90deg,#ff4a4e 0%,#ff7b00 50%,#ffe600 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        ">
+            We noticed you signed in from a new location or device
+        </h1>
 
-                    <a href="#" style="display:inline-block;padding:12px 22px;background:#1e73be;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">See More</a>
-                  </td>
+        <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 15px; padding: 0 15px;">
+            <div style="
+                flex: 1; 
+                min-width: 0; 
+                padding: 20px; 
+                background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                transition: transform 0.3s ease;
+            ">
+                <div style="margin-bottom: 15px;">
+                    <img src="${imgArray.deviceIcon }" alt="Device" 
+                        style="width: 38px; height: 38px; margin: 0 auto 12px; display: block;" />
+                </div>
+                <p style="font-size: 15px; font-weight: 600; color: #222; margin: 0 0 10px;">Device</p>
+                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">Chrome 111.0.0</p>
+                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">Windows 10</p>
+            </div>
+
+            <div style="
+                flex: 1; 
+                min-width: 0; 
+                padding: 20px; 
+                background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                transition: transform 0.3s ease;
+            ">
+                <div style="margin-bottom: 15px;">
+                    <img src="${imgArray.locationIcon}" alt="Location" 
+                        style="width: 38px; height: 38px; margin: 0 auto 12px; display: block;" />
+                </div>
+                <p style="font-size: 13px; font-weight: 600; color: #222; margin: 0 0 10px;">Location</p>
+                <p style="font-size: 13px; color: #222; margin: 0; line-height: 1.5;">San Francisco,</p>
+                <p style="font-size: 13px; color: #222; margin: 0; line-height: 1.5;">CA 94114</p>
+            </div>
+
+            <div style="
+                flex: 1; 
+                min-width: 0; 
+                padding: 20px; 
+                background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                transition: transform 0.3s ease;
+            ">
+                <div style="margin-bottom: 15px;">
+                    <img src="${imgArray.dateIconk}" alt="Calendar" 
+                        style="width: 38px; height: 38px; margin: 0 auto 12px; display: block;" />
+                </div>
+                <p style="font-size: 15px; font-weight: 600; color: #222; margin: 0 0 10px;">Date</p>
+                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">Monday, 20 March 2023</p>
+                <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">11:31:10 pm</p>
+            </div>
+        </div>
+    </div>
+
+
+                    
+</td>
                 </tr>
 
                 <tr>
-                  <td style="background:#0f1720;padding:18px 40px;color:#fff;text-align:center;">
-                    <p style="margin:0;font-size:12px;color:#9aa7b4;">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                  <td align="center" style="background:#0f1720;padding:30px 0;color:#fff;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center">
+                          <p style="margin:0 0 15px;font-size:12px;color:#9aa7b4;">Connect with us:</p>
+                          <div style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 20px;
+                            flex-wrap: wrap;
+                            margin: 0 auto;
+                            padding: 5px;
+                            width: auto;
+                            min-width: 200px;
+                            max-width: 300px;
+                            ">
+                            <a href="https://facebook.com/e-china-express" target="_blank" 
+                              style="text-decoration: none; transition: transform 0.3s ease; margin 0px 15px">
+                              <img src="${imgArray.facebook}" alt="Facebook" 
+                                style="max-width: 25px; margin: 0; padding: 0px 15px;" 
+                                onmouseover="this.style.transform='scale(1.1)'" 
+                                onmouseout="this.style.transform='scale(1)'" />
+                            </a>
+                            <a href="https://instagram.com/e-china-express" target="_blank" 
+                              style="text-decoration: none; transition: transform 0.3s ease; margin 0px 15px">
+                              <img src="${imgArray.instagram}" alt="Instagram" 
+                                style="max-width: 25px; margin: 0; padding: 0px 15px;" 
+                                onmouseover="this.style.transform='scale(1.1)'" 
+                                onmouseout="this.style.transform='scale(1)'" />
+                            </a>
+                            <a href="https://linkedin.com/company/e-china-express" target="_blank" 
+                              style="text-decoration: none; transition: transform 0.3s ease; margin 0px 15px ">
+                              <img src="${imgArray.linkedin}" alt="LinkedIn" 
+                                style="max-width: 25px; margin: 0; padding: 0px 15px;" 
+                                onmouseover="this.style.transform='scale(1.1)'" 
+                                onmouseout="this.style.transform='scale(1)'" />
+                            </a>
+                            <a href="https://t.me/e_china_express" target="_blank" 
+                              style="text-decoration: none; transition: transform 0.3s ease; margin 0px 15px">
+                              <img src="${imgArray.telegram}" alt="Telegram" 
+                                style="max-width: 25px; margin: 0; padding: 0px 15px;" 
+                                onmouseover="this.style.transform='scale(1.1)'" 
+                                onmouseout="this.style.transform='scale(1)'" />
+                            </a>
+                            <a href="https://wa.me/+8801XXXXXXXXX" target="_blank" 
+                              style="text-decoration: none; transition: transform 0.3s ease; margin 0px 15px">
+                              <img src="${imgArray.whatsapp}" alt="WhatsApp" 
+                                style="max-width: 25px; margin: 0; padding: 0px 15px;" 
+                                onmouseover="this.style.transform='scale(1.1)'" 
+                                onmouseout="this.style.transform='scale(1)'" />
+                            </a>
+                          </div>
+                    <div align="center" style="text-align: center; font-family: Arial, sans-serif; color: #888; font-size: 13px;">
+
+      <a href="#" 
+        style="color:#888; text-decoration:none; margin: 0 8px; transition: all 0.3s ease;"
+        onmouseover="this.style.background='linear-gradient(90deg,#ff4a4e 0%,#ff7b00 50%,#ffe600 100%)'; this.style.webkitBackgroundClip='text'; this.style.webkitTextFillColor='transparent'; this.style.backgroundClip='text'"
+        onmouseout="this.style.background='none'; this.style.webkitTextFillColor='#888'; this.style.color='#888'">
+        SUBSCRIBE
+      </a>
+
+      <span style="color:#ccc;">|</span>
+
+      <a href="#" 
+        style="color:#888; text-decoration:none; margin: 0 8px; transition: all 0.3s ease;"
+        onmouseover="this.style.background='linear-gradient(90deg,#ff4a4e 0%,#ff7b00 50%,#ffe600 100%)'; this.style.webkitBackgroundClip='text'; this.style.webkitTextFillColor='transparent'; this.style.backgroundClip='text'"
+        onmouseout="this.style.background='none'; this.style.webkitTextFillColor='#888'; this.style.color='#888'">
+        PRIVACY POLICY
+      </a>
+
+      <span style="color:#ccc;">|</span>
+
+      <a href="#" 
+        style="color:#888; text-decoration:none; margin: 0 8px; transition: all 0.3s ease;"
+        onmouseover="this.style.background='linear-gradient(90deg,#ff4a4e 0%,#ff7b00 50%,#ffe600 100%)'; this.style.webkitBackgroundClip='text'; this.style.webkitTextFillColor='transparent'; this.style.backgroundClip='text'"
+        onmouseout="this.style.background='none'; this.style.webkitTextFillColor='#888'; this.style.color='#888'">
+        WEB
+      </a>
+
+    </div>
+                    <p style="margin:0;font-size:12px;color:#9aa7b4; margin-top: 5px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
                     <p style="margin:6px 0 0;font-size:12px;color:#9aa7b4;">Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                   </td>
                 </tr>

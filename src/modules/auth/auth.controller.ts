@@ -124,6 +124,7 @@ export const authForgetPassword = async (req: Request, res: Response, next: Next
     // body theke data distrcaret
     const { email, phone } = req.body;
     const payload = { email, phone };
+    
     const user = await authService.authForgetPassword(payload);
     res.status(200).json({ message: 'Forget Password OTP sent email successfully' });
   } catch (error) {

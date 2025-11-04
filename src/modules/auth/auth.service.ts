@@ -140,7 +140,7 @@ export class AuthService {
       const emailObj = { email: user.email, name: user.name || '' };
       console.log('Sending OTP to email:', emailObj, 'OTP:', OTP);
       // construct Email with user and OTP, then call the appropriate instance method
-      await new Email(emailObj, OTP).sendForgetPasswordOTP();
+      // await new Email(emailObj, OTP).sendForgetPasswordOTP();
 
       // Build attachments from the public uploads folder so nodemailer can read files from disk.
       // Use process.cwd() to resolve paths relative to the project root at runtime.
@@ -149,15 +149,20 @@ export class AuthService {
         { filename: 'Facebook.svg', path: path.join(assetsDir, 'Facebook.svg'), cid: 'loginImage' },
         { filename: 'Nagad.webp', path: path.join(assetsDir, 'Nagad.webp') },
       ];
-
+// https://e-china-express-server-k3vi.onrender.com/
       
       const imgArray = {
         forgetpassword: "https://e-china-express-server-k3vi.onrender.com/public/social/forget-password.png", 
-        facebook: "https://e-china-express-server-k3vi.onrender.com/public/social/facebook.svg",
-        nagad: "https://e-china-express-server-k3vi.onrender.com/public/social/nagad.webp",
-        instagram: "https://e-china-express-server-k3vi.onrender.com/public/social/instagram.svg",
-        linkdin: "https://e-china-express-server-k3vi.onrender.com/public/social/linkdin.svg",
-        threads: "https://e-china-express-server-k3vi.onrender.com/public/social/threads.svg"
+        facebook: "https://e-china-express-server-k3vi.onrender.com/public/social/facebook.png",
+        youtube: "https://e-china-express-server-k3vi.onrender.com/public/social/youtube.png",
+        instagram: "https://e-china-express-server-k3vi.onrender.com/public/social/instagram.png",
+        linkedin: "https://e-china-express-server-k3vi.onrender.com/public/social/linkedin.png",
+        telegram: "https://e-china-express-server-k3vi.onrender.com/public/social/telegram.png",
+        whatsapp: "https://e-china-express-server-k3vi.onrender.com/public/social/whatsapp.png",
+
+        locationIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/destination.png",
+        deviceIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/video-lesson.png",
+        dateIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/time-management.png",
       };
 
       await new Email(emailObj, OTP).sendSignInAlert(
