@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import path from "path";
 
 import rootRouter from "./api/index";
 import prisma from "./config/prismadatabase";
@@ -26,6 +27,10 @@ app.use(express.json());
 // Parse URL-encoded data
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploads directory as public static files at /public
+// Example: http://localhost:3000/public/social/<your-file>
+app.use("/public", express.static(path.join(__dirname, "..", "uploads")));
+
 // Enable Cross-Origin Resource Sharing
 // Allowlist for frontends that are allowed to make credentialed requests
 const allowedOrigins = [
@@ -39,17 +44,6 @@ app.use(
     credentials: true, // ✅ cookie পাঠানো এবং নেওয়া allow করবে
   })
 );
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     // allow requests with no origin (like mobile apps, curl, postman)
-//     if (!origin) return callback(null, true);
-//     if (allowedOrigins.indexOf(origin) !== -1) {
-//       return callback(null, true);
-//     }
-//     return callback(new Error('Not allowed by CORS'));
-//   },
-//   credentials: true, // allow cookies to be sent
-// }));
 
 
 // Mount all API routers at /api

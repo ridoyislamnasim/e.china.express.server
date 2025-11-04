@@ -3,14 +3,15 @@ import authRepository, { AuthRepository } from './auth.repository';
 import bcrypt from 'bcryptjs';
 import { generateAccessToken, generateRefreshToken } from '../../utils/jwt';
 import { NotFoundError } from '../../utils/errors';
+import path from 'path';
 // import { RoleRepository } from '../role/';
 
 import { idGenerate } from '../../utils/IdGenerator';
 
 import { AuthUserSignUpPayload } from '../../types/auth/auth.types';
 import { BaseRepository } from '../base/base.repository';
-import { OTPGenerate } from '../../utils/OTPGenerate';
 import Email from '../../utils/Email';
+import { generateOTP } from '../../utils/OTPGenerate';
 
 
 export class AuthService {
@@ -44,7 +45,7 @@ export class AuthService {
     // create Role 
     const role = await this.repository.createCustomRoleIfNotExists('customer', tx);
     payload.roleId = role.id;
-    
+
     // Add phone unique check if phone is in schema
     const hashedPassword = await bcrypt.hash(String(password), 10);
     const user = await this.repository.createUser({ ...payload, password: hashedPassword }, tx);
@@ -121,7 +122,16 @@ export class AuthService {
       (error as any).statusCode = 404;
       throw error;
     }
-    const OTP = await OTPGenerate()
+    const lockStatus: any = await this.repository.isOTPLocked(user.id);
+    if (lockStatus && lockStatus.locked) {
+      const unlockTime = new Date(lockStatus.unlockTime).toLocaleString();
+      const error = new Error(`Too many failed OTP attempts. Try again after ${unlockTime}`);
+      (error as any).statusCode = 429;
+      throw error;
+    }
+
+    const OTP = await generateOTP()
+
     // if email than send otp to email
     // if phone than send otp to phone
     if (email) {
@@ -130,27 +140,66 @@ export class AuthService {
       console.log('Sending OTP to email:', emailObj, 'OTP:', OTP);
       // construct Email with user and OTP, then call the appropriate instance method
       await new Email(emailObj, OTP).sendForgetPasswordOTP();
-      // sendSignInAlert expects individual params (device, browser, location, time, detailsUrl)
-  //     await new Email(emailObj, OTP).sendSignInAlert(
-  // 'Windows',                 // device
-  // 'Chrome',                  // browser
-  // 'USA',                     // location
-  // new Date().toLocaleString(),
-  // 'https://example.com/details',
-  // [
-  //   // inline image shown in template via src="cid:loginImage"
-  //   { filename: 'login.png', path: './email-assets/login.png', cid: 'loginImage' },
 
-  //   // additional attachment (downloadable)
-  //   { filename: 'report.pdf', path: './email-assets/report.pdf' },
-  // ]
-// );
+      // Build attachments from the public uploads folder so nodemailer can read files from disk.
+      // Use process.cwd() to resolve paths relative to the project root at runtime.
+      const assetsDir = path.join(process.cwd(), 'uploads', 'social');
+      const attachments = [
+        { filename: 'Facebook.svg', path: path.join(assetsDir, 'Facebook.svg'), cid: 'loginImage' },
+        { filename: 'Nagad.webp', path: path.join(assetsDir, 'Nagad.webp') },
+      ];
+
+      // Link the "See More" button to the public URL for the inline image.
+      const detailsUrl = 'https://e-china-express-customer.vercel.app/public/social/login.png';
+
+      await new Email(emailObj, OTP).sendSignInAlert(
+        'Windows', // device
+        'Chrome', // browser
+        'USA', // location
+        new Date().toLocaleString(),
+        detailsUrl,
+        attachments
+      );
     } else if (phone) {
-      // Send OTP to phone
       // await this.sendOtpToPhone(phone);
     }
 
+    // otp save to db with user id and expiry time
+    await this.repository.saveOTP(user.id, OTP);
+
     return user;
+  }
+
+  async authForgetPasswordVarification(payload: any) {
+    const { email, phone, otp, newPassword } = payload;
+
+    // Basic validation
+    if (!otp || !newPassword) {
+      const error = new Error('otp and newPassword are required');
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
+    const user = await this.repository.getAuthByEmailOrPhone(email, phone);
+    if (!user) {
+      const error = new Error('User not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    // Verify OTP via repository helper
+    const verifyResult: any = await this.repository.verifyOTP(user.id, otp);
+    if (!verifyResult || !verifyResult.success) {
+      const reason = verifyResult?.reason || 'OTP verification failed';
+      const error = new Error(reason === 'expired' ? 'OTP expired' : reason === 'invalid' ? 'Invalid OTP' : reason);
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
+    // OTP verified — hash and update the password
+    const hashed = await bcrypt.hash(String(newPassword), 10);
+    const newUser = await this.repository.updateUserPassword(user.id, hashed);
+    return newUser;
   }
 
   async updateUser(userId: number, payloadFiles: any, payload: any, session?: any) {

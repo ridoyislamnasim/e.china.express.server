@@ -134,7 +134,10 @@ export const authForgetPassword = async (req: Request, res: Response, next: Next
 export const authForgetPasswordVarification = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // TODO: Implement forget password verification logic in AuthService
-    res.status(501).json({ message: 'Forget Password verification not implemented' });
+    const { email, phone, otp, newPassword } = req.body;
+    const payload = { email, phone, otp, newPassword };
+    const user = await authService.authForgetPasswordVarification(payload);
+    res.status(200).json({ message: 'Forget Password verification successful', user });
   } catch (error) {
     next(error);
   }

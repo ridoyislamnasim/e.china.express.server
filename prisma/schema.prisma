@@ -33,6 +33,7 @@ model User {
   addressId         Int?
   address           Address?        @relation(fields: [addressId], references: [id])
   buyNowCarts       BuyNowCart[]
+  otp               OTP[]
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 }
@@ -469,6 +470,18 @@ model BuyNowCart {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 }
+
+model OTP {
+  id        Int      @id @default(autoincrement())
+  userRef      User?    @relation(fields: [userRefId], references: [id])
+  userRefId    Int?
+  otpHash   String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
 
 model Campaign {
   id          Int      @id @default(autoincrement())
