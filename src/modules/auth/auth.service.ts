@@ -150,7 +150,7 @@ export class AuthService {
       ];
 
       // Link the "See More" button to the public URL for the inline image.
-      const detailsUrl = 'https://e-china-express-customer.vercel.app/public/social/login.png';
+      const detailsUrl = 'https://e-china-express-customer.vercel.app/public/social/Nagad.webp';
 
       await new Email(emailObj, OTP).sendSignInAlert(
         'Windows', // device
