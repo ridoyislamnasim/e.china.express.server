@@ -13,6 +13,7 @@ import { slugGenerate } from '../../utils/slugGenerate';
 import config from '../../config/config';
 import e1688 from '../../utils/e1688';
 import process1688ProductDetail from '../../utils/1688Processedata';
+import { process1688ProductDetailTest } from '../../utils/1688ProcessedataTest';
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
 
 export class ProductService {
@@ -54,6 +55,55 @@ console.log('Fetching 1688 product details for productId:', productId);
 
     // Process the external payload into a compact product shape
     const processed = process1688ProductDetail(responseData);
+
+    // Preserve the original API metadata (like success/code) and place
+    // the processed product under result.result so controller response
+    // will become: { data: { result: { ...meta..., result: { ...product } } } }
+    const apiMeta = responseData?.result ? { ...responseData.result } : {};
+    const normalized = {
+      result: {
+        result: processed,
+        responseData:responseData
+      },
+    };
+
+    return processed;
+  } catch (error) {
+    // console.error("❌ Error fetching 1688 product details:", error.message);
+    throw error;
+  }
+
+  }
+
+    async process1688ProductDetailTest(payload: any) {
+  try {
+    const { productId } = payload; // your product / offer ID
+console.log('Fetching 1688 product details for productId:', productId);
+  // === Setup Required Values (from config with sensible fallbacks) ===
+  const appSecret = config.e1688AppSecret || "U1IH8T6UoQxf";
+  const access_token = config.e1688AccessToken || "793b6857-359d-494b-bc2b-e3b37bc87c12";
+  const offerId = productId || config.e1688DefaultOfferId || "714232053871";
+
+  // === API endpoint & URI path ===
+  const apiBaseUrl = config.e1688ApiBaseUrl || "https://gw.open.1688.com/openapi/";
+  const uriPath = config.e1688UriPath || "param2/1/com.alibaba.fenxiao.crossborder/product.search.queryProductDetail/9077165";
+
+    // === Request parameters ===
+    const offerDetailParam = JSON.stringify({
+      offerId,
+      country: "en",
+    });
+
+    const params: Record<string, string> = {
+      access_token,
+      offerDetailParam,
+    };
+
+    // Use shared util to call 1688 API (generates signature and sends request)
+    const responseData = await e1688.call1688(apiBaseUrl, uriPath, params, appSecret);
+
+    // Process the external payload into a compact product shape
+    const processed = process1688ProductDetailTest(responseData);
 
     // Preserve the original API metadata (like success/code) and place
     // the processed product under result.result so controller response

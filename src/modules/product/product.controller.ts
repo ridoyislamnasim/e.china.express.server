@@ -18,6 +18,16 @@ class ProductController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+  get1688ProductDetailsTest = catchError(async (req: Request, res: Response) => {
+    const payload = {
+      productId: req.params.productId,
+    };
+    const productResult = await ProductService.process1688ProductDetailTest(payload);
+    console.log("productResult", productResult);
+    const resDoc = responseHandler(200, 'Product Details Retrieved Successfully', productResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
   get1688Products = catchError(async (req: Request, res: Response) => {
     const payload = {
       q: typeof req.query.q === 'string' ? req.query.q : String(req.query.q ?? ''),
