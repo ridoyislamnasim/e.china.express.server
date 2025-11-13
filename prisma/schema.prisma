@@ -28,6 +28,8 @@ model User {
   orders            Order[]
   productReviews    ProductReview[]
   managedWarehouses Warehouse[]     @relation("UserManagedWarehouses")
+  createdWarehouses Warehouse[]     @relation("UserCreatedWarehouses")
+  updatedWarehouses Warehouse[]     @relation("UserUpdatedWarehouses")
   roleId            Int?
   role              Role?           @relation(fields: [roleId], references: [id])
   addressId         Int?
@@ -163,17 +165,48 @@ model ShippingMethod {
 model Warehouse {
   id           Int      @id @default(autoincrement())
   name         String
+  totalCapacity Float?  @default(0)
+  usedCapacity  Float?   @default(0)
+  remaining    Float?   @default(0)
   location     String?
   managerRef   User?    @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
   managerRefId Int?
   contact      String?
   status       Boolean  @default(true)
+  createdBy    Int?
+  createdByRef User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
+  updatedBy    Int?
+  updatedByRef User?    @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
   toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
   inventories            Inventory[]
+  countries             Country[] 
+}
+
+
+model WarehouseSpace {
+  id           Int            @id @default(autoincrement()) // SERIAL PK
+  sectionId    Int
+  // section      WarehouseSection @relation(fields: [sectionId], references: [id])
+
+  // inventoryType InventoryType
+
+  spaceCode    String         @db.VarChar(50)
+  spaceName    String         @db.VarChar(255)
+  spaceNumber  Int
+
+  capacity     Decimal        @db.Decimal(10, 2)
+  totalCapacity Decimal       @db.Decimal(10, 2)
+  currentUsage Decimal        @db.Decimal(10, 2)
+
+  // status       SpaceStatus
+
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+
+  @@map("warehouse_spaces") // ঐচ্ছিক: টেবিল নাম কাস্টমাইজ করতে
 }
 
 model SubChildCategory {
@@ -546,3 +579,126 @@ model Banner {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+
+model RateShippingMethod {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?   // optional field, nullable
+  createdAt   DateTime @default(now())
+}
+
+
+
+model Country {
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  warehouseId        Int?
+  isoCode            String
+  status             Boolean              @default(true)
+  warehouse          Warehouse?           @relation(fields: [warehouseId], references: [id])
+  createdAt          DateTime             @default(now())
+  exportCombinations CountryCombination[] @relation("ExportCountry")
+  importCombinations CountryCombination[] @relation("ImportCountry")
+
+  @@map("countries")
+}
+
+model RateSippingMethod {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  rate        Rate[]
+}
+
+model Categorie {
+  id             Int             @id @default(autoincrement())
+  name           String
+  shCategoryCode String
+  description    String?
+  created_at     DateTime        @default(now())
+  subCategories  SubCategories[]
+  rateProduct    RateProduct[]
+}
+
+model SubCategories {
+  id                Int           @id @default(autoincrement())
+  categoryId        Int?
+  name              String
+  shSubCategoryCode String
+  description       String?
+  created_at        DateTime      @default(now())
+  categorie         Categorie?    @relation(fields: [categoryId], references: [id])
+  subHeadings       SubHeadings[]
+  rateProduct       RateProduct[]
+}
+
+model SubHeadings {
+  id               Int            @id @default(autoincrement())
+  subcategoryId    Int?
+  name             String
+  hsSubHeadingCode String
+  description      String?
+  created_at       DateTime       @default(now())
+  subCategoriesId  SubCategories? @relation(fields: [subcategoryId], references: [id])
+  rateProduct      RateProduct[]
+}
+
+model RateProduct {
+  id            Int            @id @default(autoincrement())
+  categoryId    Int?
+  subcategoryId Int?
+  subheadingId  Int?
+  name          String
+  shCode        String
+  status        Boolean        @default(true)
+  created_at    DateTime       @default(now())
+  categorie     Categorie?     @relation(fields: [categoryId], references: [id])
+  subCategories SubCategories? @relation(fields: [subcategoryId], references: [id])
+  subHeadings   SubHeadings?   @relation(fields: [subheadingId], references: [id])
+  rate          Rate[]
+}
+
+model RateWeightCategorie {
+  id         Int      @id @default(autoincrement())
+  label      String
+  min_weight Decimal
+  max_weight Decimal
+  created_at DateTime @default(now())
+  rate       Rate[]
+}
+
+model CountryCombination {
+  id              Int      @id @default(autoincrement())
+  exportCountryId Int
+  importCountryId Int
+  route_name      String
+  status          Status
+  exportCountry   Country  @relation("ExportCountry", fields: [exportCountryId], references: [id])
+  importCountry   Country  @relation("ImportCountry", fields: [importCountryId], references: [id])
+  created_at      DateTime @default(now())
+  rate            Rate[]
+}
+
+model Rate {
+  id                   Int      @id @default(autoincrement())
+  countryCombinationId Int
+  productId            Int
+  shippingMethodId     Int
+  weightCategoryId     Int
+  price                Decimal  @db.Decimal(10, 2)
+  created_at           DateTime @default(now())
+
+  // Relations
+  countryCombination CountryCombination  @relation(fields: [countryCombinationId], references: [id])
+  product            RateProduct         @relation(fields: [productId], references: [id])
+  shippingMethod     RateSippingMethod   @relation(fields: [shippingMethodId], references: [id])
+  weightCategory     RateWeightCategorie @relation(fields: [weightCategoryId], references: [id])
+}
+
+enum Status {
+  active
+  inactive
+}
+

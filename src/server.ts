@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import path from "path";
+const cookieParser = require("cookie-parser");
 
 import rootRouter from "./api/index";
 import prisma from "./config/prismadatabase";
@@ -18,8 +19,8 @@ const app = express();
 // Enable trust proxy to get real client IP behind reverse proxies
 app.set('trust proxy', true);
 
-// Prisma client is now available for database access via `prisma` import
-// Example usage: prisma.user.findMany(), etc.
+app.use(cookieParser());
+
 
 // HTTP request logger middleware
 app.use(morgan("dev"));

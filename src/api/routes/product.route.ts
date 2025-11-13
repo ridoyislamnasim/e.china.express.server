@@ -7,8 +7,10 @@ const ProductRoute = Router();
 // ProductRoute.use(jwtAuth());
 
 // 1688 API Routes
-// ProductRoute.post("/1688/product", controller.create1688Product);
-ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails);
+// getCategoryTranslation
+ProductRoute.post("/1688/category-translation", controller.getCategoryTranslation);
+ProductRoute.get("/1688/product/filter", controller.get1688ProductFilter); //for production use
+ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails); // for production use
 ProductRoute.get("/1688/details/test/:productId", controller.get1688ProductDetailsTest);
 ProductRoute.get("/1688/search", controller.get1688Products);
 

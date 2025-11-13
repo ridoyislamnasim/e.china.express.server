@@ -3,10 +3,88 @@ import catchError from '../../middleware/errors/catchError';
 import { responseHandler } from '../../utils/responseHandler';
 import withTransaction from '../../middleware/transactions/withTransaction';
 import ProductService from './product.service';
-import e1688Service from './e1688.service';
+// import e1688Service from './e1688.service';
 import { ensureNullIfUndefined } from '../../utils/helpers';
 
+const APPKEY = "9077165"; // Replace with your actual App Key
+const APPSECRET = "U1IH8T6UoQxf"; // Replace with your actual App Secret
+const ACCESS_TOKEN = "793b6857-359d-494b-bc2b-e3b37bc87c12"; // Replace with valid access token
+
+interface CategoryTranslationRequest {
+  cateName: string;
+  language: string;
+  outMemberId?: string;
+}
+import axios from 'axios';
+import CryptoJS from 'crypto-js';
 class ProductController {
+
+  getCategoryTranslation = async (req: Request, res: Response) => {
+    try {
+      const { cateName, language }: CategoryTranslationRequest = req.body; // outMemberId সরিয়ে দিলাম
+
+      const _aop_timestamp = Date.now().toString();
+      const uriPath = `param2/1/com.alibaba.fenxiao.crossborder/category.translation.getByKeyword/${APPKEY}`;
+
+      // Application-level params (outMemberId ছাড়া)
+      const appParams: Record<string, string> = {
+        cateName,
+        language,
+        // outMemberId নেই = membership ID ছাড়াই কাজ করবে
+      };
+
+      // Signature generate
+      const sortedKeys = Object.keys(appParams).sort();
+      let paramStr = "";
+      sortedKeys.forEach((key) => {
+        paramStr += key + appParams[key];
+      });
+
+      const stringToSign = uriPath + paramStr;
+      const hash = CryptoJS.HmacSHA1(stringToSign, APPSECRET);
+      const _aop_signature = hash.toString(CryptoJS.enc.Hex).toUpperCase();
+
+      // Request body (outMemberId ছাড়া)
+      const requestBody = { cateName, language };
+
+      const url = `https://gw.open.1688.com/openapi/${uriPath}`;
+
+      const response = await axios.post(url, requestBody, {
+        headers: {
+          "Content-Type": "application/json",
+          "_aop_timestamp": _aop_timestamp,
+          "_aop_signature": _aop_signature,
+        },
+        params: {
+          access_token: ACCESS_TOKEN,
+        },
+      });
+
+      res.json(response.data);
+
+    } catch (err: any) {
+      console.error("Error:", err.response?.data || err.message);
+      res.status(500).json({ error: err.response?.data || err.message });
+    }
+  };
+
+  get1688ProductFilter = catchError(async (req: Request, res: Response) => {
+    console.log("Request Body:", req.body);
+    console.log("Request Params:", req.params);
+    console.log("Request Query:", req.query);
+    const payload = {
+      keyword: req.query.keyword,
+      beginPage: req.query.beginPage,
+      pageSize: req.query.pageSize,
+      categoryId: req.query.categoryId,
+      categoryIdList: req.query.categoryIdList,
+      priceEnd: req.query.priceEnd,
+      priceStart: req.query.priceStart
+    };
+    const result = await ProductService.get1688ProductFilter(payload);
+    const resDoc = responseHandler(200, '1688 Product Filter created successfully', result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
   // 1688 API Controllers
   get1688ProductDetails = catchError(async (req: Request, res: Response) => {
     const payload = {
@@ -34,8 +112,8 @@ class ProductController {
       page: typeof req.query.page === 'string' ? req.query.page : String(req.query.page ?? '1'),
       limit: typeof req.query.limit === 'string' ? req.query.limit : String(req.query.limit ?? '20'),
     };
-    const result = await e1688Service.search1688Products(payload);
-    const resDoc = responseHandler(200, '1688 Products retrieved successfully', result);
+    // const result = await e1688Service.search1688Products(payload);
+    const resDoc = responseHandler(200, '1688 Products retrieved successfully',);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
@@ -100,19 +178,19 @@ class ProductController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-//   getAllProductForHomePage = catchError(async (req: Request, res: Response) => {
-//     const payload = {
-//       limit: req.query.limit,
-//       viewType: req.query.viewType,
-//     };
-//     const productResult = await ProductService.getAllProductForHomePage(payload);
-//     const data = {
-//       result: productResult?.product,
-//       category: productResult?.subCategory,
-//     };
-//     const resDoc = responseHandler(200, 'Get All Products', data);
-//     res.status(resDoc.statusCode).json(resDoc);
-//   });
+  //   getAllProductForHomePage = catchError(async (req: Request, res: Response) => {
+  //     const payload = {
+  //       limit: req.query.limit,
+  //       viewType: req.query.viewType,
+  //     };
+  //     const productResult = await ProductService.getAllProductForHomePage(payload);
+  //     const data = {
+  //       result: productResult?.product,
+  //       category: productResult?.subCategory,
+  //     };
+  //     const resDoc = responseHandler(200, 'Get All Products', data);
+  //     res.status(resDoc.statusCode).json(resDoc);
+  //   });
 
   getRelatedProduct = catchError(async (req: Request, res: Response) => {
     const payload = {
@@ -176,45 +254,45 @@ class ProductController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-    getProductViewCount = catchError(async (req: Request, res: Response) => {
+  getProductViewCount = catchError(async (req: Request, res: Response) => {
     let payload = {
       slug: req.params.slug,
     };
     const product = await ProductService.getProductViewCount(payload);
-    const resDoc = responseHandler(200, 'Products view count successfully' );
+    const resDoc = responseHandler(200, 'Products view count successfully');
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-    getNewArrivalsProductWithPagination = catchError(async (req: Request, res: Response) => {
+  getNewArrivalsProductWithPagination = catchError(async (req: Request, res: Response) => {
     let payload = {
       page: Number(req.query.page ?? 1),
       limit: Number(req.query.limit ?? 10),
       order: req.query.order,
     };
     const product = await ProductService.getNewArrivalsProductWithPagination(payload);
-    const resDoc = responseHandler(200, 'Products retrieved successfully', product );
+    const resDoc = responseHandler(200, 'Products retrieved successfully', product);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-      getTrendingProductsWithPagination = catchError(async (req: Request, res: Response) => {
+  getTrendingProductsWithPagination = catchError(async (req: Request, res: Response) => {
     let payload = {
       page: Number(req.query.page ?? 1),
       limit: Number(req.query.limit ?? 10),
       order: req.query.order,
     };
     const product = await ProductService.getTrendingProductsWithPagination(payload);
-    const resDoc = responseHandler(200, 'Products retrieved successfully', product );
+    const resDoc = responseHandler(200, 'Products retrieved successfully', product);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-      getComingSoonProductWithPagination = catchError(async (req: Request, res: Response) => {
+  getComingSoonProductWithPagination = catchError(async (req: Request, res: Response) => {
     let payload = {
       page: Number(req.query.page ?? 1),
       limit: Number(req.query.limit ?? 10),
       order: req.query.order,
     };
     const product = await ProductService.getComingSoonProductWithPagination(payload);
-    const resDoc = responseHandler(200, 'Products retrieved successfully', product );
+    const resDoc = responseHandler(200, 'Products retrieved successfully', product);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
@@ -256,7 +334,7 @@ class ProductController {
         barcode: req.body.barcode,
       };
 
-      
+
       await ProductService.updateProduct(slug, payloadFiles, payload, session);
       const resDoc = responseHandler(201, 'Product Update successfully');
       res.status(resDoc.statusCode).json(resDoc);
@@ -269,13 +347,13 @@ class ProductController {
     }
   });
 
-//   updateProductStatus = catchError(async (req: Request, res: Response) => {
-//     const id = req.params.id;
-//     const status = req.query.status;
-//     await ProductService.updateProductStatus(id, status);
-//     const resDoc = responseHandler(201, 'Product Status Update successfully');
-//     res.status(resDoc.statusCode).json(resDoc);
-//   });
+  //   updateProductStatus = catchError(async (req: Request, res: Response) => {
+  //     const id = req.params.id;
+  //     const status = req.query.status;
+  //     await ProductService.updateProductStatus(id, status);
+  //     const resDoc = responseHandler(201, 'Product Status Update successfully');
+  //     res.status(resDoc.statusCode).json(resDoc);
+  //   });
 
   deleteProduct = withTransaction(async (req: Request, res: Response, next: NextFunction, session: any) => {
     const slug = req.params.slug;

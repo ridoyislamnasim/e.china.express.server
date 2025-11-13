@@ -12,6 +12,7 @@ import prisma from '../../config/prismadatabase';
 import { slugGenerate } from '../../utils/slugGenerate';
 import config from '../../config/config';
 import e1688 from '../../utils/e1688';
+import call168822 from '../../utils/e1688 copy';
 import process1688ProductDetail from '../../utils/1688Processedata';
 import { process1688ProductDetailTest } from '../../utils/1688ProcessedataTest';
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
@@ -23,6 +24,60 @@ export class ProductService {
   ) {
     this.repository = repository;
 
+  }
+
+
+  async get1688ProductFilter(payload: any) {
+    try {
+      // Implement your filtering logic here based on the payload
+      // For example, you might want to call a specific 1688 API endpoint with filter criteria
+      const filterCriteria = payload.filterCriteria || {};
+
+      console.log('Filter Criteria:', payload);
+      const {keyword, beginPage, pageSize, categoryId, categoryIdList, priceEnd, priceStart } = payload;
+
+      // keyword, beginPage, pageSize, are required
+      if (!keyword || !beginPage || !pageSize) {
+        throw new Error("Missing required parameters: keyword, beginPage, or pageSize");
+      }
+
+      // Use config values
+      const appSecret = config.e1688AppSecret || '';
+      const access_token = config.e1688AccessToken || '';
+      const apiBaseUrl = config.e1688ApiBaseUrl || 'https://gw.open.1688.com/openapi/'; 
+      // Allow separate search uri path via env, otherwise use commonly expected search path
+      const uriPath = 'param2/1/com.alibaba.fenxiao.crossborder/product.search.keywordQuery/9077165';
+      // Build a single request that includes both the compact `offerQueryParam`
+      // JSON string and the traditional keyword/pagination fields. This makes
+      // the request compatible with both API styles and keeps a single call
+      // path (so we "maintain with one" and include both formats).
+      const offerBody: Record<string, any> = {
+        keyword: keyword || '',
+        beginPage: Number(beginPage) || 1,
+        pageSize: Number(pageSize) || 20,
+        country: 'en',
+      };
+      if (categoryId) offerBody.categoryId = String(categoryId);
+      if (categoryIdList) offerBody.categoryIdList = String(categoryIdList);
+      if (priceStart !== undefined) offerBody.priceStart = priceStart;
+      if (priceEnd !== undefined) offerBody.priceEnd = priceEnd;
+
+      const offerQueryParam = JSON.stringify(offerBody);
+
+      // Build params that include both the offerQueryParam (JSON string) and
+      // the separate keyword/pagination fields as strings. The helper expects
+      // Record<string,string> so stringify numeric fields.
+      const unifiedParams = {
+        access_token,
+        offerQueryParam,
+      } as Record<string, string>;
+
+      console.log('Unified Filter Params:', unifiedParams);
+      const data = await call168822.call168822(apiBaseUrl, uriPath, unifiedParams, appSecret);
+      return data;
+    } catch (error) {
+      throw error;
+    }
   }
 
   // 1688 API Service

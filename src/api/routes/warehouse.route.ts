@@ -1,13 +1,13 @@
-// import { Router } from "express";
-// // import controller from "../../modules/warehouse/warehouse.controller";
-// // import jwtAuth from "../../middleware/auth/jwtAuth";
-// import { upload } from "../../middleware/upload/upload";
+import { Router } from "express";
+import controller from "../../modules/warehouse/warehouse.controller";
+import jwtAuth from "../../middleware/auth/jwtAuth";
+import { upload } from "../../middleware/upload/upload";
 
-// const WarehouseRoute = Router();
-// // WarehouseRoute.use(jwtAuth());
+const WarehouseRoute = Router();
+// WarehouseRoute.use(jwtAuth());
 
-// WarehouseRoute.route("/")
-//   .post(controller.createWarehouse)
+WarehouseRoute.route("/")
+  .post(jwtAuth(), controller.createWarehouse)
 //   .get(controller.getAllWarehouse);
 
 // WarehouseRoute.get("/pagination", controller.getWarehouseWithPagination);
@@ -19,4 +19,4 @@
 
 // WarehouseRoute.put("/status/:id", controller.updateWarehouseStatus);
 
-// export default WarehouseRoute;
+export default WarehouseRoute;
