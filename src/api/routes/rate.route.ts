@@ -1,19 +1,19 @@
 import { Router } from "express";
 // import controller from "../../modules/order/order.controller";
-import * as controller from "../../modules/rate/rate.controller";
+import controller from "../../modules/rate/rate.controller";
 
 // import jwtAuth from "../../middleware/auth/jwtAuth";
 import { upload } from "../../middleware/upload/upload";
+import countryRoute from "./country.route";
 
 const rateRoute = Router();
 // OrderRoute.use(jwtAuth());
 
-rateRoute.post('/',controller.createRate)
-// countryRoute.route("/")
-//     .post(controller.createOrder)
-//     .get(controller.getAllOrder);
+rateRoute.route("/")
+    .post(controller.createRate)
+    .get(controller.getAllRate);
 
-// countryRoute.route("/order-product").get(controller.getOrderProducts);
+rateRoute.route("/find").get(controller.findRateByCriteria);
 // countryRoute.route("/admin").post(controller.createAdminOrder);
 // countryRoute.route("/user/:id").get(controller.getUserAllOrder);
 // countryRoute.route("/track").get(controller.orderTracking);

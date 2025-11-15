@@ -16,6 +16,7 @@ import rateWeightCategoriesRoute from "./routes/rateWaightCategories.route";
 import rateProductRoute from "./routes/rateProduct.route";
 import rateRoute from "./routes/rate.route";
 import WarehouseRoute from "./routes/warehouse.route";
+import Category1688Router from "./routes/category1688.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -23,6 +24,7 @@ const rootRouter = Router();
 rootRouter.use("/example", exampleRouter);
 rootRouter.use("/auth", authRouter);
 rootRouter.use("/warehouse", WarehouseRoute);
+rootRouter.use("/1688/category", Category1688Router);
 
 
 rootRouter.use("/category", CategoryRouter);

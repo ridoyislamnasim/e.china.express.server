@@ -91,7 +91,7 @@ class ProductController {
       productId: req.params.productId,
     };
     const productResult = await ProductService.get1688ProductDetails(payload);
-    console.log("productResult", productResult);
+    // console.log("productResult", productResult);
     const resDoc = responseHandler(200, 'Product Details Retrieved Successfully', productResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
@@ -101,7 +101,7 @@ class ProductController {
       productId: req.params.productId,
     };
     const productResult = await ProductService.process1688ProductDetailTest(payload);
-    console.log("productResult", productResult);
+    // console.log("productResult", productResult);
     const resDoc = responseHandler(200, 'Product Details Retrieved Successfully', productResult);
     res.status(resDoc.statusCode).json(resDoc);
   });

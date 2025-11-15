@@ -12,16 +12,6 @@ export class ShippingMethodService {
     this.repository = repository;
   }
 
-  // async createUser(payload: any, session?: any) {
-  //   const { name, email, password } = payload;
-  //   if (!name || !password) {
-  //     const error = new Error('name and password are required');
-  //     (error as any).statusCode = 400;
-  //     throw error;
-  //   }
-  //   const user = await this.repository.createUser({ name, email, password });
-  //   return user;
-  // }
   async createShippingMethod(payload: any): Promise<any> {
     const { name, description} = payload;
 
@@ -40,6 +30,11 @@ export class ShippingMethodService {
 
     const shippingMethod = await this.repository.createShippingMethod(shippingMethodPayload);
     return  shippingMethod;
+  }
+
+  async getShippingMethod(): Promise<any> {
+    const shippingMethods = await this.repository.getShippingMethod();
+    return shippingMethods;
   }
 
 }

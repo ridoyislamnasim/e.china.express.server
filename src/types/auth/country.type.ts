@@ -3,4 +3,5 @@ export default interface CountryPayload {
     warehouseId?: number | null; // Optional field
     status: string;
     isoCode: string;
+    ports?: any[]; // Optional field for ports
 }

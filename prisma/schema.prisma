@@ -54,19 +54,19 @@ model Role {
 }
 
 model Permission {
-  id            Int   @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   // aboutUs permissions
-  aboutUsAccess  Boolean @default(false)
-  aboutUsCreate  Boolean @default(false)
-  aboutUsUpdate  Boolean @default(false)
-  aboutUsDelete  Boolean @default(false)
+  aboutUsAccess Boolean @default(false)
+  aboutUsCreate Boolean @default(false)
+  aboutUsUpdate Boolean @default(false)
+  aboutUsDelete Boolean @default(false)
 
   // banner permissions
-  bannerAccess   Boolean @default(false)
-  bannerCreate   Boolean @default(false)
-  bannerUpdate   Boolean @default(false)
-  bannerDelete   Boolean @default(false)
+  bannerAccess Boolean @default(false)
+  bannerCreate Boolean @default(false)
+  bannerUpdate Boolean @default(false)
+  bannerDelete Boolean @default(false)
 
   // category permissions
   categoryAccess Boolean @default(false)
@@ -87,16 +87,16 @@ model Permission {
   chilsCategoryDelete Boolean @default(false)
 
   // order permissions
-  orderAccess    Boolean @default(false)
-  orderCreate    Boolean @default(false)
-  orderUpdate    Boolean @default(false)
-  orderDelete    Boolean @default(false)
+  orderAccess Boolean @default(false)
+  orderCreate Boolean @default(false)
+  orderUpdate Boolean @default(false)
+  orderDelete Boolean @default(false)
 
   // user permissions
-  userAccess     Boolean @default(false)
-  userCreate     Boolean @default(false)
-  userUpdate     Boolean @default(false)
-  userDelete     Boolean @default(false)
+  userAccess Boolean @default(false)
+  userCreate Boolean @default(false)
+  userUpdate Boolean @default(false)
+  userDelete Boolean @default(false)
 
   roles Role[]
 }
@@ -163,48 +163,47 @@ model ShippingMethod {
 }
 
 model Warehouse {
-  id           Int      @id @default(autoincrement())
-  name         String
-  totalCapacity Float?  @default(0)
+  id            Int      @id @default(autoincrement())
+  name          String
+  totalCapacity Float?   @default(0)
   usedCapacity  Float?   @default(0)
-  remaining    Float?   @default(0)
-  location     String?
-  managerRef   User?    @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
-  managerRefId Int?
-  contact      String?
-  status       Boolean  @default(true)
-  createdBy    Int?
-  createdByRef User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
-  updatedBy    Int?
-  updatedByRef User?    @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  remaining     Float?   @default(0)
+  location      String?
+  managerRef    User?    @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
+  managerRefId  Int?
+  contact       String?
+  status        Boolean  @default(true)
+  createdBy     Int?
+  createdByRef  User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
+  updatedBy     Int?
+  updatedByRef  User?    @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
   toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
   inventories            Inventory[]
-  countries             Country[] 
+  countries              Country[]
 }
 
-
 model WarehouseSpace {
-  id           Int            @id @default(autoincrement()) // SERIAL PK
-  sectionId    Int
+  id        Int @id @default(autoincrement()) // SERIAL PK
+  sectionId Int
   // section      WarehouseSection @relation(fields: [sectionId], references: [id])
 
   // inventoryType InventoryType
 
-  spaceCode    String         @db.VarChar(50)
-  spaceName    String         @db.VarChar(255)
-  spaceNumber  Int
+  spaceCode   String @db.VarChar(50)
+  spaceName   String @db.VarChar(255)
+  spaceNumber Int
 
-  capacity     Decimal        @db.Decimal(10, 2)
-  totalCapacity Decimal       @db.Decimal(10, 2)
-  currentUsage Decimal        @db.Decimal(10, 2)
+  capacity      Decimal @db.Decimal(10, 2)
+  totalCapacity Decimal @db.Decimal(10, 2)
+  currentUsage  Decimal @db.Decimal(10, 2)
 
   // status       SpaceStatus
 
-  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
 
   @@map("warehouse_spaces") // ঐচ্ছিক: টেবিল নাম কাস্টমাইজ করতে
 }
@@ -506,15 +505,14 @@ model BuyNowCart {
 
 model OTP {
   id        Int      @id @default(autoincrement())
-  userRef      User?    @relation(fields: [userRefId], references: [id])
-  userRefId    Int?
+  userRef   User?    @relation(fields: [userRefId], references: [id])
+  userRefId Int?
   otpHash   String
   expiresAt DateTime
   attempts  Int      @default(0)
   verified  Boolean  @default(false)
   createdAt DateTime @default(now())
 }
-
 
 model Campaign {
   id          Int      @id @default(autoincrement())
@@ -580,15 +578,12 @@ model Banner {
   updatedAt  DateTime @updatedAt
 }
 
-
 model RateShippingMethod {
   id          Int      @id @default(autoincrement())
   name        String   @unique
-  description String?   // optional field, nullable
+  description String? // optional field, nullable
   createdAt   DateTime @default(now())
 }
-
-
 
 model Country {
   id                 Int                  @id @default(autoincrement())
@@ -600,8 +595,25 @@ model Country {
   createdAt          DateTime             @default(now())
   exportCombinations CountryCombination[] @relation("ExportCountry")
   importCombinations CountryCombination[] @relation("ImportCountry")
+  ports              Ports[]
 
   @@map("countries")
+}
+
+model Ports {
+  id         Int      @id @default(autoincrement())
+  portName   String   @db.VarChar(100)
+  portType   PortType @default(Sea)
+  created_at DateTime @default(now())
+
+  countryId Int
+  country   Country? @relation(fields: [countryId], references: [id])
+}
+
+enum PortType {
+  Sea
+  Air
+  Land
 }
 
 model RateSippingMethod {
@@ -673,8 +685,7 @@ model CountryCombination {
   id              Int      @id @default(autoincrement())
   exportCountryId Int
   importCountryId Int
-  route_name      String
-  status          Status
+  status          Boolean  @default(true)
   exportCountry   Country  @relation("ExportCountry", fields: [exportCountryId], references: [id])
   importCountry   Country  @relation("ImportCountry", fields: [importCountryId], references: [id])
   created_at      DateTime @default(now())
@@ -697,8 +708,27 @@ model Rate {
   weightCategory     RateWeightCategorie @relation(fields: [weightCategoryId], references: [id])
 }
 
-enum Status {
-  active
-  inactive
-}
 
+
+
+model Category1688 {
+  id            Int       @id @default(autoincrement())
+  categoryId    Int       @unique
+  chineseName   String?
+  translatedName String?
+  language      String?
+  imageUrl      String?
+  status        Boolean   @default(true)
+  leaf          Boolean   @default(false)
+  level         Int       @default(0)
+
+  // parent relation
+  parentCateId  Int?
+  parent        Category1688? @relation("CategoryTree", fields: [parentCateId], references: [categoryId])
+
+  // children relation
+  children      Category1688[] @relation("CategoryTree")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

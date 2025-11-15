@@ -45,5 +45,10 @@ export class RateWeightCategoriesService {
     return shippingMethod;
   }
 
+  getAllRateWeightCategories = async (): Promise<any> => {
+    const rateWeightCategories = await this.repository.getAllRateWeightCategories();
+    return rateWeightCategories;
+  }
+
 }
 

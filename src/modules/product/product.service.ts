@@ -34,7 +34,7 @@ export class ProductService {
       const filterCriteria = payload.filterCriteria || {};
 
       console.log('Filter Criteria:', payload);
-      const {keyword, beginPage, pageSize, categoryId, categoryIdList, priceEnd, priceStart } = payload;
+      const { keyword, beginPage, pageSize, categoryId, categoryIdList, priceEnd, priceStart } = payload;
 
       // keyword, beginPage, pageSize, are required
       if (!keyword || !beginPage || !pageSize) {
@@ -44,7 +44,7 @@ export class ProductService {
       // Use config values
       const appSecret = config.e1688AppSecret || '';
       const access_token = config.e1688AccessToken || '';
-      const apiBaseUrl = config.e1688ApiBaseUrl || 'https://gw.open.1688.com/openapi/'; 
+      const apiBaseUrl = config.e1688ApiBaseUrl || 'https://gw.open.1688.com/openapi/';
       // Allow separate search uri path via env, otherwise use commonly expected search path
       const uriPath = 'param2/1/com.alibaba.fenxiao.crossborder/product.search.keywordQuery/9077165';
       // Build a single request that includes both the compact `offerQueryParam`
@@ -72,7 +72,7 @@ export class ProductService {
         offerQueryParam,
       } as Record<string, string>;
 
-      console.log('Unified Filter Params:', unifiedParams);
+      // console.log('Unified Filter Params:', unifiedParams);
       const data = await call168822.call168822(apiBaseUrl, uriPath, unifiedParams, appSecret);
       return data;
     } catch (error) {
@@ -82,107 +82,107 @@ export class ProductService {
 
   // 1688 API Service
   async get1688ProductDetails(payload: any) {
-  try {
-    const { productId } = payload; // your product / offer ID
-console.log('Fetching 1688 product details for productId:', productId);
-  // === Setup Required Values (from config with sensible fallbacks) ===
-  const appSecret = config.e1688AppSecret || "U1IH8T6UoQxf";
-  const access_token = config.e1688AccessToken || "793b6857-359d-494b-bc2b-e3b37bc87c12";
-  const offerId = productId || config.e1688DefaultOfferId || "714232053871";
+    try {
+      const { productId } = payload; // your product / offer ID
+      console.log('Fetching 1688 product details for productId:', productId);
+      // === Setup Required Values (from config with sensible fallbacks) ===
+      const appSecret = config.e1688AppSecret || "U1IH8T6UoQxf";
+      const access_token = config.e1688AccessToken || "793b6857-359d-494b-bc2b-e3b37bc87c12";
+      const offerId = productId || config.e1688DefaultOfferId || "714232053871";
 
-  // === API endpoint & URI path ===
-  const apiBaseUrl = config.e1688ApiBaseUrl || "https://gw.open.1688.com/openapi/";
-  const uriPath = config.e1688UriPath || "param2/1/com.alibaba.fenxiao.crossborder/product.search.queryProductDetail/9077165";
+      // === API endpoint & URI path ===
+      const apiBaseUrl = config.e1688ApiBaseUrl || "https://gw.open.1688.com/openapi/";
+      const uriPath = config.e1688UriPath || "param2/1/com.alibaba.fenxiao.crossborder/product.search.queryProductDetail/9077165";
 
-    // === Request parameters ===
-    const offerDetailParam = JSON.stringify({
-      offerId,
-      country: "en",
-    });
+      // === Request parameters ===
+      const offerDetailParam = JSON.stringify({
+        offerId,
+        country: "en",
+      });
 
-    const params: Record<string, string> = {
-      access_token,
-      offerDetailParam,
-    };
+      const params: Record<string, string> = {
+        access_token,
+        offerDetailParam,
+      };
 
-    // Use shared util to call 1688 API (generates signature and sends request)
-    const responseData = await e1688.call1688(apiBaseUrl, uriPath, params, appSecret);
+      // Use shared util to call 1688 API (generates signature and sends request)
+      const responseData = await e1688.call1688(apiBaseUrl, uriPath, params, appSecret);
 
-    // Process the external payload into a compact product shape
-    const processed = process1688ProductDetail(responseData);
+      // Process the external payload into a compact product shape
+      const processed = process1688ProductDetail(responseData);
 
-    // Preserve the original API metadata (like success/code) and place
-    // the processed product under result.result so controller response
-    // will become: { data: { result: { ...meta..., result: { ...product } } } }
-    const apiMeta = responseData?.result ? { ...responseData.result } : {};
-    const normalized = {
-      result: {
-        result: processed,
-        responseData:responseData
-      },
-    };
+      // Preserve the original API metadata (like success/code) and place
+      // the processed product under result.result so controller response
+      // will become: { data: { result: { ...meta..., result: { ...product } } } }
+      const apiMeta = responseData?.result ? { ...responseData.result } : {};
+      const normalized = {
+        result: {
+          result: processed,
+          responseData: responseData
+        },
+      };
 
-    return processed;
-  } catch (error) {
-    // console.error("❌ Error fetching 1688 product details:", error.message);
-    throw error;
-  }
-
-  }
-
-    async process1688ProductDetailTest(payload: any) {
-  try {
-    const { productId } = payload; // your product / offer ID
-console.log('Fetching 1688 product details for productId:', productId);
-  // === Setup Required Values (from config with sensible fallbacks) ===
-  const appSecret = config.e1688AppSecret || "U1IH8T6UoQxf";
-  const access_token = config.e1688AccessToken || "793b6857-359d-494b-bc2b-e3b37bc87c12";
-  const offerId = productId || config.e1688DefaultOfferId || "714232053871";
-
-  // === API endpoint & URI path ===
-  const apiBaseUrl = config.e1688ApiBaseUrl || "https://gw.open.1688.com/openapi/";
-  const uriPath = config.e1688UriPath || "param2/1/com.alibaba.fenxiao.crossborder/product.search.queryProductDetail/9077165";
-
-    // === Request parameters ===
-    const offerDetailParam = JSON.stringify({
-      offerId,
-      country: "en",
-    });
-
-    const params: Record<string, string> = {
-      access_token,
-      offerDetailParam,
-    };
-
-    // Use shared util to call 1688 API (generates signature and sends request)
-    const responseData = await e1688.call1688(apiBaseUrl, uriPath, params, appSecret);
-
-    // Process the external payload into a compact product shape
-    const processed = process1688ProductDetailTest(responseData);
-
-    // Preserve the original API metadata (like success/code) and place
-    // the processed product under result.result so controller response
-    // will become: { data: { result: { ...meta..., result: { ...product } } } }
-    const apiMeta = responseData?.result ? { ...responseData.result } : {};
-    const normalized = {
-      result: {
-        result: processed,
-        responseData:responseData
-      },
-    };
-
-    return processed;
-  } catch (error) {
-    // console.error("❌ Error fetching 1688 product details:", error.message);
-    throw error;
-  }
+      return processed;
+    } catch (error) {
+      // console.error("❌ Error fetching 1688 product details:", error.message);
+      throw error;
+    }
 
   }
 
-    /**
-   * Search/list products from 1688 with pagination.
-   * payload: { q?: string, page?: number, limit?: number }
-   */
+  async process1688ProductDetailTest(payload: any) {
+    try {
+      const { productId } = payload; // your product / offer ID
+      console.log('Fetching 1688 product details for productId:', productId);
+      // === Setup Required Values (from config with sensible fallbacks) ===
+      const appSecret = config.e1688AppSecret || "U1IH8T6UoQxf";
+      const access_token = config.e1688AccessToken || "793b6857-359d-494b-bc2b-e3b37bc87c12";
+      const offerId = productId || config.e1688DefaultOfferId || "714232053871";
+
+      // === API endpoint & URI path ===
+      const apiBaseUrl = config.e1688ApiBaseUrl || "https://gw.open.1688.com/openapi/";
+      const uriPath = config.e1688UriPath || "param2/1/com.alibaba.fenxiao.crossborder/product.search.queryProductDetail/9077165";
+
+      // === Request parameters ===
+      const offerDetailParam = JSON.stringify({
+        offerId,
+        country: "en",
+      });
+
+      const params: Record<string, string> = {
+        access_token,
+        offerDetailParam,
+      };
+
+      // Use shared util to call 1688 API (generates signature and sends request)
+      const responseData = await e1688.call1688(apiBaseUrl, uriPath, params, appSecret);
+
+      // Process the external payload into a compact product shape
+      const processed = process1688ProductDetailTest(responseData);
+
+      // Preserve the original API metadata (like success/code) and place
+      // the processed product under result.result so controller response
+      // will become: { data: { result: { ...meta..., result: { ...product } } } }
+      const apiMeta = responseData?.result ? { ...responseData.result } : {};
+      const normalized = {
+        result: {
+          result: processed,
+          responseData: responseData
+        },
+      };
+
+      return processed;
+    } catch (error) {
+      // console.error("❌ Error fetching 1688 product details:", error.message);
+      throw error;
+    }
+
+  }
+
+  /**
+ * Search/list products from 1688 with pagination.
+ * payload: { q?: string, page?: number, limit?: number }
+ */
   // async get1688Products(payload: any) {
   //   try {
   //     const q = payload.q || '';
@@ -351,44 +351,44 @@ console.log('Fetching 1688 product details for productId:', productId);
         const variants = item.colorLevel;
         const title = "INV-";
         // for (const variant of variants) {
-          if (newInventoryID === "") {
-            newInventoryID = await idGenerate(
-              title,
-              "inventoryID",
-              prisma.inventory
-            );
-          } else {
-            let id = Number(newInventoryID.slice(title.length + 6)) + 1;
-            let prefix = newInventoryID.slice(0, title.length + 6);
-            newInventoryID = prefix + id;
-          }
-          const newInventory: any = {
-            quantity: Number(item.quantity),
-            availableQuantity: Number(item.quantity),
-            color: item.colorCode || "#000000",
-            name: item.color || "Unknown",
-            level: level,
-            barcode: item.barcode || generateEAN13Barcode(),
-            inventoryID: newInventoryID,
-            mrpPrice: Number(item.mrpPrice),
-            inventoryType: inventoryType,
-          };
-          if (discountType && discount) {
-            // @ts-ignore
-            const { price, discountAmount } = calculateDiscountAmount(
-              Number(item.mrpPrice),
-              discountType,
-              discount
-            );
-            newInventory.price = price;
-            newInventory.discountAmount = discountAmount;
-            newInventory.discountType = discountType;
-          } else {
-            newInventory.price = Number(item.mrpPrice);
-          }
-          maxPrice = newInventory?.price && Math.min(maxPrice, newInventory?.price);
-          const createdInventory = await inventoryRepository.createNewInventory(newInventory);
-          inventoryIds.push(createdInventory.id);
+        if (newInventoryID === "") {
+          newInventoryID = await idGenerate(
+            title,
+            "inventoryID",
+            prisma.inventory
+          );
+        } else {
+          let id = Number(newInventoryID.slice(title.length + 6)) + 1;
+          let prefix = newInventoryID.slice(0, title.length + 6);
+          newInventoryID = prefix + id;
+        }
+        const newInventory: any = {
+          quantity: Number(item.quantity),
+          availableQuantity: Number(item.quantity),
+          color: item.colorCode || "#000000",
+          name: item.color || "Unknown",
+          level: level,
+          barcode: item.barcode || generateEAN13Barcode(),
+          inventoryID: newInventoryID,
+          mrpPrice: Number(item.mrpPrice),
+          inventoryType: inventoryType,
+        };
+        if (discountType && discount) {
+          // @ts-ignore
+          const { price, discountAmount } = calculateDiscountAmount(
+            Number(item.mrpPrice),
+            discountType,
+            discount
+          );
+          newInventory.price = price;
+          newInventory.discountAmount = discountAmount;
+          newInventory.discountType = discountType;
+        } else {
+          newInventory.price = Number(item.mrpPrice);
+        }
+        maxPrice = newInventory?.price && Math.min(maxPrice, newInventory?.price);
+        const createdInventory = await inventoryRepository.createNewInventory(newInventory);
+        inventoryIds.push(createdInventory.id);
         // }
       }
     } else {
@@ -444,7 +444,7 @@ console.log('Fetching 1688 product details for productId:', productId);
     if (payload.subCategoryRef) {
       payload.subCategoryRefId = Number(payload.subCategoryRef);
       delete payload.subCategoryRef;
-    }else{
+    } else {
       delete payload.subCategoryRef;
     }
 
@@ -502,10 +502,10 @@ console.log('Fetching 1688 product details for productId:', productId);
     return product;
   }
 
-    async getShopOption() {
-      const products = await this.repository.getShopOption();
-      return { products };
-    }
+  async getShopOption() {
+    const products = await this.repository.getShopOption();
+    return { products };
+  }
 
   //   async getAllProductForHomePage(payload: any) {
   //     const { limit, viewType } = payload;

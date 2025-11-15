@@ -1,6 +1,7 @@
 
 import prisma from '../../config/prismadatabase';
 import { PrismaClient } from '@prisma/client';
+import { pagination } from '../../utils/pagination';
 
 export class CountryRepository {
   private prisma = prisma;
@@ -17,6 +18,13 @@ export class CountryRepository {
     return role;
   };
 
+  async createPort(payload: any) : Promise<any> {
+    const newPort = await this.prisma.ports.create({
+      data: payload
+    })
+  return newPort
+  }
+
   async createCountry(payload: any) : Promise<any> {
     const newCountry = await this.prisma.country.create({
       data: payload
@@ -24,12 +32,23 @@ export class CountryRepository {
     return newCountry
   }
 
-  async getUser() {
-    return await this.prisma.user.findMany();
+  async getAllCountries() {
+    // include ports
+    return await this.prisma.country.findMany(
+      {
+        include: {
+          ports: true,
+          warehouse: true,
+        }
+      }
+    );
   }
 
-  async getUserById(id: number) {
-    return await this.prisma.user.findUnique({ where: { id } });
+  async getCountryById(id: number) {
+    return await this.prisma.country.findUnique({
+      where: { id },
+      include: { ports: true, warehouse: true },
+    });
   }
 
   async updateUserPassword(userId: number, password: string) {
@@ -40,23 +59,31 @@ export class CountryRepository {
     return await this.prisma.user.findUnique({ where: { email } });
   }
 
-
-  async getAuthByEmailOrPhone(email?: string, phone?: string) {
-    if (!email && !phone) return null;
-    // Only include phone if it exists in the schema
-    const orArr: any[] = [];
-    if (email) orArr.push({ email });
-    if (phone) orArr.push({ phone });
-    return await this.prisma.user.findFirst({
-      where: {
-        OR: orArr,
-      },
-      include: {
-        role: true,
-      },
+ async getCountryWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
+    const { limit, offset } = payload;
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+      const [doc, totalDoc] = await Promise.all([
+        this.prisma.country.findMany({
+          where: {  },
+          skip: offset,
+          take: limit,
+          // orderBy: sortOrder,
+          include: { ports: true, warehouse: true },
+        }),
+        prisma.country.count({ where: {  } }),
+      ]);
+      return { doc, totalDoc };
     });
-  }
 
+ }
+
+  async deleteCountry(id: number): Promise<void> { // Corrected method name
+    await this.prisma.country.delete({ where: { id } });
+  }
+ async deletePort(id: number): Promise<void> {
+    await this.prisma.ports.delete({ where: { id } });
+  }
   // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
 }
 

@@ -22,19 +22,16 @@ export class RateRepository {
     const {
       importCountryId,
       exportCountryId,
-      route_name,
-      status
     } = payload;
     const newRateShippingMethod = await this.prisma.countryCombination.create({
       data: {
-        route_name,
-        status,
-        importCountryId,
-        exportCountryId
+        importCountry: { connect: { id: importCountryId } },
+        exportCountry: { connect: { id: exportCountryId } }
       }
     })
     return newRateShippingMethod
   }
+
   async createRate(payload: any): Promise<any> {
     const newRateShippingMethod = await this.prisma.rate.create({
       data: payload
@@ -42,40 +39,31 @@ export class RateRepository {
     return newRateShippingMethod
   }
 
-  // async getUser() {
-  //   return await this.prisma.user.findMany();
-  // }
+  async updateRate(rateId: number, payload: any): Promise<any> {
+    const updatedRate = await this.prisma.rate.update({
+      where: { id: rateId },
+      data: payload
+    });
+    return updatedRate;
+  }
 
-  // async getUserById(id: number) {
-  //   return await this.prisma.user.findUnique({ where: { id } });
-  // }
+  async getAllRate(): Promise<any> {  
+    const rates = await this.prisma.rate.findMany();
+    return rates;
+  }
 
-  // async updateUserPassword(userId: number, password: string) {
-  //   return await this.prisma.user.update({ where: { id: userId }, data: { password } });
-  // }
-
-  // async getAuthByEmail(email: string) {
-  //   return await this.prisma.user.findUnique({ where: { email } });
-  // }
-
-
-  // async getAuthByEmailOrPhone(email?: string, phone?: string) {
-  //   if (!email && !phone) return null;
-  //   // Only include phone if it exists in the schema
-  //   const orArr: any[] = [];
-  //   if (email) orArr.push({ email });
-  //   if (phone) orArr.push({ phone });
-  //   return await this.prisma.user.findFirst({
-  //     where: {
-  //       OR: orArr,
-  //     },
-  //     include: {
-  //       role: true,
-  //     },
-  //   });
-  // }
-
-  // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+  async findRateByCriteria(payload: any): Promise<any> {
+    const { payloadWithCombinationId, weightCategoryId, shippingMethodId, productId } = payload;
+    const rates = await this.prisma.rate.findMany({
+      where: {
+        ...payloadWithCombinationId,
+        weightCategoryId,
+        shippingMethodId,
+        productId
+      }
+    });
+    return rates;
+  }
 }
 
 // Export a singleton instance, similar to module.exports = new CountryRepository(UserSchema)

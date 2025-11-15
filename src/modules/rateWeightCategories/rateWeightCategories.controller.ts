@@ -4,8 +4,8 @@ import { responseHandler } from '../../utils/responseHandler';
 import { RateWeightCategoriesService } from './rateWeightCategories.service';
 import rateWeightCategoriesRepository from './rateWeightCategories.repository';
 const rateWeightCategoriesService = new RateWeightCategoriesService(rateWeightCategoriesRepository);
-
-export const createRateWeightCategories = async (req: Request, res: Response, next: NextFunction) => {
+class RateWeightCategoriesController {
+createRateWeightCategories = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { label, min_weight, max_weight } = req.body;
     const payload = {
@@ -18,4 +18,14 @@ export const createRateWeightCategories = async (req: Request, res: Response, ne
     next(error);
   }
 };
-
+getAllRateWeightCategories = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const rateWeightCategories = await rateWeightCategoriesService.getAllRateWeightCategories();
+    const resDoc = responseHandler(200, 'Rate weight categories retrieved successfully', rateWeightCategories);
+    res.status(resDoc.statusCode).json(resDoc);
+  } catch (error) {
+    next(error);
+  }
+}
+}
+export default new RateWeightCategoriesController();

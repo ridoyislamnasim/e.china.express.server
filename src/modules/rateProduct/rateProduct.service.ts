@@ -70,5 +70,10 @@ const productShCode = categoryShCode + subCategoryShCode + subHeadingShCode;
     return shippingMethod;
   }
 
+  async getAllRateProduct(): Promise<any> {
+    const rateProducts = await this.repository.getAllRateProduct();
+    return rateProducts;
+  }
+
 }
 

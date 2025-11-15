@@ -1,6 +1,6 @@
 import { Router } from "express";
 // import controller from "../../modules/order/order.controller";
-import * as controller from "../../modules/rateProduct/rateProduct.controller";
+import controller from "../../modules/rateProduct/rateProduct.controller";
 
 // import jwtAuth from "../../middleware/auth/jwtAuth";
 import { upload } from "../../middleware/upload/upload";
@@ -8,10 +8,10 @@ import { upload } from "../../middleware/upload/upload";
 const rateProductRoute = Router();
 // OrderRoute.use(jwtAuth());
 
-rateProductRoute.post('/',controller.createRateProduct)
-// countryRoute.route("/")
-//     .post(controller.createOrder)
-//     .get(controller.getAllOrder);
+// rateProductRoute.post('/',controller.createRateProduct)
+rateProductRoute.route("/")
+    .post(controller.createRateProduct)
+    .get(controller.getAllRateProduct);
 
 // countryRoute.route("/order-product").get(controller.getOrderProducts);
 // countryRoute.route("/admin").post(controller.createAdminOrder);

@@ -5,7 +5,8 @@ import { ShippingMethodService } from './shippingMethod.service';
 import shippingMethodRepository from './shippingMethod.repository';
 const rateShippingMethodService = new ShippingMethodService(shippingMethodRepository);
 
-export const createShippingMethod = async (req: Request, res: Response, next: NextFunction) => {
+class RateShippingMethodController {
+ createShippingMethod = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, description } = req.body;
         const payload = {
@@ -20,3 +21,15 @@ export const createShippingMethod = async (req: Request, res: Response, next: Ne
   }
 };
 
+getShippingMethod = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const shippingMethods = await rateShippingMethodService.getShippingMethod();
+    const resDoc = responseHandler(200, 'Rate shipping methods retrieved successfully', shippingMethods);
+    res.status(resDoc.statusCode).json(resDoc);
+  } catch (error) {
+    next(error);
+  }
+}
+}
+
+export default new RateShippingMethodController();

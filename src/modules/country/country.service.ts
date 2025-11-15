@@ -12,18 +12,8 @@ export class CountryService {
     this.repository = repository;
   }
 
-  // async createUser(payload: any, session?: any) {
-  //   const { name, email, password } = payload;
-  //   if (!name || !password) {
-  //     const error = new Error('name and password are required');
-  //     (error as any).statusCode = 400;
-  //     throw error;
-  //   }
-  //   const user = await this.repository.createUser({ name, email, password });
-  //   return user;
-  // }
   async createCountry(payload: CountryPayload): Promise<any> {
-    const { name, warehouseId, status, isoCode } = payload;
+    const { name, warehouseId, status, isoCode, ports } = payload;
 
     // Validate required fields
     if (!name || !status || !isoCode) {
@@ -31,6 +21,7 @@ export class CountryService {
       (error as any).statusCode = 400;
       throw error;
     }
+
 
     // Ensure warehouseId is optional
     const countryPayload: CountryPayload = {
@@ -41,7 +32,43 @@ export class CountryService {
     };
 
     const country = await this.repository.createCountry(countryPayload);
+    if (ports && Array.isArray(ports)) {
+      // Assuming ports is an array of port objects
+      for (const port of ports) {
+        await this.repository.createPort({ ...port, countryId: country.id } );
+      }
+    }
+
     return country;
+  }
+
+  async getAllCountries(payload?: any){
+    const countries = await this.repository.getAllCountries();
+    return countries;
+  }
+
+  async getCountryWithPagination(payload: { page: number; limit: number }, tx: any): Promise<any> {
+    const { page, limit } = payload;
+    const offset = (page - 1) * limit;
+    const countries = await this.repository.getCountryWithPagination({ limit, offset }, tx);
+    return countries;
+  }
+
+  async deleteCountry(id: number): Promise<void> {
+    // find the country first
+    const country = await this.repository.getCountryById(id);
+    if (!country) {
+      const error = new Error('Country not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    // then delete ports associated with the country
+    if (country.ports && country.ports.length > 0) {
+      for (const port of country.ports) {
+        await this.repository.deletePort(port.id);
+      }
+    }
+   return  await this.repository.deleteCountry(id);
   }
 
 }
