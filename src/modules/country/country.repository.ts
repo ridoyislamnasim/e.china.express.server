@@ -32,6 +32,8 @@ export class CountryRepository {
     return newCountry
   }
 
+
+
   async getAllCountries() {
     // include ports
     return await this.prisma.country.findMany(

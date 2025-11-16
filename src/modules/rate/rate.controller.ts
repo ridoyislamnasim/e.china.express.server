@@ -35,11 +35,11 @@ class RateController {
 
   findRateByCriteria = catchError(async (req: Request, res: Response, next: NextFunction) => {
       console.log("req.body", req.body);
-      const { importCountryId, exportCountryId, weightCategoryId, shippingMethodId, productId } = req.body;
+      const { importCountryId, exportCountryId, weight, shippingMethodId, productId } = req.body;
       const payload: any = {
         importCountryId,
         exportCountryId,
-        weightCategoryId,
+        weight,
         shippingMethodId,
         productId
       };

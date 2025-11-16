@@ -55,10 +55,10 @@ export class RateService {
   }
 
   async findRateByCriteria(payload: any): Promise<any> {
-    const { importCountryId, exportCountryId, weightCategoryId, shippingMethodId, productId } = payload;
+    const { importCountryId, exportCountryId, shippingMethodId, weight, productId } = payload;
     // all fields are required
-    if (!importCountryId || !exportCountryId || !weightCategoryId || !shippingMethodId || !productId ) {
-      const error = new Error('importCountryId, exportCountryId, weightCategoryId, shippingMethodId and productId are required');
+    if (!importCountryId || !exportCountryId || !shippingMethodId || !weight || !productId ) {
+      const error = new Error('importCountryId, exportCountryId, shippingMethodId, weight and productId are required');
       (error as any).statusCode = 400;
       throw error;
     }
@@ -72,9 +72,17 @@ export class RateService {
       // no rates found
       return [];
     }
+    // find weight category id based on weight
+    const weightCategory = await this.repository.findWeightCategoryByWeight(weight);
+    if (!weightCategory) {
+      // error send not found
+      const error = new Error('Weight category not found for the given weight');
+      (error as any).statusCode = 404;
+      throw error;
+    }
     const { id } = existingCountryCombination;
     const payloadWithCombinationId = {
-      weightCategoryId,
+      weightCategoryId: weightCategory.id,
       shippingMethodId,
       productId,
       countryCombinationId: id

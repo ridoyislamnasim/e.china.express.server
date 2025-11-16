@@ -34,10 +34,10 @@ export class ProductService {
       const filterCriteria = payload.filterCriteria || {};
 
       console.log('Filter Criteria:', payload);
-      const { keyword, beginPage, pageSize, categoryId, categoryIdList, priceEnd, priceStart } = payload;
+      const { keyword, beginPage, pageSize, categoryId, categoryIdList, priceEnd, priceStart, sort, saleFilterList } = payload;
 
       // keyword, beginPage, pageSize, are required
-      if (!keyword || !beginPage || !pageSize) {
+      if ( !beginPage || !pageSize) {
         throw new Error("Missing required parameters: keyword, beginPage, or pageSize");
       }
 
@@ -52,15 +52,18 @@ export class ProductService {
       // the request compatible with both API styles and keeps a single call
       // path (so we "maintain with one" and include both formats).
       const offerBody: Record<string, any> = {
-        keyword: keyword || '',
+        keyword: keyword || "",
         beginPage: Number(beginPage) || 1,
         pageSize: Number(pageSize) || 20,
         country: 'en',
       };
+      console.log('Offer Body before optional params:', offerBody);
       if (categoryId) offerBody.categoryId = String(categoryId);
       if (categoryIdList) offerBody.categoryIdList = String(categoryIdList);
       if (priceStart !== undefined) offerBody.priceStart = priceStart;
       if (priceEnd !== undefined) offerBody.priceEnd = priceEnd;
+      if (sort) offerBody.sort = sort;
+      if (saleFilterList) offerBody.saleFilterList = saleFilterList;
 
       const offerQueryParam = JSON.stringify(offerBody);
 
@@ -110,17 +113,6 @@ export class ProductService {
 
       // Process the external payload into a compact product shape
       const processed = process1688ProductDetail(responseData);
-
-      // Preserve the original API metadata (like success/code) and place
-      // the processed product under result.result so controller response
-      // will become: { data: { result: { ...meta..., result: { ...product } } } }
-      const apiMeta = responseData?.result ? { ...responseData.result } : {};
-      const normalized = {
-        result: {
-          result: processed,
-          responseData: responseData
-        },
-      };
 
       return processed;
     } catch (error) {

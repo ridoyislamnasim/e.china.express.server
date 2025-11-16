@@ -25,8 +25,8 @@ export function process1688ProductDetail(raw: any) {
 		saleInfo: payload?.productSaleInfo ?? null,
 		priceRange: payload?.priceRange ?? null,
 
-		// shippingInfo: payload?.productShippingInfo ?? null,
-		// minOrderQuantity: payload?.minOrderQuantity ?? null,
+		shippingInfo: payload?.productShippingInfo ?? null,
+		minOrderQuantity: payload?.minOrderQuantity ?? null,
 		// status: payload?.status ?? null,
 		// promotionUrl: payload?.promotionUrl ?? null,
 		// companyName: payload?.companyName ?? null,

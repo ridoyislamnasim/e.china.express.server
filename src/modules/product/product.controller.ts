@@ -79,7 +79,9 @@ class ProductController {
       categoryId: req.query.categoryId,
       categoryIdList: req.query.categoryIdList,
       priceEnd: req.query.priceEnd,
-      priceStart: req.query.priceStart
+      priceStart: req.query.priceStart,
+      sort: req.query.sort,
+      saleFilterList: req.query.saleFilterList,
     };
     const result = await ProductService.get1688ProductFilter(payload);
     const resDoc = responseHandler(200, '1688 Product Filter created successfully', result);

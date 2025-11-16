@@ -18,6 +18,16 @@ export class RateRepository {
     return CountryConbination;
   }
 
+  async findWeightCategoryByWeight(weight: number): Promise<any> {
+    const weightCategory = await this.prisma.rateWeightCategorie.findFirst({
+      where: {  
+        min_weight: { lte: weight },
+        max_weight: { gte: weight }
+      }
+    });
+    return weightCategory;
+  }
+
   async createCountryCombinatin(payload: any): Promise<any> {
     const {
       importCountryId,
