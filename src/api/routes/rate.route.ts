@@ -14,7 +14,7 @@ rateRoute.route("/")
     .get(controller.getAllRate);
 
 rateRoute.route("/find").get(controller.findRateByCriteria);
-// countryRoute.route("/admin").post(controller.createAdminOrder);
+rateRoute.route("/method-wise-rate").get(controller.countryMethodWiseRate);
 // countryRoute.route("/user/:id").get(controller.getUserAllOrder);
 // countryRoute.route("/track").get(controller.orderTracking);
 

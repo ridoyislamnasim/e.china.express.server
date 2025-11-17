@@ -10,9 +10,9 @@ const rateService = new RateService(rateRepository);
 class RateController {
   createRate = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { price, weightCategoryId, shippingMethodId, productId, importCountryId, exportCountryId } = req.body;
+      const { price, weightCategoryId, shippingMethodId, category1688Id, importCountryId, exportCountryId } = req.body;
       const payload = {
-        price, weightCategoryId, shippingMethodId, productId, importCountryId, exportCountryId
+        price, weightCategoryId, shippingMethodId, category1688Id, importCountryId, exportCountryId
       };
       const shippingMethod = await rateService.createRate(payload);
       const resDoc = responseHandler(201, 'Rate created successfully', shippingMethod);
@@ -34,19 +34,33 @@ class RateController {
   }
 
   findRateByCriteria = catchError(async (req: Request, res: Response, next: NextFunction) => {
-      console.log("req.body", req.body);
-      const { importCountryId, exportCountryId, weight, shippingMethodId, productId } = req.body;
-      const payload: any = {
-        importCountryId,
-        exportCountryId,
-        weight,
-        shippingMethodId,
-        productId
-      };
-      const rates = await rateService.findRateByCriteria(payload);
-      const resDoc = responseHandler(200, 'Rates retrieved successfully', rates);
-      res.status(resDoc.statusCode).json(resDoc);
+    console.log("req.body", req.body);
+    const { importCountryId, exportCountryId, weight, shippingMethodId, category1688Id } = req.body;
+    const payload: any = {
+      importCountryId,
+      exportCountryId,
+      weight,
+      shippingMethodId,
+      category1688Id
+    };
+    const rates = await rateService.findRateByCriteria(payload);
+    const resDoc = responseHandler(200, 'Rates retrieved successfully', rates);
+    res.status(resDoc.statusCode).json(resDoc);
   })
+
+  countryMethodWiseRate = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const { importCountryId, exportCountryId, shippingMethodId } = req.query;
+    const payload: any = {
+      importCountryId,
+      exportCountryId,
+      shippingMethodId
+    };
+    const rates = await rateService.countryMethodWiseRate(payload);
+    const resDoc = responseHandler(200, 'Country Method Wise Rates retrieved successfully', rates);
+    res.status(resDoc.statusCode).json(resDoc);
+  })
+
+
 }
 
 export default new RateController();

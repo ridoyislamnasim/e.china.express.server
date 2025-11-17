@@ -63,13 +63,24 @@ export class RateRepository {
   }
 
   async findRateByCriteria(payload: any): Promise<any> {
-    const { payloadWithCombinationId, weightCategoryId, shippingMethodId, productId } = payload;
+    const { countryCombinationId, weightCategoryId, shippingMethodId, category1688Id } = payload;
     const rates = await this.prisma.rate.findMany({
       where: {
-        ...payloadWithCombinationId,
+        countryCombinationId,
         weightCategoryId,
         shippingMethodId,
-        productId
+        category1688Id
+      }
+    });
+    return rates;
+  }
+
+  async countryMethodWiseRate(payload: any): Promise<any> {
+    const { shippingMethodId, countryCombinationId } = payload;
+    const rates = await this.prisma.rate.findMany({
+      where: {
+        shippingMethodId,
+        countryCombinationId
       }
     });
     return rates;
