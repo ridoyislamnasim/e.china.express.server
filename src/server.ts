@@ -41,6 +41,7 @@ const allowedOrigins = [
   'http://localhost:3010',
   'http://localhost:3012',
   'https://e-china-express-customer.vercel.app',
+  'https://e-china-express.vercel.app',
 ];
 app.use(
   cors({
