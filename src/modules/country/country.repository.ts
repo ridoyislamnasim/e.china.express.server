@@ -40,7 +40,7 @@ export class CountryRepository {
       {
         include: {
           ports: true,
-          warehouse: true,
+          warehouses: true,
         }
       }
     );
@@ -49,7 +49,7 @@ export class CountryRepository {
   async getCountryById(id: number) {
     return await this.prisma.country.findUnique({
       where: { id },
-      include: { ports: true, warehouse: true },
+      include: { ports: true, warehouses: true },
     });
   }
 
@@ -65,13 +65,13 @@ export class CountryRepository {
     const { limit, offset } = payload;
     const prismaClient: PrismaClient = tx || this.prisma;
     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
-      const [doc, totalDoc] = await Promise.all([
+        const [doc, totalDoc] = await Promise.all([
         this.prisma.country.findMany({
           where: {  },
           skip: offset,
           take: limit,
           // orderBy: sortOrder,
-          include: { ports: true, warehouse: true },
+          include: { ports: true, warehouses: true },
         }),
         prisma.country.count({ where: {  } }),
       ]);

@@ -9,10 +9,9 @@ const countryService = new CountryService(countryRepository);
 class CountryController {
   createCountry = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
-      const { name, warehouseId, status, isoCode, ports } = req.body;
+      const { name, status, isoCode, ports } = req.body;
       const payload = {
         name,
-        warehouseId: warehouseId ?? null, // Set to null if undefined
         status,
         isoCode,
         ports

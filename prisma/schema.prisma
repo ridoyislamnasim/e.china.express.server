@@ -182,8 +182,11 @@ model Warehouse {
 
   fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
   toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
-  inventories            Inventory[]
-  countries              Country[]
+
+  countryId  Int?
+  countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  inventories Inventory[]
 }
 
 model WarehouseSpace {
@@ -586,16 +589,16 @@ model RateShippingMethod {
 }
 
 model Country {
-  id                 Int                  @id @default(autoincrement())
-  name               String
-  warehouseId        Int?
+  id   Int    @id @default(autoincrement())
+  name String
+
   isoCode            String
   status             Boolean              @default(true)
-  warehouse          Warehouse?           @relation(fields: [warehouseId], references: [id])
   createdAt          DateTime             @default(now())
   exportCombinations CountryCombination[] @relation("ExportCountry")
   importCombinations CountryCombination[] @relation("ImportCountry")
   ports              Ports[]
+  warehouses         Warehouse[]
 
   @@map("countries")
 }
@@ -707,28 +710,27 @@ model Rate {
   weightCategory     RateWeightCategorie @relation(fields: [weightCategoryId], references: [id])
 }
 
-
-
-
 model Category1688 {
-  id            Int       @id @default(autoincrement())
-  categoryId    Int       @unique
-  chineseName   String?
+  id             Int     @id @default(autoincrement())
+  categoryId     Int     @unique
+  chineseName    String?
   translatedName String?
-  language      String?
-  imageUrl      String?
-  status        Boolean   @default(true)
-  leaf          Boolean   @default(false)
-  level         Int       @default(0)
+  language       String?
+  imageUrl       String?
+  status         Boolean @default(true)
+  leaf           Boolean @default(false)
+  level          Int     @default(0)
+
+  isRateCategory Boolean @default(false)
 
   // parent relation
-  parentCateId  Int?
-  parent        Category1688? @relation("CategoryTree", fields: [parentCateId], references: [categoryId])
+  parentCateId Int?
+  parent       Category1688? @relation("CategoryTree", fields: [parentCateId], references: [categoryId])
 
   // children relation
-  children      Category1688[] @relation("CategoryTree")
-  rate          Rate[]
+  children Category1688[] @relation("CategoryTree")
+  rate     Rate[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

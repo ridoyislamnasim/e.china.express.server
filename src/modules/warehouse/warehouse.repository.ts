@@ -2,18 +2,9 @@ import { Prisma, PrismaClient, Warehouse } from '@prisma/client';
 import { pagination } from '../../utils/pagination';
 import { BaseRepository } from '../base/base.repository';
 import { NotFoundError } from '../../utils/errors';
+import { WarehouseDoc } from '../../types/warehouse';
 
-export interface WarehouseDoc {
-  id: number;
-  name: string;
-  totalCapacity: number;
-  location: string;
-  status: boolean;
-  createdBy?: number;
-  updatedBy?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+
 
 class WarehouseRepository extends BaseRepository<Warehouse> {
   private prisma: PrismaClient;
@@ -54,11 +45,13 @@ class WarehouseRepository extends BaseRepository<Warehouse> {
   // }
   async createWarehouse(payload: Partial<WarehouseDoc>, tx?: any) {
     console.log("payload", payload);
+    const {name, location, status, totalCapacity, countryId} = payload;
     const data: any = {
-      name: payload.name,
-      totalCapacity: new Prisma.Decimal(payload.totalCapacity || 0),
-      location: payload.location,
-      status: payload.status,
+      name: name,
+      totalCapacity: new Prisma.Decimal(totalCapacity || 0),
+      location: location,
+      status: status,
+      country: { connect: { id: Number(countryId) } },
     };
     console.log("payload 999", data);
     const newWarehouse = await this.prisma.warehouse.create({

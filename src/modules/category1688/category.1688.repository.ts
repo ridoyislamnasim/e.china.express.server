@@ -1,5 +1,6 @@
 // Category1688Repository (TypeScript version)
 import prisma from '../../config/prismadatabase';
+import { Prisma } from '@prisma/client';
 import { pagination } from '../../utils/pagination';
 
 
@@ -15,12 +16,10 @@ export class Category1688Repository {
   async getAllCategory1688() {
     // return await prisma.category1688.findMany();
     const categories = await prisma.category1688.findMany({
-  orderBy: { level: "asc" }
-});
+      orderBy: [{ level: "asc" }, { translatedName: "asc" }]
+    });
    return this.buildCategoryTree(categories);
   }
-
-
   // Helper: Build parent-child nested tree
   private buildCategoryTree(categories: any[]) {
     const map: Record<number, any> = {};
@@ -43,54 +42,12 @@ export class Category1688Repository {
     return roots;
   }
 
-  async getNavBar() {
-    // return await prisma.category1688.findMany({
-    //   orderBy: { createdAt: 'desc' },
-    //   include: {
-    //     subCategories: {
-    //       include: {
-    //         childCategories: {
-    //           include: {
-    //             subChildCategories: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    // });
-  }
 
-  async getCategory1688ById(category1688Slug: string) {
-    // return await prisma.category1688.findUnique({
-    //   where: { slug: category1688Slug},
-    //   include: {
-    //     subCategories: true,
-    //   },
-    // });
-  }
-  
-  async getCategory1688ByCategoryId(categoryId: number) {
-    return await prisma.category1688.findUnique({
-      where: { categoryId },
-    });
-  }
 
-  async getCategory1688BySlug(slug: string) {
-    // return await prisma.category1688.findFirst({
-    //   where: { slug },
-    //   include: {
-    //     subCategories: true,
-    //   },
-    // });
-  }
 
-  async updateCategory1688(slug: string, payload: any) {
-    // return await prisma.category1688.update({
-    //   where: { slug: slug},
-    //   data: payload,
-    // });
-   
-  }
+
+
+
 
   async createOrUpdateCategory1688From1688Data(  result: any) {
     const { categoryId, translatedName, leaf, level, parentCateId } = result;
@@ -115,23 +72,43 @@ export class Category1688Repository {
     });
   }
 
-  async deleteCategory1688(slug: string) {
-    // return await prisma.category1688.delete();
-  }
-
-  async getCategory1688WithPagination(payload: any) {
-    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
-      const [doc, totalDoc] = await Promise.all([
-        prisma.category1688.findMany({
-          skip: offset,
-          take: limit,
-          // orderBy: sortOrder,
-        }),
-        prisma.category1688.count(),
-      ]);
-      return { doc, totalDoc };
+  async getCategoryIdBySubcategory(categoryId: number): Promise<any> {
+    return await prisma.category1688.findMany({
+      where: { parentCateId: categoryId },
     });
   }
+
+  async getCategoryById(categoryId: number): Promise<any> {
+    return await prisma.category1688.findUnique({
+      where: { categoryId },
+    });
+  }
+  async updateCategoryRateFlagToggle(categoryId: number, isRateCategory: boolean): Promise<any> {
+    console.log('Updating categoryId:', categoryId, 'to isRateCategory:', isRateCategory);
+    return await prisma.category1688.update({
+      where: { categoryId },
+      data: { isRateCategory: Boolean(isRateCategory) } as unknown as Prisma.Category1688UpdateInput,
+    });
+  }
+
+  async getCategoriesForRateCalculation(): Promise<any> {
+  //  find lavel 1 categories than this catgeory make tree  isRateCategory is true
+  // level: 1 or isRateCategory: true
+    const categories = await prisma.category1688.findMany({
+      where: {
+        OR: [
+          { level: 1 },
+          { isRateCategory: true }
+        ]
+      },
+      // Order first by level (so top-level categories come first), then
+      // alphabetically by translatedName so lists appear in human-friendly order.
+      orderBy: [{ level: "asc" }, { translatedName: "asc" }]
+    });
+   return this.buildCategoryTree(categories);
+  }
+
+
 }
 
 const category1688Repository = new Category1688Repository();

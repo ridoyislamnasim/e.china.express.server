@@ -13,6 +13,7 @@ class WarehouseController {
       totalCapacity: req.body.totalCapacity,
       location: req.body.location,
       status: req.body.status,
+      countryId: req.body.countryId,
     };
     const warehouseResult = await WarehouseService.createWarehouse(payload);
     const resDoc = responseHandler(

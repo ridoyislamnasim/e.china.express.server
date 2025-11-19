@@ -11,10 +11,10 @@ export class WarehouseService extends BaseService<typeof warehouseRepository> {
   }
 
   async createWarehouse(payload: any, tx?: any) {
-    const { name, totalCapacity, location, status } = payload;
+    const { name, totalCapacity, location, countryId } = payload;
     // name , totalCapacity, location are requrired fields
-    if (!name || !totalCapacity || !location) {
-      throw new Error('Name, Total Capacity, and Location are required fields');
+    if (!name || !totalCapacity || !location || !countryId) {
+      throw new Error('Name, Total Capacity, Location, and Country ID are required fields');
     }
     const warehouseData = await this.repository.createWarehouse(payload, tx);
 

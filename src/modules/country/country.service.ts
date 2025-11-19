@@ -13,7 +13,7 @@ export class CountryService {
   }
 
   async createCountry(payload: CountryPayload): Promise<any> {
-    const { name, warehouseId, status, isoCode, ports } = payload;
+    const { name, status, isoCode, ports } = payload;
 
     // Validate required fields
     if (!name || !status || !isoCode) {
@@ -23,10 +23,9 @@ export class CountryService {
     }
 
 
-    // Ensure warehouseId is optional
+    // Ensure is optional
     const countryPayload: CountryPayload = {
       name,
-      warehouseId: warehouseId ?? null,
       status,
       isoCode,
     };
