@@ -4,6 +4,7 @@ import { responseHandler } from '../../utils/responseHandler';
 import { RateService } from './rate.service';
 import rateRepository from './rate.repository';
 import catchError from '../../middleware/errors/catchError';
+import withTransaction from '../../middleware/transactions/withTransaction';
 const rateService = new RateService(rateRepository);
 
 
@@ -60,6 +61,22 @@ class RateController {
     res.status(resDoc.statusCode).json(resDoc);
   })
 
+  bulkAdjustRate = withTransaction(async (req: Request, res: Response, next: NextFunction, transaction: any) => {
+    const { adjustIsPercent, adjustMode, amount, weightCategoryId, applyToNonEmptyOnly, exportCountryId, importCountryId, shippingMethodId } = req.body;
+    const payload: any = {
+      adjustIsPercent,
+      adjustMode,
+      amount,
+      weightCategoryId,
+      applyToNonEmptyOnly,
+      exportCountryId,
+      importCountryId,
+      shippingMethodId
+    };
+    const result = await rateService.bulkAdjustRate(payload, transaction);
+    const resDoc = responseHandler(200, 'Bulk Rate Adjustment completed successfully', result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
 }
 

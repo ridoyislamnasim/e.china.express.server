@@ -30,6 +30,7 @@ export class Category1688Controller {
     const resDoc = responseHandler(200, 'Get Category1688 by Subcategory', category1688Result);
     res.status(resDoc.statusCode).json(resDoc);
   });
+  
   getAllCategory1688ForRateCalculation = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const category1688Result = await Category1688Service.getAllCategory1688ForRateCalculation();
     const resDoc = responseHandler(200, 'Get All Category1688s for Rate Calculation', category1688Result);

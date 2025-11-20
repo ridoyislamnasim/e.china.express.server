@@ -7,9 +7,10 @@ import { PrismaClient } from '@prisma/client';
 export class RateRepository {
   private prisma = prisma;
 
-  async existingCountryConbination(payload: any): Promise<any> {
+  async existingCountryConbination(payload: any, tx?: PrismaClient): Promise<any> {
     const { importCountryId, exportCountryId, route_name } = payload;
-    const CountryConbination = await this.prisma.countryCombination.findFirst({
+    const client = tx || this.prisma;
+    const CountryConbination = await client.countryCombination.findFirst({
       where: {
         importCountryId,
         exportCountryId,
@@ -19,7 +20,8 @@ export class RateRepository {
   }
 
   async findWeightCategoryByWeight(weight: number): Promise<any> {
-    const weightCategory = await this.prisma.rateWeightCategorie.findFirst({
+    const client = this.prisma;
+    const weightCategory = await client.rateWeightCategorie.findFirst({
       where: {  
         min_weight: { lte: weight },
         max_weight: { gte: weight }
@@ -28,12 +30,13 @@ export class RateRepository {
     return weightCategory;
   }
 
-  async createCountryCombinatin(payload: any): Promise<any> {
+  async createCountryCombinatin(payload: any, tx?: PrismaClient): Promise<any> {
     const {
       importCountryId,
       exportCountryId,
     } = payload;
-    const newRateShippingMethod = await this.prisma.countryCombination.create({
+    const client = tx || this.prisma;
+    const newRateShippingMethod = await client.countryCombination.create({
       data: {
         importCountry: { connect: { id: importCountryId } },
         exportCountry: { connect: { id: exportCountryId } }
@@ -42,15 +45,17 @@ export class RateRepository {
     return newRateShippingMethod
   }
 
-  async createRate(payload: any): Promise<any> {
-    const newRateShippingMethod = await this.prisma.rate.create({
+  async createRate(payload: any, tx?: PrismaClient): Promise<any> {
+    const client = tx || this.prisma;
+    const newRateShippingMethod = await client.rate.create({
       data: payload
     })
     return newRateShippingMethod
   }
 
-  async updateRate(rateId: number, payload: any): Promise<any> {
-    const updatedRate = await this.prisma.rate.update({
+  async updateRate(rateId: number, payload: any, tx?: PrismaClient): Promise<any> {
+    const client = tx || this.prisma;
+    const updatedRate = await client.rate.update({
       where: { id: rateId },
       data: payload
     });
@@ -62,9 +67,10 @@ export class RateRepository {
     return rates;
   }
 
-  async findRateByCriteria(payload: any): Promise<any> {
+  async findRateByCriteria(payload: any, tx?: PrismaClient): Promise<any> {
     const { countryCombinationId, weightCategoryId, shippingMethodId, category1688Id } = payload;
-    const rates = await this.prisma.rate.findMany({
+    const client = tx || this.prisma;
+    const rates = await client.rate.findMany({
       where: {
         countryCombinationId,
         weightCategoryId,
@@ -75,9 +81,10 @@ export class RateRepository {
     return rates;
   }
 
-  async countryMethodWiseRate(payload: any): Promise<any> {
+  async countryMethodWiseRate(payload: any, tx?: PrismaClient): Promise<any> {
     const { shippingMethodId, countryCombinationId } = payload;
-    const rates = await this.prisma.rate.findMany({
+    const client = tx || this.prisma;
+    const rates = await client.rate.findMany({
       where: {
         shippingMethodId,
         countryCombinationId

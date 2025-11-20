@@ -15,6 +15,8 @@ rateRoute.route("/")
 
 rateRoute.route("/find").get(controller.findRateByCriteria);
 rateRoute.route("/method-wise-rate").get(controller.countryMethodWiseRate);
+// rate/bulk-adjust
+rateRoute.route("/bulk-adjust").post(controller.bulkAdjustRate);
 // countryRoute.route("/user/:id").get(controller.getUserAllOrder);
 // countryRoute.route("/track").get(controller.orderTracking);
 
