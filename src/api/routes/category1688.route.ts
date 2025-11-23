@@ -16,15 +16,11 @@ Category1688Router.get('/category/:categoryId', controller.getCategoryIdBySubcat
 Category1688Router.get('/rate', controller.getAllCategory1688ForRateCalculation);
 Category1688Router.post('/:categoryId/rate-calculation', controller.addCategoryForRateCalculation);
 
-// Category1688Router.get("/navbar", controller.getNavBar);
-// Category1688Router.get("/pagination", controller.getCategory1688WithPagination);
-// Category1688Router.route(":slug").get(controller.getSingleCategory1688WithSlug);
-
-// Category1688Router.route("/:slug")
-//   .get(controller.getSingleCategory1688)
-//   .put(upload.any(), controller.updateCategory1688)
-//   .delete(controller.deleteCategory1688);
-
-// Category1688Router.put("/status/:id", controller.updateCategory1688Status);
+Category1688Router.route("/hs-code/:id")
+   .post(controller.createHsCodeEntryByCategoryId)
+   .get(controller.getHsCodeEntryByCategoryId);
+//   .patch( controller.updateHsCodeEntryByCountryCode)
+//   .put( controller.getHsCodeEntryByCountryCode)
+//   .delete(controller.getHsCodeEntryByCountryCode)
 
 export default Category1688Router;

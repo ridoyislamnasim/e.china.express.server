@@ -49,16 +49,8 @@ export class CountryRepository {
   async getCountryById(id: number) {
     return await this.prisma.country.findUnique({
       where: { id },
-      include: { ports: true, warehouses: true },
+      include: { ports: true, warehouses: true, countryHsCodes: true},
     });
-  }
-
-  async updateUserPassword(userId: number, password: string) {
-    return await this.prisma.user.update({ where: { id: userId }, data: { password } });
-  }
-
-  async getAuthByEmail(email: string) {
-    return await this.prisma.user.findUnique({ where: { email } });
   }
 
  async getCountryWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
@@ -79,6 +71,16 @@ export class CountryRepository {
     });
 
  }
+
+//  update 
+  async updateCountry(id: number, payload: any, tx: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    const updatedCountry = await prismaClient.country.update({
+      where: { id },
+      data: payload,
+    });
+    return updatedCountry;
+  }
 
   async deleteCountry(id: number): Promise<void> { // Corrected method name
     await this.prisma.country.delete({ where: { id } });

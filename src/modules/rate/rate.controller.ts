@@ -13,7 +13,12 @@ class RateController {
     try {
       const { price, weightCategoryId, shippingMethodId, category1688Id, importCountryId, exportCountryId } = req.body;
       const payload = {
-        price, weightCategoryId, shippingMethodId, category1688Id, importCountryId, exportCountryId
+        price: Number(price),
+         weightCategoryId: Number(weightCategoryId), 
+         shippingMethodId: Number(shippingMethodId), 
+         category1688Id: Number(category1688Id), 
+         importCountryId: Number(importCountryId), 
+         exportCountryId: Number(exportCountryId)
       };
       const shippingMethod = await rateService.createRate(payload);
       const resDoc = responseHandler(201, 'Rate created successfully', shippingMethod);

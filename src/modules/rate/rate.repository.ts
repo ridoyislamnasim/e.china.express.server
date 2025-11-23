@@ -75,7 +75,7 @@ export class RateRepository {
         countryCombinationId,
         weightCategoryId,
         shippingMethodId,
-        category1688Id
+        category1688Id: Number(category1688Id)
       }
     });
     return rates;

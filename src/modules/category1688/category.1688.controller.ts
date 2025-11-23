@@ -49,6 +49,32 @@ export class Category1688Controller {
   });
 
 
+    // HS Code Entry Handlers
+  createHsCodeEntryByCategoryId = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const { globalHsCodes, chinaHsCodes, globalMaterialComment, countryHsCode } = req.body;
+    const payload = {
+      id: Number(id),
+      globalHsCodes,
+      chinaHsCodes,
+      globalMaterialComment,
+      countryHsCode: countryHsCode ?? []
+   }
+    const hsCodeEntryResult = await Category1688Service.createHsCodeEntryByCategoryId(payload);
+    const resDoc = responseHandler(201, 'HS Code Entry Created successfully', hsCodeEntryResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+  getHsCodeEntryByCategoryId = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const payload = {
+      id: Number(id)
+   }
+    const hsCodeEntryResult = await Category1688Service.getHsCodeEntryByCategoryId(payload);
+    const resDoc = responseHandler(200, 'Get HS Code Entry by Category ID', hsCodeEntryResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
 
 
    }

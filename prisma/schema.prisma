@@ -593,12 +593,14 @@ model Country {
   name String
 
   isoCode            String
+  zone               String?
   status             Boolean              @default(true)
   createdAt          DateTime             @default(now())
   exportCombinations CountryCombination[] @relation("ExportCountry")
   importCombinations CountryCombination[] @relation("ImportCountry")
   ports              Ports[]
   warehouses         Warehouse[]
+  countryHsCodes  CountryHsCode[]
 
   @@map("countries")
 }
@@ -730,6 +732,37 @@ model Category1688 {
   // children relation
   children Category1688[] @relation("CategoryTree")
   rate     Rate[]
+
+    // One-to-One HS Code Config
+  hsCodeConfig   HsCodeConfig?
+  hsCodeConfigId Int? @unique  // UNIQUE = One-to-One
+
+  // Country specific HS codes (one-to-many)
+  countryHsCodes CountryHsCode[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HsCodeConfig {
+  id                    Int           @id @default(autoincrement())
+  globalHsCodes         String
+  chinaHsCodes          String
+  globalMaterialComment String?
+  category              Category1688? @relation(fields: [categoryId], references: [id])
+  categoryId            Int?          @unique
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}
+
+model CountryHsCode {
+  id         Int          @id @default(autoincrement())
+  countryId Int
+  country   Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  hsCodes    String
+
+  category1688Id Int
+  category1688   Category1688 @relation(fields: [category1688Id], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

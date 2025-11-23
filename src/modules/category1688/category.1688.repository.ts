@@ -1,6 +1,5 @@
 // Category1688Repository (TypeScript version)
 import prisma from '../../config/prismadatabase';
-import { Prisma } from '@prisma/client';
 import { pagination } from '../../utils/pagination';
 
 
@@ -10,7 +9,6 @@ export class Category1688Repository {
   async createCategory1688(payload: any, tx?: any) {
     return await prisma.category1688.create({ data: payload });
   }
-
   
 
   async getAllCategory1688() {
@@ -43,12 +41,6 @@ export class Category1688Repository {
   }
 
 
-
-
-
-
-
-
   async createOrUpdateCategory1688From1688Data(  result: any) {
     const { categoryId, translatedName, leaf, level, parentCateId } = result;
        const finalParentId = (!parentCateId || Number(parentCateId) === 0)
@@ -78,16 +70,21 @@ export class Category1688Repository {
     });
   }
 
-  async getCategoryById(categoryId: number): Promise<any> {
+  async getCategoryByCategoryId(categoryId: number): Promise<any> {
     return await prisma.category1688.findUnique({
       where: { categoryId },
+    });
+  }
+  async getCategoryById(id: number): Promise<any> {
+    return await prisma.category1688.findUnique({
+      where: { id },
     });
   }
   async updateCategoryRateFlagToggle(categoryId: number, isRateCategory: boolean): Promise<any> {
     console.log('Updating categoryId:', categoryId, 'to isRateCategory:', isRateCategory);
     return await prisma.category1688.update({
       where: { categoryId },
-      data: { isRateCategory: Boolean(isRateCategory) } as unknown as Prisma.Category1688UpdateInput,
+      data: { isRateCategory: Boolean(isRateCategory) } as any,
     });
   }
 
@@ -108,6 +105,61 @@ export class Category1688Repository {
    return this.buildCategoryTree(categories);
   }
 
+  // HS Code Entry Repositories
+  async getHsCodeConfigByCategoryId(categoryId: number): Promise<any> {
+    return await prisma.hsCodeConfig.findUnique({
+      where: { categoryId },
+    });
+  }
+
+  async createHsCodeEntry(id: number, globalHsCodes: string, chinaHsCodes: string, globalMaterialComment: string): Promise<any> {
+    // Use upsert: create if not exists, otherwise update existing entry
+    return await prisma.hsCodeConfig.upsert({
+      where: { categoryId: id },
+      update: {
+        globalHsCodes: globalHsCodes,
+        chinaHsCodes: chinaHsCodes,
+        globalMaterialComment: globalMaterialComment,
+      },
+      create: {
+        categoryId: id,
+        globalHsCodes: globalHsCodes,
+        chinaHsCodes: chinaHsCodes,
+        globalMaterialComment: globalMaterialComment,
+      },
+    });
+  }
+
+  async createCountryHsCodeEntry(id: number, countryId: number, hsCodes: string): Promise<any> {
+    // Attempt to find existing record for this category1688 + country
+    const existing = await prisma.countryHsCode.findFirst({ where: { category1688Id: id, countryId } });
+    if (existing) {
+      return await prisma.countryHsCode.update({ where: { id: existing.id }, data: { hsCodes } });
+    }
+
+    return await prisma.countryHsCode.create({
+      data: {
+        category1688Id: id,
+        countryId,
+        hsCodes,
+      },
+    });
+  }
+
+  async getHsCodeEntryByCategoryId(id: number): Promise<any> {
+    const hsCodeConfig = await prisma.hsCodeConfig.findUnique({
+       where: { categoryId: id },
+    });
+    // Fetch associated country HS codes
+    const countryHsCodes = await prisma.countryHsCode.findMany({
+      where: { category1688Id: id },
+    });
+    return {
+      ...hsCodeConfig,
+      countryHsCodes: countryHsCodes,
+    };
+
+  }
 
 }
 

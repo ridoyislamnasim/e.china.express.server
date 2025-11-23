@@ -4,4 +4,5 @@ export default interface CountryPayload {
     status: string;
     isoCode: string;
     ports?: any[]; // Optional field for ports
+    zone?: string; // Optional field for zone
 }

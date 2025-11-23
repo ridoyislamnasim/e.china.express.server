@@ -22,8 +22,8 @@ countryRoute.get("/pagination", controller.getCountryWithPagination);
 
 countryRoute.route("/:id")
     // .get(controller.getSingleOrder)
-    // .put(upload.any(), controller.updateOrder)
-    .delete(controller.deleteOrder);
+    .patch(upload.any(), controller.updateCountry)
+    .delete(controller.deleteCountry);
 
 // countryRoute.put("/status/:id", controller.updateOrderStatus);
 // countryRoute.put("/couriersend/:id", controller.isCourierSending);

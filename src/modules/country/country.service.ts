@@ -13,7 +13,7 @@ export class CountryService {
   }
 
   async createCountry(payload: CountryPayload): Promise<any> {
-    const { name, status, isoCode, ports } = payload;
+    const { name, status, isoCode, ports, zone } = payload;
 
     // Validate required fields
     if (!name || !status || !isoCode) {
@@ -28,6 +28,7 @@ export class CountryService {
       name,
       status,
       isoCode,
+      zone,
     };
 
     const country = await this.repository.createCountry(countryPayload);
@@ -51,6 +52,32 @@ export class CountryService {
     const offset = (page - 1) * limit;
     const countries = await this.repository.getCountryWithPagination({ limit, offset }, tx);
     return countries;
+  }
+  async updateCountry(id: number, payload: CountryPayload, tx: any): Promise<any> {
+    const { name, status, isoCode, ports, zone } = payload;
+    const countryPayload: CountryPayload = {
+      name,
+      status,
+      isoCode,
+      zone,
+    };
+    const updatedCountry = await this.repository.updateCountry(id, countryPayload, tx);
+
+    if (ports && Array.isArray(ports)) {
+      // For simplicity, delete existing ports and recreate them
+      const existingCountry = await this.repository.getCountryById(id);
+      if (existingCountry && existingCountry.ports && existingCountry.ports.length > 0) {
+        for (const port of existingCountry.ports) {
+          await this.repository.deletePort(port.id);
+        }
+      }
+
+      for (const port of ports) {
+        await this.repository.createPort({ ...port, countryId: id });
+      }
+    }
+
+    return updatedCountry;
   }
 
   async deleteCountry(id: number): Promise<void> {

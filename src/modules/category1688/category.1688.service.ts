@@ -69,7 +69,7 @@ export class Category1688Service {
   }
   async addCategoryForRateCalculation(payload: any): Promise<any> {
     const { categoryId } = payload;
-    const category = await this.repository.getCategoryById(categoryId); 
+    const category = await this.repository.getCategoryByCategoryId(categoryId); 
     if (!category) {
       throw new NotFoundError(`Category with categoryId ${categoryId} not found`);
     }
@@ -82,9 +82,32 @@ export class Category1688Service {
     return await this.repository.getCategoriesForRateCalculation();
   }
 
+  // HS Code Entry Services
+  async createHsCodeEntryByCategoryId(payload: any): Promise<any> {
+    const { id, globalHsCodes, chinaHsCodes, globalMaterialComment, countryHsCode } = payload;
+    const category = await this.repository.getCategoryById(id); 
+    console.log('Fetched category:', category);
+    if (!category) {
+      throw new NotFoundError(`Category with categoryId ${id} not found`);
+    }
+    // Create HS Code Entry
+    const hsCodeEntry = await this.repository.createHsCodeEntry(id, globalHsCodes, chinaHsCodes, globalMaterialComment);
+    console.log('Created HS Code Entry:', countryHsCode);
 
+    for (const countryCode of countryHsCode) {
+      await this.repository.createCountryHsCodeEntry(id, countryCode.countryId, countryCode.hsCodes);
+    }
+    return hsCodeEntry;
+  }
 
-
+  async getHsCodeEntryByCategoryId(payload: any): Promise<any> {
+    const { id } = payload;
+    const hsCodeEntry = await this.repository.getHsCodeEntryByCategoryId(id);
+    if (!hsCodeEntry) {
+      throw new NotFoundError(`HS Code Entry for Category ID ${id} not found`);
+    }
+    return hsCodeEntry;
+  }
 }
 
 export default new Category1688Service(category1688Repository);

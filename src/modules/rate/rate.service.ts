@@ -11,7 +11,7 @@ export class RateService {
     this.category1688Repository = category1688Repository;
   }
 
-  async createRate(payload: any): Promise<any> {
+  async createRate(payload:{ price: number; weightCategoryId: number; shippingMethodId: number; category1688Id: number; importCountryId: number; exportCountryId: number }): Promise<any> {
     const { price, weightCategoryId, shippingMethodId, category1688Id, importCountryId, exportCountryId } = payload;
     console.log("payload service", payload);
     // Validate required fields
