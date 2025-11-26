@@ -32,6 +32,25 @@ export class CountryRepository {
     return newCountry
   }
 
+  async getCountryByCondition(condition: any): Promise<any> {
+    return await this.prisma.country.findFirst({
+      where: condition,
+    });
+  }
+
+  async getCountryForShipping(condition: any): Promise<any> {
+    return await this.prisma.country.findMany({
+      where: condition,
+    });
+  }
+
+  async updateCountryByCondition(id: number, payload: any): Promise<any> {
+    return await this.prisma.country.update({
+      where: { id },
+      data: payload,
+    });
+  }
+
 
 
   async getAllCountries() {
@@ -88,6 +107,8 @@ export class CountryRepository {
  async deletePort(id: number): Promise<void> {
     await this.prisma.ports.delete({ where: { id } });
   }
+
+
   // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
 }
 

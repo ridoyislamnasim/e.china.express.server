@@ -13,7 +13,7 @@ export class CountryService {
   }
 
   async createCountry(payload: CountryPayload): Promise<any> {
-    const { name, status, isoCode, ports, zone } = payload;
+    const { name, status, isoCode, ports, zone, isShippingCountry } = payload;
 
     // Validate required fields
     if (!name || !status || !isoCode) {
@@ -22,13 +22,20 @@ export class CountryService {
       throw error;
     }
 
+    // Ensure only one country has isShippingCountry set to true
+    if (isShippingCountry) {
+      const existingShippingCountry = await this.repository.getCountryByCondition({ isShippingCountry: true });
+      if (existingShippingCountry) {
+        await this.repository.updateCountryByCondition(existingShippingCountry.id, { isShippingCountry: false });
+      }
+    }
 
-    // Ensure is optional
     const countryPayload: CountryPayload = {
       name,
       status,
       isoCode,
       zone,
+      isShippingCountry,
     };
 
     const country = await this.repository.createCountry(countryPayload);
@@ -53,13 +60,27 @@ export class CountryService {
     const countries = await this.repository.getCountryWithPagination({ limit, offset }, tx);
     return countries;
   }
+
+  async getCountryForShipping(): Promise<any> {
+    const country = await this.repository.getCountryForShipping({ isShippingCountry: false });
+    return country;
+  }
+
   async updateCountry(id: number, payload: CountryPayload, tx: any): Promise<any> {
-    const { name, status, isoCode, ports, zone } = payload;
+    const { name, status, isoCode, ports, zone, isShippingCountry } = payload;
+    if (isShippingCountry) {
+      const existingShippingCountry = await this.repository.getCountryByCondition({ isShippingCountry: true });
+      if (existingShippingCountry && existingShippingCountry.id !== id) {
+        await this.repository.updateCountry(existingShippingCountry.id, { isShippingCountry: false }, tx);
+      }
+    }
+
     const countryPayload: CountryPayload = {
       name,
       status,
       isoCode,
       zone,
+      isShippingCountry,
     };
     const updatedCountry = await this.repository.updateCountry(id, countryPayload, tx);
 

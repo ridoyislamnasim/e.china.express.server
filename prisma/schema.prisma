@@ -596,6 +596,7 @@ model Country {
   zone               String?
   status             Boolean              @default(true)
   createdAt          DateTime             @default(now())
+  isShippingCountry  Boolean              @default(false)
   exportCombinations CountryCombination[] @relation("ExportCountry")
   importCombinations CountryCombination[] @relation("ImportCountry")
   ports              Ports[]

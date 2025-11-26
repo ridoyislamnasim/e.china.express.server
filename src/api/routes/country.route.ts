@@ -12,7 +12,7 @@ countryRoute.route("/")
     .post(controller.createCountry)
     .get(controller.getAllCountry);
 
-// countryRoute.route("/order-product").get(controller.getOrderProducts);
+countryRoute.route("/shipping").get(controller.getCountryForShipping);
 // countryRoute.route("/admin").post(controller.createAdminOrder);
 // countryRoute.route("/user/:id").get(controller.getUserAllOrder);
 // countryRoute.route("/track").get(controller.orderTracking);
