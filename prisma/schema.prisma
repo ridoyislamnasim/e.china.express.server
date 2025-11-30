@@ -123,19 +123,7 @@ model Wishlist {
   updatedAt    DateTime @updatedAt
 }
 
-model WarehouseTransfer {
-  id                 Int       @id @default(autoincrement())
-  fromWarehouseRef   Warehouse @relation("FromWarehouse", fields: [fromWarehouseRefId], references: [id])
-  fromWarehouseRefId Int
-  toWarehouseRef     Warehouse @relation("ToWarehouse", fields: [toWarehouseRefId], references: [id])
-  toWarehouseRefId   Int
-  inventoryRef       Inventory @relation(fields: [inventoryRefId], references: [id])
-  inventoryRefId     Int
-  quantity           Int
-  status             String    @default("Pending")
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-}
+
 
 model SubCategory {
   id              Int             @id @default(autoincrement())
@@ -162,17 +150,62 @@ model ShippingMethod {
   updatedAt      DateTime @updatedAt
 }
 
+// model Warehouse {
+//   id            Int      @id @default(autoincrement())
+//   name          String
+//   totalCapacity Float?   @default(0)
+//   usedCapacity  Float?   @default(0)
+//   remaining     Float?   @default(0)
+//   location      String?
+//   managerRef    User?    @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
+//   managerRefId  Int?
+//   contact       String?
+//   status        Boolean  @default(true)
+//   createdBy     Int?
+//   createdByRef  User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
+//   updatedBy     Int?
+//   updatedByRef  User?    @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
+//   createdAt     DateTime @default(now())
+//   updatedAt     DateTime @updatedAt
+
+//   fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
+//   toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
+
+//   countryId  Int?
+//   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+//   inventories Inventory[]
+// }
+
 model Warehouse {
-  id            Int      @id @default(autoincrement())
-  name          String
-  totalCapacity Float?   @default(0)
-  usedCapacity  Float?   @default(0)
-  remaining     Float?   @default(0)
-  location      String?
-  managerRef    User?    @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
-  managerRefId  Int?
-  contact       String?
-  status        Boolean  @default(true)
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String   @unique
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  country     String   @default("USA")
+  phone       String
+  email       String
+  location    String
+  status      WarehouseStatus @default(OPERATIONAL)
+  type        WarehouseType
+  
+  totalCapacity   Int
+  usedCapacity    Int
+  capacityUnit    String @default("sq ft")
+  
+  latitude        Float?
+  longitude       Float?
+  
+  weekdaysHours   String?
+  weekendsHours   String?
+  holidaysHours   String?
+  
+  lastInspection  DateTime?
+  nextMaintenance DateTime?
+
   createdBy     Int?
   createdByRef  User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
   updatedBy     Int?
@@ -180,13 +213,30 @@ model Warehouse {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
-  toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
+  managerRefId  Int?
+  managerRef    User?    @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
 
   countryId  Int?
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
-  inventories Inventory[]
+  // Add this missing relation field for Inventory
+
+  @@map("warehouses")
+}
+
+enum WarehouseStatus {
+  OPERATIONAL
+  MAINTENANCE
+  CLOSED
+  CONSTRUCTION
+  ARCHIVE
+}
+
+enum WarehouseType {
+  DISTRIBUTION
+  STORAGE
+  FULFILLMENT
+  OTHERS
 }
 
 model WarehouseSpace {
@@ -420,9 +470,7 @@ model Newsletter {
 model Inventory {
   id                Int        @id @default(autoincrement())
   productRef        Product?   @relation(fields: [productRefId], references: [id])
-  productRefId      Int?
-  warehouseRef      Warehouse? @relation(fields: [warehouseRefId], references: [id])
-  warehouseRefId    Int?
+  productRefId      Int?   // Changed from Int? to String?
   quantity          Int?
   mrpPrice          Float?
   price             Float?
@@ -442,7 +490,7 @@ model Inventory {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  warehouseTransfers WarehouseTransfer[]
+
   carts              Cart[]
   buyNowCarts        BuyNowCart[]
   orderProducts      OrderProduct[]      @relation("InventoryToOrderProduct")
