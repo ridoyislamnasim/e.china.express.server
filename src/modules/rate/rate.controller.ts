@@ -83,6 +83,20 @@ class RateController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+  findShippingRateForProduct = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const {  importCountryId, weight, category1688Id, subCategory1688Id, childCategory1688Id } = req.body;
+    const payload: any = {
+      importCountryId,
+      weight,
+      category1688Id,
+      subCategory1688Id,
+      childCategory1688Id
+    };
+    const rates = await rateService.findShippingRateForProduct(payload);
+    const resDoc = responseHandler(200, 'Shipping Rates for Product retrieved successfully', rates);
+    res.status(resDoc.statusCode).json(resDoc);
+  })
+
 }
 
 export default new RateController();

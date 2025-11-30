@@ -13,6 +13,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -129,7 +130,7 @@ model WarehouseTransfer {
   fromWarehouseRefId Int
   toWarehouseRef     Warehouse @relation("ToWarehouse", fields: [toWarehouseRefId], references: [id])
   toWarehouseRefId   Int
-  inventoryRef       Inventory @relation(fields: [inventoryRefId], references: [id])
+  // inventoryRef       Inventory @relation(fields: [inventoryRefId], references: [id])
   inventoryRefId     Int
   quantity           Int
   status             String    @default("Pending")
@@ -186,7 +187,7 @@ model Warehouse {
   countryId  Int?
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
-  inventories Inventory[]
+  // inventories Inventory[]
 }
 
 model WarehouseSpace {
@@ -291,13 +292,14 @@ model Product {
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
   wishlists             Wishlist[]        @relation("ProductToWishlist")
-  inventories           Inventory[]
+  // inventories           Inventory[]
   productReviews        ProductReview[]
-  carts                 Cart[]            @relation("ProductToCart")
+  // carts                 Cart[]            
   buyNowCarts           BuyNowCart[]      @relation("ProductToCart")
   publishStatus         String?           @default("Publish") // Add publish status with default value
   viewProduct           Int?              @default(0) // Add view count with default value
-  orderProducts         OrderProduct[]
+  // orderProducts         OrderProduct[]
+  cartProducts          CartProduct[]
 }
 
 model Policy {
@@ -326,30 +328,30 @@ model PaymentServiceConfig {
   updatedAt     DateTime @updatedAt
 }
 
-model OrderProduct {
-  id             Int       @id @default(autoincrement())
-  order          Order     @relation(fields: [orderId], references: [id])
-  orderId        Int
-  productRef     Product   @relation(fields: [productRefId], references: [id])
-  productRefId   Int
-  inventoryRef   Inventory @relation("InventoryToOrderProduct", fields: [inventoryRefId], references: [id])
-  inventoryRefId Int
-  quantity       Int
-  price          Float?
-  mrpPrice       Float?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-}
+// model OrderProduct {
+//   id             Int       @id @default(autoincrement())
+//   order          Order     @relation(fields: [orderId], references: [id])
+//   orderId        Int
+//   productRef     Product   @relation(fields: [productRefId], references: [id])
+//   productRefId   Int
+//   inventoryRef   Inventory @relation("InventoryToOrderProduct", fields: [inventoryRefId], references: [id])
+//   inventoryRefId Int
+//   quantity       Int
+//   price          Float?
+//   mrpPrice       Float?
+//   createdAt      DateTime  @default(now())
+//   updatedAt      DateTime  @updatedAt
+// }
 
 model Order {
-  id               Int            @id @default(autoincrement())
-  orderId          String         @unique
+  id               Int      @id @default(autoincrement())
+  orderId          String   @unique
   subTotalPrice    Float?
   totalPrice       Float?
-  shippingCost     Float?         @default(0)
-  couponRef        Coupon?        @relation(fields: [couponRefId], references: [id])
+  shippingCost     Float?   @default(0)
+  couponRef        Coupon?  @relation(fields: [couponRefId], references: [id])
   couponRefId      Int?
-  userRef          User?          @relation(fields: [userRefId], references: [id])
+  userRef          User?    @relation(fields: [userRefId], references: [id])
   userRefId        Int?
   correlationId    String?
   customerName     String?
@@ -361,16 +363,16 @@ model Order {
   customerRoad     String?
   customerThana    String?
   customerAltPhone String?
-  paymentMethod    String?        @default("CashOnDelivery")
-  couponDiscount   Float?         @default(0)
-  status           String?        @default("OrderPlaced")
-  isGuestUser      Boolean        @default(false)
+  paymentMethod    String?  @default("CashOnDelivery")
+  couponDiscount   Float?   @default(0)
+  status           String?  @default("OrderPlaced")
+  isGuestUser      Boolean  @default(false)
   guestUserRef     String?
   note             String?
-  isCourierSend    Boolean        @default(false)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  products         OrderProduct[]
+  isCourierSend    Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  // products         OrderProduct[]
 }
 
 model OrderBulk {
@@ -417,36 +419,36 @@ model Newsletter {
   updatedAt DateTime @updatedAt
 }
 
-model Inventory {
-  id                Int        @id @default(autoincrement())
-  productRef        Product?   @relation(fields: [productRefId], references: [id])
-  productRefId      Int?
-  warehouseRef      Warehouse? @relation(fields: [warehouseRefId], references: [id])
-  warehouseRefId    Int?
-  quantity          Int?
-  mrpPrice          Float?
-  price             Float?
-  costPrice         Float?
-  discountType      String?
-  discount          Float?
-  discountAmount    Float?
-  barcode           String?
-  availableQuantity Int?
-  soldQuantity      Int?       @default(0)
-  holdQuantity      Int?       @default(0)
-  inventoryType     String?
-  color             String?
-  name              String?
-  level             String?
-  inventoryID       String?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+// model Inventory {
+//   id                Int        @id @default(autoincrement())
+//   productRef        Product?   @relation(fields: [productRefId], references: [id])
+//   productRefId      Int?
+//   warehouseRef      Warehouse? @relation(fields: [warehouseRefId], references: [id])
+//   warehouseRefId    Int?
+//   quantity          Int?
+//   mrpPrice          Float?
+//   price             Float?
+//   costPrice         Float?
+//   discountType      String?
+//   discount          Float?
+//   discountAmount    Float?
+//   barcode           String?
+//   availableQuantity Int?
+//   soldQuantity      Int?       @default(0)
+//   holdQuantity      Int?       @default(0)
+//   inventoryType     String?
+//   color             String?
+//   name              String?
+//   level             String?
+//   inventoryID       String?
+//   createdAt         DateTime   @default(now())
+//   updatedAt         DateTime   @updatedAt
 
-  warehouseTransfers WarehouseTransfer[]
-  carts              Cart[]
-  buyNowCarts        BuyNowCart[]
-  orderProducts      OrderProduct[]      @relation("InventoryToOrderProduct")
-}
+//   warehouseTransfers WarehouseTransfer[]
+//   carts              Cart[]
+//   buyNowCarts        BuyNowCart[]
+//   orderProducts      OrderProduct[]      @relation("InventoryToOrderProduct")
+// }
 
 model ContactInfo {
   id        Int      @id @default(autoincrement())
@@ -474,36 +476,20 @@ model Category {
   coupons       Coupon[]      @relation(fields: [], references: [])
 }
 
-model Cart {
-  id             Int        @id @default(autoincrement())
-  quantity       Int?
-  isGuestUser    Boolean    @default(false)
-  guestUserRef   String?
-  correlationId  String?
-  userRef        User?      @relation(fields: [userRefId], references: [id])
-  userRefId      Int?
-  productRef     Product?   @relation("ProductToCart", fields: [productRefId], references: [id])
-  productRefId   Int?
-  inventoryRef   Inventory? @relation(fields: [inventoryRefId], references: [id])
-  inventoryRefId Int?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-}
-
 model BuyNowCart {
-  id             Int        @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   quantity       Int?
-  isGuestUser    Boolean    @default(false)
+  isGuestUser    Boolean  @default(false)
   guestUserRef   String?
-  correlationId  String?    @unique
-  userRef        User?      @relation(fields: [userRefId], references: [id])
+  correlationId  String?  @unique
+  userRef        User?    @relation(fields: [userRefId], references: [id])
   userRefId      Int?
-  productRef     Product?   @relation("ProductToCart", fields: [productRefId], references: [id])
+  productRef     Product? @relation("ProductToCart", fields: [productRefId], references: [id])
   productRefId   Int?
-  inventoryRef   Inventory? @relation(fields: [inventoryRefId], references: [id])
+  // inventoryRef   Inventory? @relation(fields: [inventoryRefId], references: [id])
   inventoryRefId Int?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model OTP {
@@ -601,7 +587,7 @@ model Country {
   importCombinations CountryCombination[] @relation("ImportCountry")
   ports              Ports[]
   warehouses         Warehouse[]
-  countryHsCodes  CountryHsCode[]
+  countryHsCodes     CountryHsCode[]
 
   @@map("countries")
 }
@@ -707,10 +693,11 @@ model Rate {
   created_at           DateTime @default(now())
 
   // Relations
-  countryCombination CountryCombination  @relation(fields: [countryCombinationId], references: [id], onDelete: Cascade)
-  category1688       Category1688        @relation(fields: [category1688Id], references: [id])
-  shippingMethod     RateSippingMethod   @relation(fields: [shippingMethodId], references: [id])
-  weightCategory     RateWeightCategorie @relation(fields: [weightCategoryId], references: [id])
+  countryCombination CountryCombination   @relation(fields: [countryCombinationId], references: [id], onDelete: Cascade)
+  category1688       Category1688         @relation(fields: [category1688Id], references: [id])
+  shippingMethod     RateSippingMethod    @relation(fields: [shippingMethodId], references: [id])
+  weightCategory     RateWeightCategorie  @relation(fields: [weightCategoryId], references: [id])
+  cartProductVariant CartProductVariant[]
 }
 
 model Category1688 {
@@ -734,9 +721,9 @@ model Category1688 {
   children Category1688[] @relation("CategoryTree")
   rate     Rate[]
 
-    // One-to-One HS Code Config
+  // One-to-One HS Code Config
   hsCodeConfig   HsCodeConfig?
-  hsCodeConfigId Int? @unique  // UNIQUE = One-to-One
+  hsCodeConfigId Int?          @unique // UNIQUE = One-to-One
 
   // Country specific HS codes (one-to-many)
   countryHsCodes CountryHsCode[]
@@ -757,14 +744,84 @@ model HsCodeConfig {
 }
 
 model CountryHsCode {
-  id         Int          @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   countryId Int
-  country   Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  hsCodes    String
+  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  hsCodes   String
 
   category1688Id Int
   category1688   Category1688 @relation(fields: [category1688Id], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// cart 
+enum ProductFor {
+  FROM1688
+  LOCAL
+  ALIBABA
+}
+
+model Cart {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  totalPrice  Float? @default(0)
+  totalWeight Float? @default(0)
+  currency    String @default("Dollar")
+  status      String @default("active") // active, pending, checkout
+
+  user     User          @relation(fields: [userId], references: [id])
+  products CartProduct[]
+}
+
+model CartProduct {
+  id         Int        @id @default(autoincrement())
+  productFor ProductFor @default(FROM1688)
+
+  product1688Id    String?
+  productLocalId   Int?
+  productLocal     Product? @relation(fields: [productLocalId], references: [id])
+  productAlibabaId String?
+
+  mainSkuImageUrl String?
+  vendorId        Int? // highly recommended
+
+  cartId Int
+  cart   Cart @relation(fields: [cartId], references: [id])
+
+  quantity    Int   @default(1)
+  totalPrice  Float @default(0)
+  totalWeight Float @default(0)
+
+  isDeleted Boolean @default(false)
+
+  variants CartProductVariant[]
+}
+
+model CartProductVariant {
+  id            Int @id @default(autoincrement())
+  cartProductId Int
+
+  skuId  String?
+  specId String?
+
+  quantity Int @default(1)
+
+  attributeName       String?
+  attributeNameSecond String?
+
+  weight      Float?
+  dimensions  String?
+  price       Float?
+  skuImageUrl String?
+
+  shippingRateId Int?
+  rate           Int?
+
+  cartProduct  CartProduct @relation(fields: [cartProductId], references: [id])
+  shippingRate Rate?       @relation(fields: [shippingRateId], references: [id])
 }

@@ -92,6 +92,7 @@ export class RateRepository {
     });
     return rates;
   }
+  
 }
 
 // Export a singleton instance, similar to module.exports = new CountryRepository(UserSchema)

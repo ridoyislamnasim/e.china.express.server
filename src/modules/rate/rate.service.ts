@@ -1,17 +1,24 @@
 import category1688Repository from "../category1688/category.1688.repository";
+import countryRepository, { CountryRepository } from "../country/country.repository";
+import shippingMethodRepository, { ShippingMethodRepository } from "../rateShippingMethod/shippingMethod.repository";
 import rateRepository, { RateRepository } from "./rate.repository";
 
 
 export class RateService {
   private repository: RateRepository;
   private category1688Repository: typeof category1688Repository;
+  private countryRepository: CountryRepository;
+  // ShippingMethodRepository
+  private shippingMethodRepository: ShippingMethodRepository;
 
   constructor(repository: RateRepository = rateRepository) {
     this.repository = repository;
     this.category1688Repository = category1688Repository;
+    this.countryRepository = countryRepository;
+    this.shippingMethodRepository = shippingMethodRepository;
   }
 
-  async createRate(payload:{ price: number; weightCategoryId: number; shippingMethodId: number; category1688Id: number; importCountryId: number; exportCountryId: number }): Promise<any> {
+  async createRate(payload: { price: number; weightCategoryId: number; shippingMethodId: number; category1688Id: number; importCountryId: number; exportCountryId: number }): Promise<any> {
     const { price, weightCategoryId, shippingMethodId, category1688Id, importCountryId, exportCountryId } = payload;
     console.log("payload service", payload);
     // Validate required fields
@@ -202,10 +209,10 @@ export class RateService {
     };
 
     // gather tasks for parent categories and their immediate children
-    const queryPayload: any = { weightCategoryId, shippingMethodId, countryCombinationId, category1688Id:51 };
-//  countryCombinationId, weightCategoryId, shippingMethodId, category1688Id
+    const queryPayload: any = { weightCategoryId, shippingMethodId, countryCombinationId, category1688Id: 51 };
+    //  countryCombinationId, weightCategoryId, shippingMethodId, category1688Id
     const data = await this.repository.findRateByCriteria(queryPayload, transaction);
-    console.log('Sample data for category1688Id=51:',queryPayload, data);
+    console.log('Sample data for category1688Id=51:', queryPayload, data);
     const results: any[] = [];
     for (const category of categories) {
       const categoryId = category.id;
@@ -236,4 +243,85 @@ export class RateService {
     console.log(`Executed bulk adjust for ${results.length} categories...`);
     return results;
   }
+
+  async findShippingRateForProduct(payload: any): Promise<any> {
+    const { importCountryId, weight, category1688Id, subCategory1688Id, childCategory1688Id } = payload;
+    // all fields are required
+    if (!importCountryId || !weight) {
+      const error = new Error('importCountryId, exportCountryId, shippingMethodId, weight and productId are required');
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
+    let categoryId;
+    if (subCategory1688Id) {
+      const subCategory = await this.category1688Repository.geSubCategoryIdExit(subCategory1688Id);
+      if (subCategory) {
+        categoryId = subCategory.id;
+      } else {
+        // category1688Id not id than error send 
+        const categoryExit = await this.category1688Repository.getCategoryByCategoryId(category1688Id);
+        if (!categoryExit) {
+          const error = new Error('subCategory1688Id is not valid for rate calculation');
+          (error as any).statusCode = 400;
+          throw error;
+        }
+        categoryId = categoryExit.id;
+      }
+    }
+    // find country wish isShippingCountry true
+    const importCountry = await this.countryRepository.getCountryByCondition({ isShippingCountry: true });
+    if (!importCountry) {
+      const error = new Error('No import country found for shipping');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    // find the country combination id first
+    const countryCombinationPayload = {
+      exportCountryId: importCountry.id,
+      importCountryId
+    };
+    const existingCountryCombination = await this.repository.existingCountryConbination(countryCombinationPayload);
+    if (!existingCountryCombination) {
+      // no rates found
+      return [];
+    }
+    // find weight category id based on weight
+    const weightCategory = await this.repository.findWeightCategoryByWeight(weight);
+    if (!weightCategory) {
+      // error send not found
+      const error = new Error('Weight category not found for the given weight');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    // find shipping method id based on some logic or payload (not shown in the snippet)
+    const shippingMethod = await this.shippingMethodRepository.getShippingMethod();
+    if (!shippingMethod) {
+      const error = new Error('No shipping method found for rate calculation');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    const { id } = existingCountryCombination;
+    // find weight if 
+
+    let  rate =[];
+    for (const method of shippingMethod) {
+     
+    const payloadWithCombinationId = {
+      weightCategoryId: weightCategory.id,
+      countryCombinationId: id,
+      category1688Id: categoryId,
+      shippingMethodId: method.id
+    };
+    console.log("payloadWithCombinationId", payloadWithCombinationId);
+    const result = await this.repository.findRateByCriteria(payloadWithCombinationId);
+    rate.push(...result);
+     console.log("method.id", method.id);
+    }
+    return rate;
+  }
+
+
 }
+
+export default RateService;

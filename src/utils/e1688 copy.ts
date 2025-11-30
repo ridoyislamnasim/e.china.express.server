@@ -23,7 +23,7 @@ export async function call168822(apiBaseUrl: string, uriPath: string, params: Re
   const body = new URLSearchParams(params as Record<string, string>).toString();
   // Debug logs (can be removed in production)
   // eslint-disable-next-line no-console
-  console.log('1688 call', { finalUrl, signature, params, body });
+  // console.log('1688 call', { finalUrl, signature, params, body });
   const response = await axios.post(finalUrl, body, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',

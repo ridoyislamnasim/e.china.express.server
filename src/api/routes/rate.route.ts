@@ -17,18 +17,9 @@ rateRoute.route("/find").get(controller.findRateByCriteria);
 rateRoute.route("/method-wise-rate").get(controller.countryMethodWiseRate);
 // rate/bulk-adjust
 rateRoute.route("/bulk-adjust").post(controller.bulkAdjustRate);
-// countryRoute.route("/user/:id").get(controller.getUserAllOrder);
-// countryRoute.route("/track").get(controller.orderTracking);
+rateRoute.route("/find/shipping-rate").get(controller.findShippingRateForProduct);
 
-// countryRoute.get("/pagination", controller.getOrderWithPagination);
-// countryRoute.get("/incomplete/pagination", controller.getIncompleteOrderWithPagination);
-
-// countryRoute.route(":id")
-//     .get(controller.getSingleOrder)
-//     .put(upload.any(), controller.updateOrder)
-//     .delete(controller.deleteOrder);
-
-// countryRoute.put("/status/:id", controller.updateOrderStatus);
-// countryRoute.put("/couriersend/:id", controller.isCourierSending);
+// rateRoute.route("/:rateId")
+//     .put(controller.updateRate);
 
 export default rateRoute;

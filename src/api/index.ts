@@ -32,12 +32,12 @@ rootRouter.use("/banner", BannerRouter);
 rootRouter.use("/subcategory", SubCategoryRouter);
 rootRouter.use("/product", ProductRouter);
 rootRouter.use("/blog", BlogRouter);
-rootRouter.use("/cart", CartRouter);
 rootRouter.use("/coupon", CouponRouter);
 rootRouter.use("/order", OrderRouter);
 rootRouter.use("/wishlist", WishlistRouter);
 
 
+rootRouter.use("/cart", CartRouter); // cart routes
 rootRouter.use('/country', countryRouter);
 rootRouter.use('/rate/shippingmethod', rateShippingMethodRoute);
 rootRouter.use('/rate/weightcategories', rateWeightCategoriesRoute);

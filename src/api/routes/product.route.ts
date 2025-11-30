@@ -14,27 +14,27 @@ ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails); 
 ProductRoute.get("/1688/details/test/:productId", controller.get1688ProductDetailsTest);
 ProductRoute.get("/1688/search", controller.get1688Products);
 
-ProductRoute.route("/")
-  .post(upload.any(), controller.createProduct)
-  .get(controller.getAllProduct);
+// ProductRoute.route("/")
+//   // .post(upload.any(), controller.createProduct)
+//   .get(controller.getAllProduct);
 
 // ProductRoute.get("/search", controller.getSearchProduct);
-ProductRoute.get("/shop/option", controller.getShopOption);
-ProductRoute.get("/related-product/:slug", controller.getRelatedProduct);
+// ProductRoute.get("/shop/option", controller.getShopOption);
+// ProductRoute.get("/related-product/:slug", controller.getRelatedProduct);
 // ProductRoute.get("/view-type", controller.getAllProductForHomePage);
-ProductRoute.get("/pagination", controller.getProductWithPagination);
-ProductRoute.get("/pagination/admin", controller.getProductWithPaginationForAdmin);
-ProductRoute.post("/view-product-count/:slug", controller.getProductViewCount);
-// Trending Now
-ProductRoute.get("/best-sell", controller.getAllBestSellProduct);
-ProductRoute.get("/discounted-product", controller.getAllDiscountedProduct);
-ProductRoute.get("/coming-soon", controller.getComingSoonProductWithPagination);
-ProductRoute.get("/new-arrivals", controller.getNewArrivalsProductWithPagination);
-ProductRoute.get("/trending", controller.getTrendingProductsWithPagination);
+// ProductRoute.get("/pagination", controller.getProductWithPagination);
+// ProductRoute.get("/pagination/admin", controller.getProductWithPaginationForAdmin);
+// ProductRoute.post("/view-product-count/:slug", controller.getProductViewCount);
+// // Trending Now
+// ProductRoute.get("/best-sell", controller.getAllBestSellProduct);
+// ProductRoute.get("/discounted-product", controller.getAllDiscountedProduct);
+// ProductRoute.get("/coming-soon", controller.getComingSoonProductWithPagination);
+// ProductRoute.get("/new-arrivals", controller.getNewArrivalsProductWithPagination);
+// ProductRoute.get("/trending", controller.getTrendingProductsWithPagination);
 
-ProductRoute.route("/:slug")
-  .get(controller.getSingleProduct)
-  .put(upload.any(), controller.updateProduct)
-  .delete(controller.deleteProduct);
+// ProductRoute.route("/:slug")
+//   .get(controller.getSingleProduct)
+//   .put(upload.any(), controller.updateProduct)
+//   .delete(controller.deleteProduct);
 
 export default ProductRoute;

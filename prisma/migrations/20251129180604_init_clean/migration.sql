@@ -1,6 +1,12 @@
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('customer', 'user', 'admin');
 
+-- CreateEnum
+CREATE TYPE "PortType" AS ENUM ('Sea', 'Air', 'Land');
+
+-- CreateEnum
+CREATE TYPE "ProductFor" AS ENUM ('FROM1688', 'LOCAL', 'ALIBABA');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
@@ -131,14 +137,35 @@ CREATE TABLE "ShippingMethod" (
 CREATE TABLE "Warehouse" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "totalCapacity" DOUBLE PRECISION DEFAULT 0,
+    "usedCapacity" DOUBLE PRECISION DEFAULT 0,
+    "remaining" DOUBLE PRECISION DEFAULT 0,
     "location" TEXT,
     "managerRefId" INTEGER,
     "contact" TEXT,
     "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "countryId" INTEGER,
 
     CONSTRAINT "Warehouse_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "warehouse_spaces" (
+    "id" SERIAL NOT NULL,
+    "sectionId" INTEGER NOT NULL,
+    "spaceCode" VARCHAR(50) NOT NULL,
+    "spaceName" VARCHAR(255) NOT NULL,
+    "spaceNumber" INTEGER NOT NULL,
+    "capacity" DECIMAL(10,2) NOT NULL,
+    "totalCapacity" DECIMAL(10,2) NOT NULL,
+    "currentUsage" DECIMAL(10,2) NOT NULL,
+    "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "warehouse_spaces_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -257,21 +284,6 @@ CREATE TABLE "PaymentServiceConfig" (
 );
 
 -- CreateTable
-CREATE TABLE "OrderProduct" (
-    "id" SERIAL NOT NULL,
-    "orderId" INTEGER NOT NULL,
-    "productRefId" INTEGER NOT NULL,
-    "inventoryRefId" INTEGER NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "price" DOUBLE PRECISION,
-    "mrpPrice" DOUBLE PRECISION,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "OrderProduct_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Order" (
     "id" SERIAL NOT NULL,
     "orderId" TEXT NOT NULL,
@@ -351,33 +363,6 @@ CREATE TABLE "Newsletter" (
 );
 
 -- CreateTable
-CREATE TABLE "Inventory" (
-    "id" SERIAL NOT NULL,
-    "productRefId" INTEGER,
-    "warehouseRefId" INTEGER,
-    "quantity" INTEGER,
-    "mrpPrice" DOUBLE PRECISION,
-    "price" DOUBLE PRECISION,
-    "costPrice" DOUBLE PRECISION,
-    "discountType" TEXT,
-    "discount" DOUBLE PRECISION,
-    "discountAmount" DOUBLE PRECISION,
-    "barcode" TEXT,
-    "availableQuantity" INTEGER,
-    "soldQuantity" INTEGER DEFAULT 0,
-    "holdQuantity" INTEGER DEFAULT 0,
-    "inventoryType" TEXT,
-    "color" TEXT,
-    "name" TEXT,
-    "level" TEXT,
-    "inventoryID" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Inventory_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "ContactInfo" (
     "id" SERIAL NOT NULL,
     "name" TEXT,
@@ -404,22 +389,6 @@ CREATE TABLE "Category" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Cart" (
-    "id" SERIAL NOT NULL,
-    "quantity" INTEGER,
-    "isGuestUser" BOOLEAN NOT NULL DEFAULT false,
-    "guestUserRef" TEXT,
-    "correlationId" TEXT,
-    "userRefId" INTEGER,
-    "productRefId" INTEGER,
-    "inventoryRefId" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Cart_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -529,6 +498,230 @@ CREATE TABLE "Banner" (
     CONSTRAINT "Banner_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "RateShippingMethod" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RateShippingMethod_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "countries" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "isoCode" TEXT NOT NULL,
+    "zone" TEXT,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isShippingCountry" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "countries_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Ports" (
+    "id" SERIAL NOT NULL,
+    "portName" VARCHAR(100) NOT NULL,
+    "portType" "PortType" NOT NULL DEFAULT 'Sea',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "countryId" INTEGER NOT NULL,
+
+    CONSTRAINT "Ports_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RateSippingMethod" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RateSippingMethod_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Categorie" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "shCategoryCode" TEXT NOT NULL,
+    "description" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Categorie_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SubCategories" (
+    "id" SERIAL NOT NULL,
+    "categoryId" INTEGER,
+    "name" TEXT NOT NULL,
+    "shSubCategoryCode" TEXT NOT NULL,
+    "description" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SubCategories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SubHeadings" (
+    "id" SERIAL NOT NULL,
+    "subcategoryId" INTEGER,
+    "name" TEXT NOT NULL,
+    "hsSubHeadingCode" TEXT NOT NULL,
+    "description" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SubHeadings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RateProduct" (
+    "id" SERIAL NOT NULL,
+    "categoryId" INTEGER,
+    "subcategoryId" INTEGER,
+    "subheadingId" INTEGER,
+    "name" TEXT NOT NULL,
+    "shCode" TEXT NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RateProduct_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RateWeightCategorie" (
+    "id" SERIAL NOT NULL,
+    "label" TEXT NOT NULL,
+    "min_weight" DECIMAL(65,30) NOT NULL,
+    "max_weight" DECIMAL(65,30) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RateWeightCategorie_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CountryCombination" (
+    "id" SERIAL NOT NULL,
+    "exportCountryId" INTEGER NOT NULL,
+    "importCountryId" INTEGER NOT NULL,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "CountryCombination_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Rate" (
+    "id" SERIAL NOT NULL,
+    "countryCombinationId" INTEGER NOT NULL,
+    "category1688Id" INTEGER NOT NULL,
+    "shippingMethodId" INTEGER NOT NULL,
+    "weightCategoryId" INTEGER NOT NULL,
+    "price" DECIMAL(10,2) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Rate_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Category1688" (
+    "id" SERIAL NOT NULL,
+    "categoryId" INTEGER NOT NULL,
+    "chineseName" TEXT,
+    "translatedName" TEXT,
+    "language" TEXT,
+    "imageUrl" TEXT,
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "leaf" BOOLEAN NOT NULL DEFAULT false,
+    "level" INTEGER NOT NULL DEFAULT 0,
+    "isRateCategory" BOOLEAN NOT NULL DEFAULT false,
+    "parentCateId" INTEGER,
+    "hsCodeConfigId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Category1688_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "HsCodeConfig" (
+    "id" SERIAL NOT NULL,
+    "globalHsCodes" TEXT NOT NULL,
+    "chinaHsCodes" TEXT NOT NULL,
+    "globalMaterialComment" TEXT,
+    "categoryId" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "HsCodeConfig_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CountryHsCode" (
+    "id" SERIAL NOT NULL,
+    "countryId" INTEGER NOT NULL,
+    "hsCodes" TEXT NOT NULL,
+    "category1688Id" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CountryHsCode_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Cart" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "totalPrice" DOUBLE PRECISION DEFAULT 0,
+    "totalWeight" DOUBLE PRECISION DEFAULT 0,
+    "currency" TEXT NOT NULL DEFAULT 'Dollar',
+    "status" TEXT NOT NULL DEFAULT 'active',
+
+    CONSTRAINT "Cart_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CartProduct" (
+    "id" SERIAL NOT NULL,
+    "productFor" "ProductFor" NOT NULL DEFAULT 'FROM1688',
+    "product1688Id" TEXT,
+    "productLocalId" INTEGER,
+    "productAlibabaId" TEXT,
+    "mainSkuImageUrl" TEXT,
+    "vendorId" INTEGER,
+    "cartId" INTEGER NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    "totalPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "totalWeight" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "CartProduct_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CartProductVariant" (
+    "id" SERIAL NOT NULL,
+    "cartProductId" INTEGER NOT NULL,
+    "skuId" TEXT,
+    "specId" TEXT,
+    "quantity" INTEGER NOT NULL DEFAULT 1,
+    "attributeName" TEXT,
+    "attributeNameSecond" TEXT,
+    "weight" DOUBLE PRECISION,
+    "dimensions" TEXT,
+    "price" DOUBLE PRECISION,
+    "skuImageUrl" TEXT,
+    "shippingRateId" INTEGER,
+    "rate" INTEGER,
+
+    CONSTRAINT "CartProductVariant_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -562,6 +755,18 @@ CREATE UNIQUE INDEX "BuyNowCart_correlationId_key" ON "BuyNowCart"("correlationI
 -- CreateIndex
 CREATE UNIQUE INDEX "Blog_slug_key" ON "Blog"("slug");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "RateShippingMethod_name_key" ON "RateShippingMethod"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Category1688_categoryId_key" ON "Category1688"("categoryId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Category1688_hsCodeConfigId_key" ON "Category1688"("hsCodeConfigId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "HsCodeConfig_categoryId_key" ON "HsCodeConfig"("categoryId");
+
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -584,13 +789,19 @@ ALTER TABLE "WarehouseTransfer" ADD CONSTRAINT "WarehouseTransfer_fromWarehouseR
 ALTER TABLE "WarehouseTransfer" ADD CONSTRAINT "WarehouseTransfer_toWarehouseRefId_fkey" FOREIGN KEY ("toWarehouseRefId") REFERENCES "Warehouse"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WarehouseTransfer" ADD CONSTRAINT "WarehouseTransfer_inventoryRefId_fkey" FOREIGN KEY ("inventoryRefId") REFERENCES "Inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "SubCategory" ADD CONSTRAINT "SubCategory_categoryRefId_fkey" FOREIGN KEY ("categoryRefId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Warehouse" ADD CONSTRAINT "Warehouse_managerRefId_fkey" FOREIGN KEY ("managerRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Warehouse" ADD CONSTRAINT "Warehouse_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Warehouse" ADD CONSTRAINT "Warehouse_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Warehouse" ADD CONSTRAINT "Warehouse_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "countries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SubChildCategory" ADD CONSTRAINT "SubChildCategory_childCategoryRefId_fkey" FOREIGN KEY ("childCategoryRefId") REFERENCES "ChildCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -620,15 +831,6 @@ ALTER TABLE "Product" ADD CONSTRAINT "Product_childCategoryRefId_fkey" FOREIGN K
 ALTER TABLE "Product" ADD CONSTRAINT "Product_subChildCategoryRefId_fkey" FOREIGN KEY ("subChildCategoryRefId") REFERENCES "SubChildCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderProduct" ADD CONSTRAINT "OrderProduct_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "OrderProduct" ADD CONSTRAINT "OrderProduct_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "OrderProduct" ADD CONSTRAINT "OrderProduct_inventoryRefId_fkey" FOREIGN KEY ("inventoryRefId") REFERENCES "Inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_couponRefId_fkey" FOREIGN KEY ("couponRefId") REFERENCES "Coupon"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -644,31 +846,76 @@ ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_categoryRefId_fkey" FOREIGN KEY ("ca
 ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_subCategoryRefId_fkey" FOREIGN KEY ("subCategoryRefId") REFERENCES "SubCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Inventory" ADD CONSTRAINT "Inventory_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Inventory" ADD CONSTRAINT "Inventory_warehouseRefId_fkey" FOREIGN KEY ("warehouseRefId") REFERENCES "Warehouse"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Cart" ADD CONSTRAINT "Cart_userRefId_fkey" FOREIGN KEY ("userRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Cart" ADD CONSTRAINT "Cart_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Cart" ADD CONSTRAINT "Cart_inventoryRefId_fkey" FOREIGN KEY ("inventoryRefId") REFERENCES "Inventory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_userRefId_fkey" FOREIGN KEY ("userRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_inventoryRefId_fkey" FOREIGN KEY ("inventoryRefId") REFERENCES "Inventory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "OTP" ADD CONSTRAINT "OTP_userRefId_fkey" FOREIGN KEY ("userRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Campaign" ADD CONSTRAINT "Campaign_couponRefId_fkey" FOREIGN KEY ("couponRefId") REFERENCES "Coupon"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Ports" ADD CONSTRAINT "Ports_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "countries"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SubCategories" ADD CONSTRAINT "SubCategories_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Categorie"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SubHeadings" ADD CONSTRAINT "SubHeadings_subcategoryId_fkey" FOREIGN KEY ("subcategoryId") REFERENCES "SubCategories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RateProduct" ADD CONSTRAINT "RateProduct_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Categorie"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RateProduct" ADD CONSTRAINT "RateProduct_subcategoryId_fkey" FOREIGN KEY ("subcategoryId") REFERENCES "SubCategories"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RateProduct" ADD CONSTRAINT "RateProduct_subheadingId_fkey" FOREIGN KEY ("subheadingId") REFERENCES "SubHeadings"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CountryCombination" ADD CONSTRAINT "CountryCombination_exportCountryId_fkey" FOREIGN KEY ("exportCountryId") REFERENCES "countries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CountryCombination" ADD CONSTRAINT "CountryCombination_importCountryId_fkey" FOREIGN KEY ("importCountryId") REFERENCES "countries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Rate" ADD CONSTRAINT "Rate_countryCombinationId_fkey" FOREIGN KEY ("countryCombinationId") REFERENCES "CountryCombination"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Rate" ADD CONSTRAINT "Rate_category1688Id_fkey" FOREIGN KEY ("category1688Id") REFERENCES "Category1688"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Rate" ADD CONSTRAINT "Rate_shippingMethodId_fkey" FOREIGN KEY ("shippingMethodId") REFERENCES "RateSippingMethod"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Rate" ADD CONSTRAINT "Rate_weightCategoryId_fkey" FOREIGN KEY ("weightCategoryId") REFERENCES "RateWeightCategorie"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Category1688" ADD CONSTRAINT "Category1688_parentCateId_fkey" FOREIGN KEY ("parentCateId") REFERENCES "Category1688"("categoryId") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "HsCodeConfig" ADD CONSTRAINT "HsCodeConfig_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category1688"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CountryHsCode" ADD CONSTRAINT "CountryHsCode_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "countries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CountryHsCode" ADD CONSTRAINT "CountryHsCode_category1688Id_fkey" FOREIGN KEY ("category1688Id") REFERENCES "Category1688"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Cart" ADD CONSTRAINT "Cart_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CartProduct" ADD CONSTRAINT "CartProduct_productLocalId_fkey" FOREIGN KEY ("productLocalId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CartProduct" ADD CONSTRAINT "CartProduct_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CartProductVariant" ADD CONSTRAINT "CartProductVariant_cartProductId_fkey" FOREIGN KEY ("cartProductId") REFERENCES "CartProduct"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CartProductVariant" ADD CONSTRAINT "CartProductVariant_shippingRateId_fkey" FOREIGN KEY ("shippingRateId") REFERENCES "Rate"("id") ON DELETE SET NULL ON UPDATE CASCADE;

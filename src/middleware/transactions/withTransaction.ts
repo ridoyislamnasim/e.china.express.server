@@ -28,6 +28,7 @@ const withTransaction = (
         }, { timeout: 10000 }); // 10-second timeout
         return; // Exit loop if successful
       } catch (error) {
+        console.error(`Transaction attempt ${attempt} failed:`, error);
         if (attempt < maxRetries) {
           console.warn(`Transaction attempt ${attempt} failed. Retrying in ${retryDelay}ms...`);
           await sleep(retryDelay);
