@@ -18,6 +18,7 @@ export class CartService extends BaseService<typeof cartRepository> {
 
   createCartItem = async (payload: any, tx: any) => {
     const items = Array.isArray(payload) ? payload : [payload];
+    console.log("Creating cart items with payload: ", items);
 
     if (!items || items.length === 0) return [];
 
@@ -91,7 +92,7 @@ export class CartService extends BaseService<typeof cartRepository> {
     const createdProducts: any[] = [];
 
     for (const it of items) {
-      const qty = Number(it.quantity ?? 1) || 1;
+      const qty = Number(it.quantity) || 0;
       const price = (() => {
         if (it.skuId && product?.saleInfo?.priceRangeList) {
           const totalQuantity = items.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
@@ -127,7 +128,7 @@ export class CartService extends BaseService<typeof cartRepository> {
         productAlibabaId: it.productAlibabaId != null ? String(it.productAlibabaId) : undefined,
         cartId: cart.id,
         quantity: qty,
-        totalPrice: price * qty,
+        totalPrice: (price != null && Number.isFinite(Number(price)) ? Number(price) * qty : 0),
         totalWeight: (weight ?? 0) * qty,
         mainSkuImageUrl: product.images && product.images.length > 0 ? product.images[0] : null,
       };

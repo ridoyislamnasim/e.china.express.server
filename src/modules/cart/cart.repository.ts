@@ -48,6 +48,7 @@ class CartRepository extends BaseRepository<Cart> {
       const newQuantity =  (payload.quantity ?? 0);
       const newTotalPrice = (payload.totalPrice ?? 0);
       const newTotalWeight = (payload.totalWeight ?? 0);
+      console.log("Updating existing Cart Product ID:", existing.id, "New Quantity:", newQuantity, "New Total Price:", newTotalPrice, "New Total Weight:", newTotalWeight);
       return await client.cartProduct.update({
         where: { id: existing.id },
         data: {
@@ -68,7 +69,26 @@ class CartRepository extends BaseRepository<Cart> {
     const client = tx || this.prisma;
 
     // require cartProductId to match existing variant
-    if (!payload.cartProductId) {
+    if (payload.skuId == null && payload.specId == null) {
+      // find exiting variant by cartProductId only
+      const existing = await client.cartProductVariant.findFirst({ where: { cartProductId: payload.cartProductId } });
+      if (existing) {
+        const newQuantity = (payload.quantity ?? 0);
+        const newPrice = (payload.price ?? 0);
+        const newWeight = (payload.weight ?? 0);
+        return await client.cartProductVariant.update({
+          where: { id: existing.id },
+          data: {
+            quantity: newQuantity,
+            price: newPrice,
+            weight: newWeight,
+            attributeName: payload.attributeName ?? existing.attributeName,
+            attributeNameSecond: payload.attributeNameSecond ?? existing.attributeNameSecond,
+            dimensions: payload.dimensions ?? existing.dimensions,
+            skuImageUrl: payload.skuImageUrl ?? existing.skuImageUrl,
+          },
+        });
+      }
       // create directly if no parent id provided
       return await client.cartProductVariant.create({ data: payload as any });
     }
@@ -126,7 +146,17 @@ async findCartItemByUserAndProduct(userId: string | number, productId: string | 
     include: {
       products: {
         where: productFilter,
-        include: { variants: true },
+        include: {
+          variants: {
+            select: {
+              id: true,
+              cartProductId: true,
+              skuId: true,
+              specId: true,
+              quantity: true,
+            },
+          },
+        },
       },
     },
   });
@@ -134,7 +164,7 @@ async findCartItemByUserAndProduct(userId: string | number, productId: string | 
   if (!cart) {
     throw new NotFoundError('Cart not found for the user');
   }
-  return cart;
+  return cart?.products[0]?.variants;
 }
 
 
