@@ -17,6 +17,7 @@ import rateProductRoute from "./routes/rateProduct.route";
 import rateRoute from "./routes/rate.route";
 import WarehouseRoute from "./routes/warehouse.route";
 import Category1688Router from "./routes/category1688.route";
+import policiesRoute from "./routes/policies.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -43,6 +44,10 @@ rootRouter.use('/rate/shippingmethod', rateShippingMethodRoute);
 rootRouter.use('/rate/weightcategories', rateWeightCategoriesRoute);
 rootRouter.use('/rate/product', rateProductRoute);
 rootRouter.use('/rate', rateRoute);
+
+
+//done by rafi
+rootRouter.use("/policies",policiesRoute ); // policies routes
 
 
 export default rootRouter;
