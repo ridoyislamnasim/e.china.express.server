@@ -1,468 +1,237 @@
-import { Prisma, PrismaClient, Warehouse } from '@prisma/client';
+import prisma from '../../config/prismadatabase';
+import { PrismaClient } from '@prisma/client';
 import { pagination } from '../../utils/pagination';
-import { BaseRepository } from '../base/base.repository';
-import { NotFoundError } from '../../utils/errors';
-import { WarehouseDoc } from '../../types/warehouse';
+import { WarehouseFilter, WarehouseStats } from './warehouse.type';
 
+export class WarehouseRepository {
+  private prisma = prisma;
 
-
-class WarehouseRepository extends BaseRepository<Warehouse> {
-  private prisma: PrismaClient;
-
-  constructor(prisma: PrismaClient) {
-    super(prisma.warehouse);
-    this.prisma = prisma;
-  }
-
-  // async getSingleBuyNowWarehouse(id: number) {
-  //   const warehouseData = await this.prisma.buyNowWarehouse.findUnique({
-  //     where: { id },
-  //   });
-  //   if (!warehouseData) throw new NotFoundError('Warehouse Not Found');
-  //   return warehouseData;
-  // }
-
-  // async findWarehouseByUserAndProduct(query: any) {
-  //   console.log('Finding warehouse with query:', query);
-  //   const whereClause: any = {
-  //     correlationId: query.correlationId,
-  //     userRef: query.userRef ? { id: Number(query.userRef) } : undefined,
-  //     productRef: query.productRef ? { id: Number(query.productRef) } : undefined,
-  //     inventoryRef: query.inventoryRef ? { id: Number(query.inventoryRef) } : undefined,
-  //   };
-  //   return await this.prisma.warehouse.findFirst({ where: whereClause });
-  // }
-
-  //   async findBuyNowWarehouseByUserAndProduct(query: any) {
-  //   console.log('Finding warehouse with query:', query);
-  //   const whereClause: any = {
-  //     correlationId: query.correlationId,
-  //     userRef: query.userRef ? { id: Number(query.userRef) } : undefined,
-  //     productRef: query.productRef ? { id: Number(query.productRef) } : undefined,
-  //     inventoryRef: query.inventoryRef ? { id: Number(query.inventoryRef) } : undefined,
-  //   };
-  //   return await this.prisma.buyNowWarehouse.findFirst({ where: whereClause });
-  // }
-  async createWarehouse(payload: Partial<WarehouseDoc>, tx?: any) {
-    console.log("payload", payload);
-    const {name, location, status, totalCapacity, countryId} = payload;
-    const data: any = {
-      name: name,
-      totalCapacity: new Prisma.Decimal(totalCapacity || 0),
-      location: location,
-      status: status,
-      country: { connect: { id: Number(countryId) } },
-    };
-    console.log("payload 999", data);
+  async createWarehouse(payload: any): Promise<any> {
     const newWarehouse = await this.prisma.warehouse.create({
-      data: data,
+      data: payload,
+      include: {
+        managerRef: true,
+        countryRef: true,
+        createdByRef: true,
+        updatedByRef: true,
+      }
     });
-    console.log('New warehouse created:', newWarehouse);
     return newWarehouse;
   }
 
-  // async getAllWarehouseByUser(payload: any) {
-  //   const { userRef, coupon, productRef, inventoryRef } = payload;
-  //   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userRef);
-  //   const query: any = {};
-  //   if (isUUID) {
-  //     query.correlationId = userRef;
-  //   } else {
-  //     query.userRef = { id: Number(userRef) };
-  //   }
+  async getWarehouseById(id: string): Promise<any> {
+    return await this.prisma.warehouse.findUnique({
+      where: { id },
+      include: {
+        managerRef: true,
+        countryRef: true,
+        createdByRef: true,
+        updatedByRef: true,
+        fromWarehouseTransfers: true,
+        toWarehouseTransfers: true,
+      }
+    });
+  }
 
-  //   // if (productRef && inventoryRef) {
-  //   //   query.productRef = productRef;
-  //   //   query.inventoryRef = inventoryRef;
-  //   // }
+  async getWarehouseByCondition(condition: any): Promise<any> {
+    return await this.prisma.warehouse.findFirst({
+      where: condition,
+      include: {
+        managerRef: true,
+        countryRef: true,
+      }
+    });
+  }
 
-  //   const warehouses = await prisma.warehouse.findMany({
-  //     where: query,
-  //     include: {
-  //       productRef: true,
-  //       userRef: true,
-  //       inventoryRef: true,
-  //     },
-  //     orderBy: { createdAt: 'desc' },
-  //   });
+  async getWarehouseByCode(code: string): Promise<any> {
+    return await this.getWarehouseByCondition({ code });
+  }
 
-  //   let appliedCoupon = null;
-  //   let message = `Viewing warehouses`;
+  async getAllWarehouses(filter: WarehouseFilter = {}) {
+    const { status, type, countryId, search } = filter;
+    
+    const where: any = {};
+    
+    if (status) where.status = status;
+    if (type) where.type = type;
+    if (countryId) where.countryId = countryId;
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+        { city: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
-  //   if (coupon) {
-  //     const existingCoupon = await prisma.coupon.findFirst({ where: { code: coupon } });
-  //     message = `Sorry, that coupon isn’t valid.`;
+    return await this.prisma.warehouse.findMany({
+      where,
+      include: {
+        managerRef: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          }
+        },
+        countryRef: {
+          select: {
+            id: true,
+            name: true,
+            isoCode: true,
+          }
+        },
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
 
-  //     if (existingCoupon) {
-  //       const now = new Date();
-  //       if (
-  //         existingCoupon.startDate &&
-  //         existingCoupon.expireDate &&
-  //         now > existingCoupon.startDate &&
-  //         now < existingCoupon.expireDate &&
-  //         (existingCoupon.useLimit || 0) > (existingCoupon.used || 0)
-  //       ) {
-  //         appliedCoupon = existingCoupon;
-  //         message = `Congratulations, your coupon was applied successfully!`;
-  //       }
-  //     }
-  //   }
+  async getWarehousesWithPagination(filter: WarehouseFilter, tx?: any): Promise<any> {
+    const { page = 1, limit = 10, status, type, countryId, search } = filter;
+    const offset = (page - 1) * limit;
+    
+    const prismaClient: PrismaClient = tx || this.prisma;
+    
+    const where: any = {};
+    
+    if (status) where.status = status;
+    if (type) where.type = type;
+    if (countryId) where.countryId = countryId;
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+        { city: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
-  //   let totalPrice = 0;
-  //   let totalSaved = 0;
-  //   let totalCouponDiscount = 0;
-  //   let productDiscount = 0;
-  //   console.log("warehouse details", warehouses.length)
-  //   const warehouseDetails = warehouses.map((warehouse) => {
-  //     const product = warehouse.productRef;
-  //     const inventory = warehouse.inventoryRef;
-  //     const quantity = warehouse.quantity || 0;
+    return await pagination(
+      { limit, offset },
+      async (limit: number, offset: number) => {
+        const [doc, totalDoc] = await Promise.all([
+          prismaClient.warehouse.findMany({
+            where,
+            skip: offset,
+            take: limit,
+            include: {
+              managerRef: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                }
+              },
+              countryRef: {
+                select: {
+                  id: true,
+                  name: true,
+                }
+              },
+            },
+            orderBy: { createdAt: 'desc' }
+          }),
+          prismaClient.warehouse.count({ where }),
+        ]);
+        return { doc, totalDoc };
+      }
+    );
+  }
 
-  //     const price = inventory?.price || 0;
-  //     const discountAmount = inventory?.discountAmount || 0;
+  async updateWarehouse(id: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    const updatedWarehouse = await prismaClient.warehouse.update({
+      where: { id },
+      data: payload,
+      include: {
+        managerRef: true,
+        countryRef: true,
+      }
+    });
+    return updatedWarehouse;
+  }
 
-  //     let couponDiscount = 0;
+  async deleteWarehouse(id: string): Promise<void> {
+    await this.prisma.warehouse.delete({ where: { id } });
+  }
 
-  //     if (appliedCoupon) {
-  //       if (
-  //         (appliedCoupon.categoryRefId && String(appliedCoupon.categoryRefId) === String(product?.categoryRefId)) ||
-  //         (appliedCoupon.subCategoryRefId && String(appliedCoupon.subCategoryRefId) === String(product?.subCategoryRefId))
-  //       ) {
-  //         const discount = appliedCoupon.discount || 0;
-  //         couponDiscount =
-  //           appliedCoupon.discountType === "percent"
-  //             ? (price * discount) / 100
-  //             : discount;
+  async updateWarehouseCapacity(id: string, usedCapacity: number, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    const warehouse = await prismaClient.warehouse.findUnique({ where: { id } });
+    
+    if (!warehouse) {
+      throw new Error('Warehouse not found');
+    }
 
-  //         couponDiscount *= quantity;
-  //       }
-  //     }
+    if (usedCapacity > warehouse.totalCapacity) {
+      throw new Error('Used capacity cannot exceed total capacity');
+    }
 
-  //     const subtotal = price * quantity;
-  //     const savedAmount = discountAmount * quantity + couponDiscount;
+    return await prismaClient.warehouse.update({
+      where: { id },
+      data: {
+        usedCapacity,
+        status: usedCapacity >= warehouse.totalCapacity ? 'OVERLOADED' : 'OPERATIONAL'
+      }
+    });
+  }
 
-  //     totalPrice += subtotal - couponDiscount;
-  //     productDiscount += discountAmount * quantity;
-  //     totalCouponDiscount += couponDiscount;
-  //     totalSaved += savedAmount;
+  async getWarehouseStats(): Promise<WarehouseStats> {
+    const warehouses = await this.prisma.warehouse.findMany({
+      select: {
+        status: true,
+        totalCapacity: true,
+        usedCapacity: true,
+      }
+    });
 
-  //     return {
-  //       warehouseId: warehouse.id,
-  //       quantity,
-  //       product,
-  //       inventory,
-  //       subtotal,
-  //       couponDiscount,
-  //       savedAmount,
-  //       productDiscount,
-  //     };
-  //   });
+    const totalWarehouses = warehouses.length;
+    const operational = warehouses.filter(w => w.status === 'OPERATIONAL').length;
+    const maintenance = warehouses.filter(w => w.status === 'MAINTENANCE').length;
+    const closed = warehouses.filter(w => w.status === 'CLOSED').length;
+    
+    const totalCapacity = warehouses.reduce((sum, w) => sum + w.totalCapacity, 0);
+    const usedCapacity = warehouses.reduce((sum, w) => sum + (w.usedCapacity || 0), 0);
+    const availableCapacity = totalCapacity - usedCapacity;
 
-  //   console.log("warehouse ")
-  //   console.log("warehouse details", warehouseDetails.length)
+    return {
+      totalWarehouses,
+      operational,
+      maintenance,
+      closed,
+      totalCapacity,
+      usedCapacity,
+      availableCapacity,
+    };
+  }
 
-  //   return {
-  //     data: {
-  //       warehouseDetails,
-  //       totalPrice,
-  //       totalSaved,
-  //       couponDiscount: totalCouponDiscount,
-  //       productDiscount,
-  //     },
-  //     message,
-  //   };
-  // }
+  async getWarehousesByManager(managerId: number): Promise<any> {
+    return await this.prisma.warehouse.findMany({
+      where: { managerRefId: managerId },
+      include: {
+        countryRef: true,
+      }
+    });
+  }
 
-  // async updateWarehouse(id: number, payload: Partial<WarehouseDoc>) {
-  //   const updatedWarehouse = await this.prisma.warehouse.update({
-  //     where: { id },
-  //     data: {
-  //       quantity: payload.quantity,
-  //       userRef: payload.userRef ? { connect: { id: Number(payload.userRef) } } : undefined,
-  //       productRef: payload.productRef ? { connect: { id: Number(payload.productRef) } } : undefined,
-  //       inventoryRef: payload.inventoryRef ? { connect: { id: Number(payload.inventoryRef) } } : undefined,
-  //       correlationId: payload.correlationId,
-  //     },
-  //   });
-  //   if (!updatedWarehouse) {
-  //     throw new Error('Warehouse not found');
-  //   }
-  //   return updatedWarehouse;
-  // }
-
-  // async updateWarehouseQuantity(warehouseId: number, quantity: number) {
-  //   return await this.prisma.warehouse.update({
-  //     where: { id: warehouseId },
-  //     data: { quantity },
-  //   });
-  // }
-
-  // async getWarehouseWithPagination(payload: any) {
-  //   try {
-  //     const warehouses = await pagination(
-  //       payload,
-  //       async (limit: number, offset: number, sortOrder: any) => {
-  //         // const prismaSortOrder = sortOrder === -1 ? 'desc' : 'asc';
-  //         const warehouses = await this.prisma.warehouse.findMany({
-  //           where: { userRef: payload.userId ? { id: Number(payload.userId) } : undefined },
-  //           // orderBy: { createdAt: prismaSortOrder },
-  //           skip: offset,
-  //           take: limit,
-  //         });
-  //         const totalWarehouse = await this.prisma.warehouse.count({
-  //           where: { userRef: payload.userId ? { id: Number(payload.userId) } : undefined },
-  //         });
-  //         return { doc: warehouses, totalDoc: totalWarehouse };
-  //       }
-  //     );
-  //     return warehouses;
-  //   } catch (error) {
-  //     // console.error('Error getting warehouses with pagination:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // async getUserAllWarehouseById(userId: string) {
-  //   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId);
-  //   const query: any = {};
-  //   if (isUUID) {
-  //     query.correlationId = userId;
-  //   } else {
-  //     query.userRef = { id: Number(userId) };
-  //   }
-  //   return await this.prisma.warehouse.findMany({
-  //     where: query,
-  //     include: {
-  //       productRef: true,
-  //       userRef: true,
-  //       inventoryRef: true,
-  //     },
-  //   });
-  // }
-
-  // async deleteWarehouse(id: string) {
-  //     const deletedWarehouse = await this.prisma.warehouse.delete({
-  //       where: { id: Number(id) },
-  //     });
-  //   return deletedWarehouse;
-  // }
-  //   async deleteBuyNowWarehouse(id: string) {
-  //     const deletedWarehouse = await this.prisma.buyNowWarehouse.delete({
-  //       where: { id: Number(id) },
-  //     });
-  //   return deletedWarehouse;
-  // }
-
-
-  // Buy now Warehouse
-
-  // async createBuyNowWarehouse(payload: Partial<WarehouseDoc>) {
-  //   console.log("payload", payload);
-  //   const data: any = {
-  //     quantity: payload.quantity,
-  //     productRef: payload.productRef
-  //       ? { connect: { id: Number(payload.productRef) } }
-  //       : undefined,
-  //     inventoryRef: payload.inventoryRef
-  //       ? { connect: { id: Number(payload.inventoryRef) } }
-  //       : undefined,
-  //   };
-  //   console.log("payload 999", data);
-
-  //   if (payload.userRef) {
-  //     data.userRef = { connect: { id: Number(payload.userRef) } };
-  //   } else if (payload.correlationId) {
-  //     data.correlationId = payload.correlationId;
-  //   }
-
-  //   if (payload.userRef) {
-  //     data.userRef = { connect: { id: Number(payload.userRef) } };
-  //   } else if (payload.correlationId) {
-  //     data.correlationId = payload.correlationId;
-  //   }
-  //   console.log('Creating warehouse with data:', data);
-  //   const newWarehouse = await this.prisma.buyNowWarehouse.create({
-  //     data: data,
-  //   });
-  //   console.log('New warehouse created:', newWarehouse);
-  //   return newWarehouse;
-  // }
-
-  // async getAllBuyNowWarehouseByUser(payload: any) {
-  //   const { userId, coupon, productRef, inventoryRef } = payload;
-
-  //   const query: any = {};
-  //   // if (/^[a-f\d]{24}$/i.test(userId)) {
-  //   //   query.userRef = userId;
-  //   // } else {
-  //   //   query.correlationId = userId;
-  //   // }
-  //   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  //   .test(userId || '');
-  //   if (!isUUID) {
-  //     console.log('Creating warehouse with query 4:', isUUID);
-  //     query.userRef = Number(userId);
-  //   } else {
-  //     console.log('Creating warehouse with query 5:', isUUID);
-  //     query.correlationId = userId;
-  //   }
-
-  //   // if (productRef && inventoryRef) {
-  //   //   query.productRef = productRef;
-  //   //   query.inventoryRef = inventoryRef;
-  //   // }
-
-  //   const warehouses = await prisma.buyNowWarehouse.findMany({
-  //     where: query,
-  //     include: {
-  //       productRef: true,
-  //       userRef: true,
-  //       inventoryRef: true,
-  //     },
-  //   });
-
-  //   let appliedCoupon = null;
-  //   let message = `Viewing warehouses`;
-
-  //   if (coupon) {
-  //     const existingCoupon = await prisma.coupon.findFirst({ where: { code: coupon } });
-  //     message = `Sorry, that coupon isn’t valid.`;
-
-  //     if (existingCoupon) {
-  //       const now = new Date();
-  //       if (
-  //         existingCoupon.startDate &&
-  //         existingCoupon.expireDate &&
-  //         now > existingCoupon.startDate &&
-  //         now < existingCoupon.expireDate &&
-  //         (existingCoupon.useLimit || 0) > (existingCoupon.used || 0)
-  //       ) {
-  //         appliedCoupon = existingCoupon;
-  //         message = `Congratulations, your coupon was applied successfully!`;
-  //       }
-  //     }
-  //   }
-
-  //   let totalPrice = 0;
-  //   let totalSaved = 0;
-  //   let totalCouponDiscount = 0;
-  //   let productDiscount = 0;
-
-  //   interface WarehouseProduct {
-  //     id: number;
-  //     categoryRefId?: number | string;
-  //     subCategoryRefId?: number | string;
-  //     // add other product fields as needed
-  //     [key: string]: any;
-  //   }
-
-  //   interface WarehouseInventory {
-  //     id: number;
-  //     price?: number;
-  //     discountAmount?: number;
-  //     // add other inventory fields as needed
-  //     [key: string]: any;
-  //   }
-
-  //   interface BuyNowWarehouseItem {
-  //     id: number;
-  //     quantity?: number;
-  //     productRef?: WarehouseProduct;
-  //     inventoryRef?: WarehouseInventory;
-  //     userRef?: any;
-  //     // add other warehouse fields as needed
-  //     [key: string]: any;
-  //   }
-
-  //   interface AppliedCoupon {
-  //     categoryRefId?: number | string;
-  //     subCategoryRefId?: number | string;
-  //     discount?: number;
-  //     discountType?: string;
-  //     startDate?: Date;
-  //     expireDate?: Date;
-  //     useLimit?: number;
-  //     used?: number;
-  //     // add other coupon fields as needed
-  //     [key: string]: any;
-  //   }
-
-  //   interface WarehouseDetail {
-  //     warehouseId: number;
-  //     quantity: number;
-  //     product: WarehouseProduct | undefined;
-  //     inventory: WarehouseInventory | undefined;
-  //     subtotal: number;
-  //     couponDiscount: number;
-  //     savedAmount: number;
-  //     productDiscount: number;
-  //   }
-
-  //   const warehouseDetails: WarehouseDetail[] = (warehouses as BuyNowWarehouseItem[]).map((warehouse: BuyNowWarehouseItem): WarehouseDetail => {
-  //     const product = warehouse.productRef;
-  //     const inventory = warehouse.inventoryRef;
-  //     const quantity = warehouse.quantity || 0;
-
-  //     const price = inventory?.price || 0;
-  //     const discountAmount = inventory?.discountAmount || 0;
-
-  //     let couponDiscount = 0;
-
-  //     if (appliedCoupon) {
-  //       if (
-  //         (appliedCoupon.categoryRefId && String(appliedCoupon.categoryRefId) === String(product?.categoryRefId)) ||
-  //         (appliedCoupon.subCategoryRefId && String(appliedCoupon.subCategoryRefId) === String(product?.subCategoryRefId))
-  //       ) {
-  //         const discount = appliedCoupon.discount || 0;
-  //         couponDiscount =
-  //           appliedCoupon.discountType === "percent"
-  //             ? (price * discount) / 100
-  //             : discount;
-
-  //         couponDiscount *= quantity;
-  //       }
-  //     }
-
-  //     const subtotal = price * quantity;
-  //     const savedAmount = discountAmount * quantity + couponDiscount;
-
-  //     totalPrice += subtotal - couponDiscount;
-  //     productDiscount += discountAmount * quantity;
-  //     totalCouponDiscount += couponDiscount;
-  //     totalSaved += savedAmount;
-
-  //     return {
-  //       warehouseId: warehouse.id,
-  //       quantity,
-  //       product,
-  //       inventory,
-  //       subtotal,
-  //       couponDiscount,
-  //       savedAmount,
-  //       productDiscount,
-  //     };
-  //   });
-
-  //   return {
-  //     data: {
-  //       warehouseDetails,
-  //       totalPrice,
-  //       totalSaved,
-  //       couponDiscount: totalCouponDiscount,
-  //       productDiscount,
-  //     },
-  //     message,
-  //   };
-  // }
-
-  //   async updateBuyNowWarehouseQuantity(warehouseId: number, quantity: number) {
-  //     console.log("warehouse info", warehouseId, quantity);
-  //   return await this.prisma.buyNowWarehouse.update({
-  //     where: { id: warehouseId },
-  //     data: { quantity },
-  //   });
-  // }
+  async getAvailableCapacityWarehouses(minAvailableCapacity: number = 0): Promise<any> {
+    return await this.prisma.warehouse.findMany({
+      where: {
+        status: 'OPERATIONAL',
+        totalCapacity: {
+          gt: this.prisma.warehouse.fields.usedCapacity
+        }
+      },
+      include: {
+        countryRef: true,
+      }
+    });
+  }
 }
 
-const prisma = new PrismaClient();
-export default new WarehouseRepository(prisma);
+// Export a singleton instance
+const warehouseRepository = new WarehouseRepository();
+export default warehouseRepository;

@@ -1,10 +1,3 @@
-// User role enum
-enum UserRole {
-  customer
-  user
-  admin
-}
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["driverAdapters"]
@@ -13,7 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  // shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -125,12 +118,11 @@ model Wishlist {
 }
 
 model WarehouseTransfer {
-  id                 Int       @id @default(autoincrement())
+  id                 String    @id @default(cuid())
   fromWarehouseRef   Warehouse @relation("FromWarehouse", fields: [fromWarehouseRefId], references: [id])
-  fromWarehouseRefId Int
+  fromWarehouseRefId String
   toWarehouseRef     Warehouse @relation("ToWarehouse", fields: [toWarehouseRefId], references: [id])
-  toWarehouseRefId   Int
-  // inventoryRef       Inventory @relation(fields: [inventoryRefId], references: [id])
+  toWarehouseRefId   String
   inventoryRefId     Int
   quantity           Int
   status             String    @default("Pending")
@@ -164,30 +156,51 @@ model ShippingMethod {
 }
 
 model Warehouse {
-  id            Int      @id @default(autoincrement())
-  name          String
-  totalCapacity Float?   @default(0)
-  usedCapacity  Float?   @default(0)
-  remaining     Float?   @default(0)
-  location      String?
-  managerRef    User?    @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
-  managerRefId  Int?
-  contact       String?
-  status        Boolean  @default(true)
-  createdBy     Int?
-  createdByRef  User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
+  id              String         @id @default(cuid())
+  name            String         @unique
+  code            String         @unique
+  address         String
+  city            String
+  state           String
+  zipCode         String
+  country         String         @default("USA")
+  phone           String
+  email           String
+  location        String?
+  status          WarehouseStatus @default(OPERATIONAL)
+  type            WarehouseType
+  
+  totalCapacity   Int
+  usedCapacity    Int            @default(0)
+  capacityUnit    String         @default("sq ft")
+  
+  latitude        Float?
+  longitude       Float?
+  
+  weekdaysHours   String?
+  weekendsHours   String?
+  holidaysHours   String?
+  
+  lastInspection  DateTime?
+  nextMaintenance DateTime?
+
+  createdBy     Int? 
+  createdByRef  User? @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
   updatedBy     Int?
-  updatedByRef  User?    @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
+  updatedByRef  User? @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
-  toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
+  managerRefId  Int?
+  managerRef    User? @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
 
   countryId  Int?
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
-  // inventories Inventory[]
+  fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
+  toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
+
+  @@map("warehouses")
 }
 
 model WarehouseSpace {
@@ -602,11 +615,6 @@ model Ports {
   country   Country? @relation(fields: [countryId], references: [id])
 }
 
-enum PortType {
-  Sea
-  Air
-  Land
-}
 
 model RateSippingMethod {
   id          Int      @id @default(autoincrement())
@@ -756,12 +764,6 @@ model CountryHsCode {
   updatedAt DateTime @updatedAt
 }
 
-// cart 
-enum ProductFor {
-  FROM1688
-  LOCAL
-  ALIBABA
-}
 
 model Cart {
   id        Int      @id @default(autoincrement())
@@ -824,4 +826,41 @@ model CartProductVariant {
 
   cartProduct  CartProduct @relation(fields: [cartProductId], references: [id])
   shippingRate Rate?       @relation(fields: [shippingRateId], references: [id])
+}
+
+
+// User role enum
+enum UserRole {
+  customer
+  user
+  admin
+}
+// cart 
+enum ProductFor {
+  FROM1688
+  LOCAL
+  ALIBABA
+}
+enum PortType {
+  Sea
+  Air
+  Land
+}
+
+enum WarehouseStatus {
+  OPERATIONAL
+  MAINTENANCE
+  CLOSED
+  OVERLOADED
+  UNDER_CONSTRUCTION
+}
+
+enum WarehouseType {
+  DISTRIBUTION_CENTER
+  FULFILLMENT_CENTER
+  COLD_STORAGE
+  BONDED
+  RETAIL
+  MANUFACTURING
+  CROSS_DOCK
 }
