@@ -5,29 +5,25 @@ const policiesRoute = Router();
 
 
 
-policiesRoute.get("/", policiesController.getAllPolicies);
-
+policiesRoute.get("/", policiesController.getAllPolicyTitles);
 
 policiesRoute.get("/:slug",policiesController.getPolicyById);
-//  (req, res) => {
-//     res.send(`Policies GET route works for ID: ${req.params.id}`);
-// }
 
-policiesRoute.post("/", (req, res) => {
-    res.send("Policies POST route works!");
-});
+policiesRoute.post("/", policiesController.createPolicy);
 
+policiesRoute.patch("/:slug", policiesController.updatePolicy);
 
-policiesRoute.patch("/:id", (req, res) => {
-    res.send(`Policies PUT route works for ID: ${req.params.id}`);
-});
-
-policiesRoute.delete("/:id", (req, res) => {
-    res.send(`Policies DELETE route works for ID: ${req.params.id}`);
-});
+policiesRoute.delete("/:slug", policiesController.deletePolicy);
 
 
+// policiesRoute.put("/handfulCount", (req, res) => {
+//   res.send("Policies PUT route works");
+// });
 
+
+// policiesRoute.put("/nonHandfulCount", (req, res) => {
+//   res.send("Policies PUT route works");
+// });
 
 
 export default policiesRoute;

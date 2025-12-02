@@ -18,3 +18,23 @@ export interface PoliciesI {
   policyTypeId: number;
   policyType?: PolicyTypeI;
 }
+
+
+export interface PolicyRequestDTO {
+  id?: number;
+  title: string;
+  slug: string;
+  policyTypeId: number;
+  policyTypeTitle: string;
+  description: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+
+export interface CreatePolicyRequestDTO {
+  title: string;
+  policyTypeId: number;
+  policyTypeTitle: string;
+  description: string;
+}

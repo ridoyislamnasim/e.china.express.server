@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import policiesService from "./policies.service";
 
-export default new (class PoliciesController {
+export default new class PoliciesController {
   
   
   
@@ -14,13 +14,10 @@ export default new (class PoliciesController {
   
   
   
-  getAllPolicies = async (req: Request, res: Response) => {
-    const getAllPolicies = await policiesService.getAllPolicies();
+  getAllPolicyTitles = async (req: Request, res: Response) => {
+    const getAllPolicies = await policiesService.getAllPolicyTitles();
     res.send(getAllPolicies);
   };
-
-
-
 
 
 
@@ -50,6 +47,7 @@ export default new (class PoliciesController {
 
 
   createPolicy = async (req: Request, res: Response) => {
+    const newPolicy = await policiesService.createPolicy(req.body);
     res.send("Create a new policy");
   };
 
@@ -67,8 +65,10 @@ export default new (class PoliciesController {
 
 
   updatePolicy = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    res.send(`Update policy with ID: ${id}`);
+    const slug = req.params.slug;
+    const body = req.body;
+    const updatedPolicy = await policiesService.updatePolicy(slug,body);
+    res.send(updatedPolicy);
   };
 
 
@@ -84,7 +84,11 @@ export default new (class PoliciesController {
 
 
   deletePolicy = async (req: Request, res: Response) => {
-    const id = req.params.id;
-    res.send(`Delete policy with ID: ${id}`);
+    const slug = req.params.slug;
+    const deletedPolicy = await policiesService.deletePolicy(slug);
+    res.send(deletedPolicy);
   };
-})();
+
+
+
+};
