@@ -10,6 +10,8 @@ policiesRoute.get("/", policiesController.getAllPolicyTitles);
 policiesRoute.get("/:slug",policiesController.getPolicyById);
 
 policiesRoute.post("/", policiesController.createPolicy);
+policiesRoute.post("/create-policy-type", policiesController.createPolicyType);
+
 
 policiesRoute.patch("/:slug", policiesController.updatePolicy);
 

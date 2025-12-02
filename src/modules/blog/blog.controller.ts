@@ -4,6 +4,9 @@ import {responseHandler} from '../../utils/responseHandler';
 import withTransaction from '../../middleware/transactions/withTransaction';
 import BlogService from './blog.service';
 
+
+
+
 export class BlogController {
   createBlog = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     const payloadFiles = {
@@ -26,6 +29,30 @@ export class BlogController {
     );
     res.status(resDoc.statusCode).json(resDoc);
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   getAllBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const blogResult = await BlogService.getAllBlog();

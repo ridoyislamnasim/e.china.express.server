@@ -1,33 +1,16 @@
 import { Router } from "express";
-import guideService from "../../modules/guide/guide.service";
+import guideController from "../../modules/guide/guide.controller";
 
 const guideRoute = Router();
 
+guideRoute.get("/", guideController.getAllGuides);
 
-guideRoute.get("/", guideService.getGuideData);
+guideRoute.get("/:slug", guideController.getGuideBySlug);
 
+guideRoute.post("/", guideController.createGuide);
 
+guideRoute.put("/:slug", guideController.updateGuide);
 
-guideRoute.get("/:slug", guideService.getGuideById);
-
-
-
-guideRoute.post("/", guideService.createGuideData);
-
-
-
-guideRoute.put("/:slug", guideService.updateGuideData);
-
-
-
-guideRoute.delete("/:slug", (req, res) => {
-  const slug = req.params.slug;
-  res.send(`Guide Route DELETE works with slug: ${slug}`);
-});
-
-
-
-
-
+guideRoute.delete("/:slug", guideController.deleteGuide);
 
 export default guideRoute;

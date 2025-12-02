@@ -37,3 +37,17 @@ export interface CreatePolicyRequestDTO {
   policyTypeId: number;
   description: string;
 }
+
+
+
+export interface CreatePolicyTypeRequestDTO {
+  id: number;
+  title: string;
+  slug: string;
+  createdAt: Date;
+  updatedAt: Date;
+
+  // Relation: one PolicyType has many Policies
+  policies?: String[];
+
+}

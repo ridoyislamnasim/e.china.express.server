@@ -22,17 +22,64 @@ export interface Guide {
 }
 
 
-export interface GuideRequestDTO {
-  id?: number;
-  title: string;
-  videoUrl: string;
-  videoTitle?: string;
-  thumbnailImage?: string;
-  videoShortDescription: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+// For creating a GuideVideo
+export interface CreateGuideVideoDTO {
+  url: string;
+  imgSrc?: string;
+  videoLength?: string;
+  title?: string;
+  shortDes?: string;
+  videoSerial: number;
 }
 
+// For updating a GuideVideo
+export interface UpdateGuideVideoDTO {
+  url?: string;
+  imgSrc?: string;
+  videoLength?: string;
+  title?: string;
+  shortDes?: string;
+  videoSerial?: number;
+}
+
+// For returning GuideVideo in responses
+export interface GuideVideoResponseDTO {
+  id: number;
+  guideId: number;
+  url: string;
+  imgSrc?: string;
+  videoLength?: string;
+  title?: string;
+  shortDes?: string;
+  videoSerial: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
+// For creating a Guide with videos
+export interface CreateGuideDTO {
+  serial: number;
+  title: string;
+  videos?: CreateGuideVideoDTO[];
+}
+
+// For updating a Guide (partial update)
+export interface UpdateGuideDTO {
+  serial?: number;
+  title?: string;
+  videos?: UpdateGuideVideoDTO[];
+}
+
+// For returning Guide in responses
+export interface GuideResponseDTO {
+  id: number;
+  serial: number;
+  title: string;
+  videos: GuideVideoResponseDTO[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 
 

@@ -1,50 +1,68 @@
 import prisma from "../../config/prismadatabase";
-import { CreatePolicyRequestDTO, PolicyRequestDTO } from "../../types/policy";
+import { CreatePolicyRequestDTO, CreatePolicyTypeRequestDTO, PolicyRequestDTO } from "../../types/policy";
 
-export default new class PoliciesRepository {
-    
+export default new (class PoliciesRepository {
+  private prisma = prisma;
 
-    private prisma = prisma;
+  getAllPolicyTitlesRepository = async () => {
+    const allPolicyTypes = await this.prisma.policyType.findMany();
+    const allPolicies = await this.prisma.policies.findMany();
 
+    return { allPolicies, allPolicyTypes };
+  };
 
-    getAllPolicyTitlesRepository = async () => {
+  getPolicyTypeBySlugRepository = async (slug: string) => {
+    const policyType = await this.prisma.policyType.findFirst({
+      where: { slug: slug },
+    });
+    return policyType;
+  };
 
+  getPolicyByIdRepository = async (id: number) => {
+    const policy = await this.prisma.policies.findFirst({
+      where: { policyTypeId: id },
+    });
+    return policy;
+  };
 
-        return {message :"some policy data"};
-    };
+  createPolicyRepository = async (body: CreatePolicyRequestDTO): Promise<any> => {
+    return await this.prisma.policies.create({
+      data: {
+        title: body.title,
+        description: body.description,
+        policyTypeId: body.policyTypeId,
+      },
+    });
+  };
 
-    getPolicyByIdRepository = async (slug: string) => {
-        return { slug, name: "Sample Policy" };
-    }
+  createPolicyTypeRepository = async (body: { title: string; slug: string }): Promise<any> => {
+    return await this.prisma.policyType.create({
+      data: {
+        title: body.title,
+        slug: body.slug,
+      },
+    });
+  };
 
+  isPolicyExist = async (title: string): Promise<any> => {
+    return await this.prisma.policies.findFirst({
+      where: { title: title },
+    });
+  };
 
-    createPolicyRepository = async (body: CreatePolicyRequestDTO): Promise<any> => {
-        return await this.prisma.policies.create({
-            data: {
-                title: body.title,
-                description: body.description,
-                policyTypeId: body.policyTypeId,
-                // Prisma will automatically link the relation via policyTypeId
-            }
-        });
-    };
+  updatePolicyRepository = async (policyId: number, body: Partial<PolicyRequestDTO>): Promise<any> => {
+    return await this.prisma.policies.update({
+      where: { id: policyId },
+      data: {
+        title: body.title,
+        description: body.description,
+      },
+    });
+  };
 
-
-    isPolicyExist = async (title:string):Promise<any> => {
-        return await this.prisma.policies.findFirst({
-            where:{ title:title }
-        })
-    }
-
-
-    updatePolicyRepository = async (slug:string,body:Partial<PolicyRequestDTO>) => {
-        return { message: "Policy updated" };
-    }
-
-
-    deletePolicyRepository = async (slug:string) => {
-        return { message: "Policy deleted" };
-    }
-
-    
-};
+  deletePolicyRepository = async (id: number) => {
+    return await this.prisma.policies.delete({
+      where: { id },
+    });
+  };
+})();

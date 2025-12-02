@@ -1,101 +1,49 @@
 import { NextFunction, Request, Response } from "express";
 import policiesService from "./policies.service";
 import { responseHandler } from "../../utils/responseHandler";
+import catchError from "../../middleware/errors/catchError";
 
-export default new class PoliciesController {
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  getAllPolicyTitles = async (req: Request, res: Response) => {
+export default new (class PoliciesController {
+  getAllPolicyTitles = catchError(async (req: Request, res: Response) => {
     const getAllPolicies = await policiesService.getAllPolicyTitles();
     res.send(getAllPolicies);
-  };
+  });
 
-
-
-
-
-
-
-
-  getPolicyById = async (req: Request, res: Response) => {
+  getPolicyById = catchError(async (req: Request, res: Response) => {
     const slug = req.params.slug;
     const policy = await policiesService.getPolicyById(slug);
     res.send(policy);
-  }
+  });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  createPolicy = async (req: Request, res: Response,next:NextFunction) => {
+  createPolicy = catchError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const newPolicy = await policiesService.createPolicy(req.body);
-        const resDoc = responseHandler(201,"New Policy Created Successfully.",newPolicy)
-        res.status(resDoc.statusCode).json(resDoc)
+      const newPolicy = await policiesService.createPolicy(req.body);
+      const resDoc = responseHandler(201, "New Policy Created Successfully.", newPolicy);
+      res.status(resDoc.statusCode).json(resDoc);
     } catch (error) {
       next(error);
     }
-    res.send("Create a new policy.");
-  };
+  });
 
+  createPolicyType = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const newPolicyType = await policiesService.createPolicyType(req.body);
+    const resDoc = responseHandler(201, "New Policy Type Created Successfully.", newPolicyType);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
-
-
-
-
-
-
-
-
-
-
-
-
-  updatePolicy = async (req: Request, res: Response) => {
+  updatePolicy = catchError(async (req: Request, res: Response) => {
     const slug = req.params.slug;
     const body = req.body;
-    const updatedPolicy = await policiesService.updatePolicy(slug,body);
-    res.send(updatedPolicy);
-  };
+    const updatedPolicy = await policiesService.updatePolicy(slug, body);
+    const resDoc = responseHandler(201, "Policy Updated Successfully.", updatedPolicy);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
+  deletePolicy = catchError(async (req: Request, res: Response) => {
+    const id = req.params.slug;
 
-
-
-
-
-
-
-
-
-
-
-
-  deletePolicy = async (req: Request, res: Response) => {
-    const slug = req.params.slug;
-    const deletedPolicy = await policiesService.deletePolicy(slug);
-    res.send(deletedPolicy);
-  };
-
-
-
-};
+    await policiesService.deletePolicy(id);
+    const resDoc = responseHandler(200, `Policy with id ${id} deleted successfully`, null);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+})();
