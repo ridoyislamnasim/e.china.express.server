@@ -833,7 +833,7 @@ model PolicyType {
   title      String    @unique @db.VarChar(150)
   slug       String    @unique @db.VarChar(100)
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime @updatedAt
 
   policies   Policies[]
 }
@@ -842,14 +842,16 @@ model PolicyType {
 
 model Policies {
   id              Int       @id @default(autoincrement())
+  
   title           String
   description     String?
+  policyTypeId    Int
+
   helpfulCount    Int       @default(0)
   notHelpfulCount Int       @default(0)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
  
-  policyTypeId    Int
   policyType      PolicyType @relation(fields: [policyTypeId], references: [id])
 }
 

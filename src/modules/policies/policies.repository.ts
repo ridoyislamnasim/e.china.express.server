@@ -1,7 +1,12 @@
+import prisma from "../../config/prismadatabase";
 import { CreatePolicyRequestDTO, PolicyRequestDTO } from "../../types/policy";
 
 export default new class PoliciesRepository {
     
+
+    private prisma = prisma;
+
+
     getAllPolicyTitlesRepository = async () => {
 
 
@@ -12,8 +17,23 @@ export default new class PoliciesRepository {
         return { slug, name: "Sample Policy" };
     }
 
-    createPolicyRepository = async (body:CreatePolicyRequestDTO) => {
-        return { message: "Policy created" };
+
+    createPolicyRepository = async (body: CreatePolicyRequestDTO): Promise<any> => {
+        return await this.prisma.policies.create({
+            data: {
+                title: body.title,
+                description: body.description,
+                policyTypeId: body.policyTypeId,
+                // Prisma will automatically link the relation via policyTypeId
+            }
+        });
+    };
+
+
+    isPolicyExist = async (title:string):Promise<any> => {
+        return await this.prisma.policies.findFirst({
+            where:{ title:title }
+        })
     }
 
 

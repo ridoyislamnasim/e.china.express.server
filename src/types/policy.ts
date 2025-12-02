@@ -35,6 +35,5 @@ export interface PolicyRequestDTO {
 export interface CreatePolicyRequestDTO {
   title: string;
   policyTypeId: number;
-  policyTypeTitle: string;
   description: string;
 }

@@ -1,5 +1,6 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import policiesService from "./policies.service";
+import { responseHandler } from "../../utils/responseHandler";
 
 export default new class PoliciesController {
   
@@ -46,9 +47,15 @@ export default new class PoliciesController {
 
 
 
-  createPolicy = async (req: Request, res: Response) => {
-    const newPolicy = await policiesService.createPolicy(req.body);
-    res.send("Create a new policy");
+  createPolicy = async (req: Request, res: Response,next:NextFunction) => {
+    try {
+        const newPolicy = await policiesService.createPolicy(req.body);
+        const resDoc = responseHandler(201,"New Policy Created Successfully.",newPolicy)
+        res.status(resDoc.statusCode).json(resDoc)
+    } catch (error) {
+      next(error);
+    }
+    res.send("Create a new policy.");
   };
 
 
