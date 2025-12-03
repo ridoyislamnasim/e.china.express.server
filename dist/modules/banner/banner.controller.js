@@ -23,6 +23,15 @@ class BannerController {
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getAllBanner = (0, catchError_1.default)(async (req, res, next) => {
+            console.log('Banner Get All request body:', req);
+            // ip address logging
+            const ip = (typeof req.headers["x-forwarded-for"] === "string"
+                ? req.headers["x-forwarded-for"].split(",")[0]
+                : Array.isArray(req.headers["x-forwarded-for"])
+                    ? req.headers["x-forwarded-for"][0]
+                    : req.socket.remoteAddress || req.ip || "")
+                .replace(/^.*:/, ""); // Clean IPv6 prefix if present
+            console.log("Extracted IP -------------- :", ip);
             let payload = {
                 bannerType: req.query.bannerType,
             };

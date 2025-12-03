@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const pagination_1 = require("../../utils/pagination");
 const base_repository_1 = require("../base/base.repository");
 const errors_1 = require("../../utils/errors");
 class CartRepository extends base_repository_1.BaseRepository {
@@ -9,361 +8,152 @@ class CartRepository extends base_repository_1.BaseRepository {
         super(prisma.cart);
         this.prisma = prisma;
     }
-    async getSingleBuyNowCart(id) {
-        const cartData = await this.prisma.buyNowCart.findUnique({
-            where: { id },
-        });
-        if (!cartData)
-            throw new errors_1.NotFoundError('Cart Not Found');
-        return cartData;
-    }
-    async findCartByUserAndProduct(query) {
-        console.log('Finding cart with query:', query);
-        const whereClause = {
-            correlationId: query.correlationId,
-            userRef: query.userRef ? { id: Number(query.userRef) } : undefined,
-            productRef: query.productRef ? { id: Number(query.productRef) } : undefined,
-            inventoryRef: query.inventoryRef ? { id: Number(query.inventoryRef) } : undefined,
-        };
-        return await this.prisma.cart.findFirst({ where: whereClause });
-    }
-    async findBuyNowCartByUserAndProduct(query) {
-        console.log('Finding cart with query:', query);
-        const whereClause = {
-            correlationId: query.correlationId,
-            userRef: query.userRef ? { id: Number(query.userRef) } : undefined,
-            productRef: query.productRef ? { id: Number(query.productRef) } : undefined,
-            inventoryRef: query.inventoryRef ? { id: Number(query.inventoryRef) } : undefined,
-        };
-        return await this.prisma.buyNowCart.findFirst({ where: whereClause });
-    }
-    async createCart(payload) {
-        console.log("payload", payload);
-        const data = {
-            quantity: payload.quantity,
-            productRef: payload.productRef
-                ? { connect: { id: Number(payload.productRef) } }
-                : undefined,
-            inventoryRef: payload.inventoryRef
-                ? { connect: { id: Number(payload.inventoryRef) } }
-                : undefined,
-        };
-        console.log("payload 999", data);
-        if (payload.userRef) {
-            data.userRef = { connect: { id: Number(payload.userRef) } };
+    async createCart(payload, tx) {
+        var _a, _b, _c, _d;
+        const client = tx || this.prisma;
+        // try to find existing active cart for the user
+        const existing = await client.cart.findFirst({ where: { userId: Number(payload.userId) } });
+        if (existing) {
+            // update existing cart with provided fields (totals, status, currency)
+            return await client.cart.update({ where: { id: existing.id }, data: {
+                    totalPrice: (_a = payload.totalPrice) !== null && _a !== void 0 ? _a : existing.totalPrice,
+                    totalWeight: (_b = payload.totalWeight) !== null && _b !== void 0 ? _b : existing.totalWeight,
+                    currency: (_c = payload.currency) !== null && _c !== void 0 ? _c : existing.currency,
+                    status: (_d = payload.status) !== null && _d !== void 0 ? _d : existing.status,
+                } });
         }
-        else if (payload.correlationId) {
-            data.correlationId = payload.correlationId;
-        }
-        console.log('Creating cart with data:', data);
-        const newCart = await this.prisma.cart.create({
-            data: data,
-        });
-        console.log('New cart created:', newCart);
-        return newCart;
+        // create new cart when no existing cart found
+        return await client.cart.create({ data: payload });
     }
-    async getAllCartByUser(payload) {
-        const { userRef, coupon, productRef, inventoryRef } = payload;
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userRef);
-        const query = {};
-        if (isUUID) {
-            query.correlationId = userRef;
-        }
-        else {
-            query.userRef = { id: Number(userRef) };
-        }
-        // if (productRef && inventoryRef) {
-        //   query.productRef = productRef;
-        //   query.inventoryRef = inventoryRef;
-        // }
-        const carts = await prisma.cart.findMany({
-            where: query,
-            include: {
-                productRef: true,
-                userRef: true,
-                inventoryRef: true,
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-        let appliedCoupon = null;
-        let message = `Viewing carts`;
-        if (coupon) {
-            const existingCoupon = await prisma.coupon.findFirst({ where: { code: coupon } });
-            message = `Sorry, that coupon isn’t valid.`;
-            if (existingCoupon) {
-                const now = new Date();
-                if (existingCoupon.startDate &&
-                    existingCoupon.expireDate &&
-                    now > existingCoupon.startDate &&
-                    now < existingCoupon.expireDate &&
-                    (existingCoupon.useLimit || 0) > (existingCoupon.used || 0)) {
-                    appliedCoupon = existingCoupon;
-                    message = `Congratulations, your coupon was applied successfully!`;
-                }
-            }
-        }
-        let totalPrice = 0;
-        let totalSaved = 0;
-        let totalCouponDiscount = 0;
-        let productDiscount = 0;
-        console.log("cart details", carts.length);
-        const cartDetails = carts.map((cart) => {
-            const product = cart.productRef;
-            const inventory = cart.inventoryRef;
-            const quantity = cart.quantity || 0;
-            const price = (inventory === null || inventory === void 0 ? void 0 : inventory.price) || 0;
-            const discountAmount = (inventory === null || inventory === void 0 ? void 0 : inventory.discountAmount) || 0;
-            let couponDiscount = 0;
-            if (appliedCoupon) {
-                if ((appliedCoupon.categoryRefId && String(appliedCoupon.categoryRefId) === String(product === null || product === void 0 ? void 0 : product.categoryRefId)) ||
-                    (appliedCoupon.subCategoryRefId && String(appliedCoupon.subCategoryRefId) === String(product === null || product === void 0 ? void 0 : product.subCategoryRefId))) {
-                    const discount = appliedCoupon.discount || 0;
-                    couponDiscount =
-                        appliedCoupon.discountType === "percent"
-                            ? (price * discount) / 100
-                            : discount;
-                    couponDiscount *= quantity;
-                }
-            }
-            const subtotal = price * quantity;
-            const savedAmount = discountAmount * quantity + couponDiscount;
-            totalPrice += subtotal - couponDiscount;
-            productDiscount += discountAmount * quantity;
-            totalCouponDiscount += couponDiscount;
-            totalSaved += savedAmount;
-            return {
-                cartId: cart.id,
-                quantity,
-                product,
-                inventory,
-                subtotal,
-                couponDiscount,
-                savedAmount,
-                productDiscount,
-            };
-        });
-        console.log("cart ");
-        console.log("cart details", cartDetails.length);
-        return {
-            data: {
-                cartDetails,
-                totalPrice,
-                totalSaved,
-                couponDiscount: totalCouponDiscount,
-                productDiscount,
-            },
-            message,
-        };
-    }
-    async updateCart(id, payload) {
-        const updatedCart = await this.prisma.cart.update({
-            where: { id },
-            data: {
-                quantity: payload.quantity,
-                userRef: payload.userRef ? { connect: { id: Number(payload.userRef) } } : undefined,
-                productRef: payload.productRef ? { connect: { id: Number(payload.productRef) } } : undefined,
-                inventoryRef: payload.inventoryRef ? { connect: { id: Number(payload.inventoryRef) } } : undefined,
-                correlationId: payload.correlationId,
-            },
-        });
-        if (!updatedCart) {
-            throw new Error('Cart not found');
-        }
-        return updatedCart;
-    }
-    async updateCartQuantity(cartId, quantity) {
-        return await this.prisma.cart.update({
-            where: { id: cartId },
-            data: { quantity },
-        });
-    }
-    async getCartWithPagination(payload) {
-        try {
-            const carts = await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
-                // const prismaSortOrder = sortOrder === -1 ? 'desc' : 'asc';
-                const carts = await this.prisma.cart.findMany({
-                    where: { userRef: payload.userId ? { id: Number(payload.userId) } : undefined },
-                    // orderBy: { createdAt: prismaSortOrder },
-                    skip: offset,
-                    take: limit,
-                });
-                const totalCart = await this.prisma.cart.count({
-                    where: { userRef: payload.userId ? { id: Number(payload.userId) } : undefined },
-                });
-                return { doc: carts, totalDoc: totalCart };
+    async createCartProduct(payload, tx) {
+        var _a, _b, _c, _d;
+        const client = tx || this.prisma;
+        console.log("Creating Cart Product with payload: ", payload);
+        // try to find existing cartProduct for same cart and same product id (any of the id fields)
+        const whereClauses = [];
+        if (payload.product1688Id != null)
+            whereClauses.push({ product1688Id: String(payload.product1688Id) });
+        if (payload.productLocalId != null)
+            whereClauses.push({ productLocalId: Number(payload.productLocalId) });
+        if (payload.productAlibabaId != null)
+            whereClauses.push({ productAlibabaId: String(payload.productAlibabaId) });
+        const existing = whereClauses.length > 0
+            ? await client.cartProduct.findFirst({ where: { cartId: payload.cartId, OR: whereClauses } })
+            : null;
+        if (existing) {
+            // update existing: sum quantities and totals
+            const newQuantity = ((_a = payload.quantity) !== null && _a !== void 0 ? _a : 0);
+            const newTotalPrice = ((_b = payload.totalPrice) !== null && _b !== void 0 ? _b : 0);
+            const newTotalWeight = ((_c = payload.totalWeight) !== null && _c !== void 0 ? _c : 0);
+            console.log("Updating existing Cart Product ID:", existing.id, "New Quantity:", newQuantity, "New Total Price:", newTotalPrice, "New Total Weight:", newTotalWeight);
+            return await client.cartProduct.update({
+                where: { id: existing.id },
+                data: {
+                    quantity: newQuantity,
+                    totalPrice: newTotalPrice,
+                    totalWeight: newTotalWeight,
+                    mainSkuImageUrl: (_d = payload.mainSkuImageUrl) !== null && _d !== void 0 ? _d : existing.mainSkuImageUrl,
+                },
             });
-            return carts;
         }
-        catch (error) {
-            // console.error('Error getting carts with pagination:', error);
-            throw error;
-        }
+        // no existing product -> create new
+        return await client.cartProduct.create({ data: payload });
     }
-    async getUserAllCartById(userId) {
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId);
-        const query = {};
-        if (isUUID) {
-            query.correlationId = userId;
-        }
-        else {
-            query.userRef = { id: Number(userId) };
-        }
-        return await this.prisma.cart.findMany({
-            where: query,
-            include: {
-                productRef: true,
-                userRef: true,
-                inventoryRef: true,
-            },
-        });
-    }
-    async deleteCart(id) {
-        const deletedCart = await this.prisma.cart.delete({
-            where: { id: Number(id) },
-        });
-        return deletedCart;
-    }
-    async deleteBuyNowCart(id) {
-        const deletedCart = await this.prisma.buyNowCart.delete({
-            where: { id: Number(id) },
-        });
-        return deletedCart;
-    }
-    // Buy now Cart
-    async createBuyNowCart(payload) {
-        console.log("payload", payload);
-        const data = {
-            quantity: payload.quantity,
-            productRef: payload.productRef
-                ? { connect: { id: Number(payload.productRef) } }
-                : undefined,
-            inventoryRef: payload.inventoryRef
-                ? { connect: { id: Number(payload.inventoryRef) } }
-                : undefined,
-        };
-        console.log("payload 999", data);
-        if (payload.userRef) {
-            data.userRef = { connect: { id: Number(payload.userRef) } };
-        }
-        else if (payload.correlationId) {
-            data.correlationId = payload.correlationId;
-        }
-        if (payload.userRef) {
-            data.userRef = { connect: { id: Number(payload.userRef) } };
-        }
-        else if (payload.correlationId) {
-            data.correlationId = payload.correlationId;
-        }
-        console.log('Creating cart with data:', data);
-        const newCart = await this.prisma.buyNowCart.create({
-            data: data,
-        });
-        console.log('New cart created:', newCart);
-        return newCart;
-    }
-    async getAllBuyNowCartByUser(payload) {
-        const { userId, coupon, productRef, inventoryRef } = payload;
-        const query = {};
-        // if (/^[a-f\d]{24}$/i.test(userId)) {
-        //   query.userRef = userId;
-        // } else {
-        //   query.correlationId = userId;
-        // }
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-            .test(userId || '');
-        if (!isUUID) {
-            console.log('Creating cart with query 4:', isUUID);
-            query.userRef = Number(userId);
-        }
-        else {
-            console.log('Creating cart with query 5:', isUUID);
-            query.correlationId = userId;
-        }
-        // if (productRef && inventoryRef) {
-        //   query.productRef = productRef;
-        //   query.inventoryRef = inventoryRef;
-        // }
-        const carts = await prisma.buyNowCart.findMany({
-            where: query,
-            include: {
-                productRef: true,
-                userRef: true,
-                inventoryRef: true,
-            },
-        });
-        let appliedCoupon = null;
-        let message = `Viewing carts`;
-        if (coupon) {
-            const existingCoupon = await prisma.coupon.findFirst({ where: { code: coupon } });
-            message = `Sorry, that coupon isn’t valid.`;
-            if (existingCoupon) {
-                const now = new Date();
-                if (existingCoupon.startDate &&
-                    existingCoupon.expireDate &&
-                    now > existingCoupon.startDate &&
-                    now < existingCoupon.expireDate &&
-                    (existingCoupon.useLimit || 0) > (existingCoupon.used || 0)) {
-                    appliedCoupon = existingCoupon;
-                    message = `Congratulations, your coupon was applied successfully!`;
-                }
+    async createCartProductVariant(payload, tx) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+        console.log("Creating Cart Product Variant with payload: ", payload);
+        const client = tx || this.prisma;
+        // require cartProductId to match existing variant
+        if (payload.skuId == null && payload.specId == null) {
+            // find exiting variant by cartProductId only
+            const existing = await client.cartProductVariant.findFirst({ where: { cartProductId: payload.cartProductId } });
+            if (existing) {
+                const newQuantity = ((_a = payload.quantity) !== null && _a !== void 0 ? _a : 0);
+                const newPrice = ((_b = payload.price) !== null && _b !== void 0 ? _b : 0);
+                const newWeight = ((_c = payload.weight) !== null && _c !== void 0 ? _c : 0);
+                return await client.cartProductVariant.update({
+                    where: { id: existing.id },
+                    data: {
+                        quantity: newQuantity,
+                        price: newPrice,
+                        weight: newWeight,
+                        attributeName: (_d = payload.attributeName) !== null && _d !== void 0 ? _d : existing.attributeName,
+                        attributeNameSecond: (_e = payload.attributeNameSecond) !== null && _e !== void 0 ? _e : existing.attributeNameSecond,
+                        dimensions: (_f = payload.dimensions) !== null && _f !== void 0 ? _f : existing.dimensions,
+                        skuImageUrl: (_g = payload.skuImageUrl) !== null && _g !== void 0 ? _g : existing.skuImageUrl,
+                    },
+                });
             }
+            // create directly if no parent id provided
+            return await client.cartProductVariant.create({ data: payload });
         }
-        let totalPrice = 0;
-        let totalSaved = 0;
-        let totalCouponDiscount = 0;
-        let productDiscount = 0;
-        const cartDetails = carts.map((cart) => {
-            const product = cart.productRef;
-            const inventory = cart.inventoryRef;
-            const quantity = cart.quantity || 0;
-            const price = (inventory === null || inventory === void 0 ? void 0 : inventory.price) || 0;
-            const discountAmount = (inventory === null || inventory === void 0 ? void 0 : inventory.discountAmount) || 0;
-            let couponDiscount = 0;
-            if (appliedCoupon) {
-                if ((appliedCoupon.categoryRefId && String(appliedCoupon.categoryRefId) === String(product === null || product === void 0 ? void 0 : product.categoryRefId)) ||
-                    (appliedCoupon.subCategoryRefId && String(appliedCoupon.subCategoryRefId) === String(product === null || product === void 0 ? void 0 : product.subCategoryRefId))) {
-                    const discount = appliedCoupon.discount || 0;
-                    couponDiscount =
-                        appliedCoupon.discountType === "percent"
-                            ? (price * discount) / 100
-                            : discount;
-                    couponDiscount *= quantity;
-                }
-            }
-            const subtotal = price * quantity;
-            const savedAmount = discountAmount * quantity + couponDiscount;
-            totalPrice += subtotal - couponDiscount;
-            productDiscount += discountAmount * quantity;
-            totalCouponDiscount += couponDiscount;
-            totalSaved += savedAmount;
-            return {
-                cartId: cart.id,
-                quantity,
-                product,
-                inventory,
-                subtotal,
-                couponDiscount,
-                savedAmount,
-                productDiscount,
-            };
-        });
-        return {
-            data: {
-                cartDetails,
-                totalPrice,
-                totalSaved,
-                couponDiscount: totalCouponDiscount,
-                productDiscount,
-            },
-            message,
-        };
+        const whereClauses = [];
+        if (payload.skuId != null)
+            whereClauses.push({ skuId: String(payload.skuId) });
+        if (payload.specId != null)
+            whereClauses.push({ specId: String(payload.specId) });
+        const existing = whereClauses.length > 0
+            ? await client.cartProductVariant.findFirst({ where: { cartProductId: payload.cartProductId, OR: whereClauses } })
+            : null;
+        if (existing) {
+            const newQuantity = ((_h = payload.quantity) !== null && _h !== void 0 ? _h : 0);
+            const newPrice = ((_j = payload.price) !== null && _j !== void 0 ? _j : 0);
+            const newWeight = ((_k = payload.weight) !== null && _k !== void 0 ? _k : 0);
+            return await client.cartProductVariant.update({
+                where: { id: existing.id },
+                data: {
+                    quantity: newQuantity,
+                    price: newPrice,
+                    weight: newWeight,
+                    attributeName: (_l = payload.attributeName) !== null && _l !== void 0 ? _l : existing.attributeName,
+                    attributeNameSecond: (_m = payload.attributeNameSecond) !== null && _m !== void 0 ? _m : existing.attributeNameSecond,
+                    dimensions: (_o = payload.dimensions) !== null && _o !== void 0 ? _o : existing.dimensions,
+                    skuImageUrl: (_p = payload.skuImageUrl) !== null && _p !== void 0 ? _p : existing.skuImageUrl,
+                },
+            });
+        }
+        return await client.cartProductVariant.create({ data: payload });
     }
-    async updateBuyNowCartQuantity(cartId, quantity) {
-        console.log("cart info", cartId, quantity);
-        return await this.prisma.buyNowCart.update({
-            where: { id: cartId },
-            data: { quantity },
+    async findCartItemByUserAndProduct(userId, productId, tx) {
+        var _a;
+        const client = tx || this.prisma;
+        const pidStr = String(productId);
+        // filter বানানো
+        const productFilter = {
+            OR: [
+                { product1688Id: pidStr },
+                // { productLocalId: pidStr },
+                { productAlibabaId: pidStr },
+            ],
+        };
+        const cart = await client.cart.findFirst({
+            where: {
+                userId: Number(userId),
+                products: {
+                    some: productFilter,
+                },
+            },
+            include: {
+                products: {
+                    where: productFilter,
+                    include: {
+                        variants: {
+                            select: {
+                                id: true,
+                                cartProductId: true,
+                                skuId: true,
+                                specId: true,
+                                quantity: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
+        if (!cart) {
+            throw new errors_1.NotFoundError('Cart not found for the user');
+        }
+        return (_a = cart === null || cart === void 0 ? void 0 : cart.products[0]) === null || _a === void 0 ? void 0 : _a.variants;
     }
 }
 const prisma = new client_1.PrismaClient();

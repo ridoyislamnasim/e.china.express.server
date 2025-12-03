@@ -3,39 +3,96 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDeleteUser = exports.getSingleUser = exports.getAllUser = exports.updateUser = exports.getUserById = exports.authForgetPasswordVarification = exports.authForgetPassword = exports.getUser = exports.createUser = exports.authUserSignIn = exports.authUserSignUp = void 0;
+exports.getDeleteUser = exports.getSingleUser = exports.getAllUser = exports.updateUser = exports.getUserById = exports.authForgetPasswordVarification = exports.authForgetPassword = exports.getUser = exports.createUser = exports.authUserSignOut = exports.authUserSignIn = exports.authUserSignUp = void 0;
 const auth_repository_1 = __importDefault(require("./auth.repository"));
 const auth_service_1 = require("./auth.service");
 const responseHandler_1 = require("../../utils/responseHandler");
+const config_1 = __importDefault(require("../../config/config"));
+const withTransaction_1 = __importDefault(require("../../middleware/transactions/withTransaction"));
+const requestInfo_1 = require("../../utils/requestInfo");
+const inspector_1 = require("inspector");
 const authService = new auth_service_1.AuthService(auth_repository_1.default);
-const authUserSignUp = async (req, res, next) => {
+exports.authUserSignUp = (0, withTransaction_1.default)(async (req, res, next, tx) => {
     try {
-        const { name, email, phone, role, password } = req.body;
+        const { name, email, phone, password } = req.body;
         // console.log('Received signup request with data:', { name, email, phone, role, password });
-        const payload = { name, email, phone, role, password };
-        const user = await authService.authUserSignUp(payload);
-        // res.status(201).json({ message: 'User signed up successfully', user });
+        const payload = { name, email, phone, password };
+        inspector_1.console.log('SignUp request payload:', payload);
+        const user = await authService.authUserSignUp(payload, tx);
         const resDoc = (0, responseHandler_1.responseHandler)(201, 'User Created successfully', user);
         res.status(resDoc.statusCode).json(resDoc);
     }
     catch (error) {
         next(error);
     }
-};
-exports.authUserSignUp = authUserSignUp;
+});
 const authUserSignIn = async (req, res, next) => {
+    inspector_1.console.log('SignIn request body:', req.body);
     try {
         const { email, phone, password } = req.body;
         const payload = { email, phone, password };
-        const user = await authService.authUserSignIn(payload);
-        const resDoc = (0, responseHandler_1.responseHandler)(201, 'Login successfully', user);
-        res.status(resDoc.statusCode).json(resDoc);
+        // authService returns { accessToken, refreshToken, user }
+        const authResult = await authService.authUserSignIn(payload);
+        const accessToken = authResult.accessToken;
+        const refreshToken = authResult.refreshToken;
+        const isProduction = config_1.default.isProduction || false; // fallback to false in local
+        inspector_1.console.log('Setting auth cookies for user:', isProduction);
+        // Access Token Cookie
+        // Make cookies usable for local development by setting a local domain and disabling secure when not in production.
+        const cookieDomain = !isProduction ? 'localhost' : undefined;
+        inspector_1.console.log('Cookie Domain:', cookieDomain);
+        const accessCookieOptions = {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
+            path: '/',
+        };
+        if (cookieDomain)
+            accessCookieOptions.domain = cookieDomain;
+        inspector_1.console.log('Setting access token cookie with options access:', accessCookieOptions);
+        res.cookie('accessToken', accessToken, accessCookieOptions);
+        // Refresh Token Cookie
+        const refreshCookieOptions = {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            path: '/',
+        };
+        if (cookieDomain)
+            refreshCookieOptions.domain = cookieDomain;
+        inspector_1.console.log('Setting refresh token cookie with options refresh:', refreshCookieOptions);
+        res.cookie('refreshToken', refreshToken, refreshCookieOptions);
+        // User Cookie (readable by frontend)
+        const userCookieOptions = {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? 'none' : 'lax',
+            maxAge: 5 * 24 * 60 * 60 * 1000, // 5 days
+            path: '/',
+        };
+        authResult.user = { ...authResult.user, ...userCookieOptions }; // Remove password from user object
+        const resDoc = (0, responseHandler_1.responseHandler)(200, 'Login successfully', { user: authResult.user });
+        return res.status(resDoc.statusCode).json(resDoc);
     }
     catch (error) {
         next(error);
     }
 };
 exports.authUserSignIn = authUserSignIn;
+const authUserSignOut = async (req, res, next) => {
+    try {
+        // Clear the authentication cookies
+        res.clearCookie('accessToken', { path: '/' });
+        res.clearCookie('refreshToken', { path: '/' });
+        res.status(200).json({ message: 'Sign out successfully' });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.authUserSignOut = authUserSignOut;
 const createUser = async (req, res, next) => {
     try {
         const { name, email, phone, password } = req.body;
@@ -61,9 +118,33 @@ const getUser = async (req, res, next) => {
 };
 exports.getUser = getUser;
 const authForgetPassword = async (req, res, next) => {
+    inspector_1.console.log("AuthController - authForgetPassword - request body:", req.body);
     try {
-        // TODO: Implement forget password logic in AuthService
-        res.status(501).json({ message: 'Forget Password not implemented' });
+        // body theke data distrcaret
+        const { email, phone } = req.body;
+        // console.log("AuthController - authForgetPassword - request payload:", req);
+        // Get request information including device details
+        const requestInfo = (0, requestInfo_1.getRequestInfo)(req);
+        const { ip, browser, os, date, time, location: geoLocation } = requestInfo;
+        const payload = {
+            email, phone,
+            ip,
+            browser,
+            os,
+            date,
+            time,
+            geoLocation
+        };
+        inspector_1.console.log("========= Request Info =========");
+        inspector_1.console.log("IP Address:", ip);
+        inspector_1.console.log("Browser:", browser); // Will show like "Chrome 111.0.0"
+        inspector_1.console.log("Operating System:", os); // Will show like "Windows 10"
+        inspector_1.console.log("Date:", date); // Will show like "Monday, 20 March 2023"
+        inspector_1.console.log("Time:", time); // Will show like "11:31:10 pm"
+        inspector_1.console.log("Location:", geoLocation);
+        inspector_1.console.log("================================");
+        const user = await authService.authForgetPassword(payload);
+        res.status(200).json({ message: 'Forget Password OTP sent email successfully' });
     }
     catch (error) {
         next(error);
@@ -73,7 +154,10 @@ exports.authForgetPassword = authForgetPassword;
 const authForgetPasswordVarification = async (req, res, next) => {
     try {
         // TODO: Implement forget password verification logic in AuthService
-        res.status(501).json({ message: 'Forget Password verification not implemented' });
+        const { email, phone, otp, newPassword } = req.body;
+        const payload = { email, phone, otp, newPassword };
+        const user = await authService.authForgetPasswordVarification(payload);
+        res.status(200).json({ message: 'Forget Password verification successful', user });
     }
     catch (error) {
         next(error);

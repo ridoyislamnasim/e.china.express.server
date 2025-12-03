@@ -5,21 +5,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const cart_controller_1 = __importDefault(require("../../modules/cart/cart.controller"));
+const jwtAuth_1 = __importDefault(require("../../middleware/auth/jwtAuth"));
 const CartRoute = (0, express_1.Router)();
-// CartRoute.use(jwtAuth());
+CartRoute.use((0, jwtAuth_1.default)());
 // cart
 CartRoute.route("/")
-    .post(cart_controller_1.default.createCart)
-    .get(cart_controller_1.default.getAllCartByUser);
-CartRoute.route("/buy-now")
-    .post(cart_controller_1.default.createBuyNowCart)
-    .get(cart_controller_1.default.getAllBuyNowCartByUser);
-CartRoute.route("/buy-now/:id")
-    .put(cart_controller_1.default.updateBuyNowCartQuantity);
-CartRoute.get("/user-all-cart/:id", cart_controller_1.default.getUserAllCartById);
-CartRoute.get("/pagination", cart_controller_1.default.getCartWithPagination);
-CartRoute.route("/:id")
-    .get(cart_controller_1.default.getSingleCart)
-    .put(cart_controller_1.default.updateCartQuantity)
-    .delete(cart_controller_1.default.deleteCart);
+    .post(cart_controller_1.default.createCartItem);
+//   .get(controller.getAllCartByUser);
+CartRoute.get("/user-cart/product/:id", (0, jwtAuth_1.default)(), cart_controller_1.default.getUserCartByProductId);
+//   CartRoute.route("/buy-now")
+//   .post(controller.createBuyNowCart)
+//   .get(controller.getAllBuyNowCartByUser);
+//   CartRoute.route("/buy-now/:id")
+//   .put( controller.updateBuyNowCartQuantity)
+// CartRoute.get("/user-all-cart/:id", controller.getUserAllCartById);
+// CartRoute.get("/pagination", controller.getCartWithPagination);
+// CartRoute.route("/:id")
+//   .get(controller.getSingleCart)
+//   .put( controller.updateCartQuantity)
+//   .delete(controller.deleteCart);
 exports.default = CartRoute;

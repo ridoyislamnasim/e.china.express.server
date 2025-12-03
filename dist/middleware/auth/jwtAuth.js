@@ -5,8 +5,10 @@ const jwt_1 = require("../../utils/jwt");
 // JWT Auth middleware for role and permission-based access
 const jwtAuth = (requiredRoles, permission) => {
     return async (req, res, next) => {
+        // console cookies for debugging
+        console.log("Request Cookies:", req.cookies);
         try {
-            const bearer = req.headers.authorization || req.headers.Authorization;
+            const bearer = req.cookies.accessToken || req.cookies.AccessToken;
             if (!bearer || !bearer.startsWith('Bearer ')) {
                 throw new errors_1.BadRequestError('Token not found');
             }

@@ -7,22 +7,38 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
+const cookieParser = require("cookie-parser");
 const index_1 = __importDefault(require("./api/index"));
 const globalErrorHandler_1 = __importDefault(require("./middleware/errors/globalErrorHandler"));
 // Load environment variables from .env file
 dotenv_1.default.config();
 // Create Express app instance
 const app = (0, express_1.default)();
-// Prisma client is now available for database access via `prisma` import
-// Example usage: prisma.user.findMany(), etc.
+// Enable trust proxy to get real client IP behind reverse proxies
+app.set('trust proxy', true);
+app.use(cookieParser());
 // HTTP request logger middleware
 app.use((0, morgan_1.default)("dev"));
 // Parse incoming JSON requests
 app.use(express_1.default.json());
 // Parse URL-encoded data
 app.use(express_1.default.urlencoded({ extended: true }));
+// Serve uploads directory as public static files at /public
+// Example: http://localhost:3000/public/social/<your-file>
+app.use("/public", express_1.default.static(path_1.default.join(__dirname, "..", "uploads")));
 // Enable Cross-Origin Resource Sharing
-app.use((0, cors_1.default)());
+// Allowlist for frontends that are allowed to make credentialed requests
+const allowedOrigins = [
+    'http://localhost:3010',
+    'http://localhost:3012',
+    'https://e-china-express-customer.vercel.app',
+    'https://e-china-express.vercel.app',
+];
+app.use((0, cors_1.default)({
+    origin: allowedOrigins,
+    credentials: true, // ✅ cookie পাঠানো এবং নেওয়া allow করবে
+}));
 // Mount all API routers at /api
 app.use("/api/v1", index_1.default);
 // Health check or welcome endpoint
@@ -34,5 +50,5 @@ app.use(globalErrorHandler_1.default);
 // Start the server on the specified port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`App listening on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });

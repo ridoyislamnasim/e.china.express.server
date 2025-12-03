@@ -9,12 +9,14 @@ const auth_repository_1 = __importDefault(require("./auth.repository"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jwt_1 = require("../../utils/jwt");
 const errors_1 = require("../../utils/errors");
+const Email_1 = __importDefault(require("../../utils/Email"));
+const OTPGenerate_1 = require("../../utils/OTPGenerate");
 class AuthService {
     // private roleRepository: RoleRepository;
     constructor(repository = auth_repository_1.default) {
         this.repository = repository;
     }
-    async authUserSignUp(payload, session) {
+    async authUserSignUp(payload, tx) {
         const { name, email, phone, password } = payload;
         if (!name || !phone || !password) {
             const error = new Error('name, phone and password are required');
@@ -34,9 +36,12 @@ class AuthService {
                 throw error;
             }
         }
+        // create Role 
+        const role = await this.repository.createCustomRoleIfNotExists('customer', tx);
+        payload.roleId = role.id;
         // Add phone unique check if phone is in schema
         const hashedPassword = await bcryptjs_1.default.hash(String(password), 10);
-        const user = await this.repository.createUser({ ...payload, password: hashedPassword });
+        const user = await this.repository.createUser({ ...payload, password: hashedPassword }, tx);
         return user;
     }
     async createUser(payload, session) {
@@ -59,8 +64,10 @@ class AuthService {
         return users;
     }
     async authUserSignIn(payload) {
+        var _a;
         const { email, phone, password } = payload;
         const user = await this.repository.getAuthByEmailOrPhone(email, phone);
+        console.log('AuthService - authUserSignIn - retrieved user:', user);
         if (!user) {
             const error = new Error('unauthorized access');
             error.statusCode = 401;
@@ -76,7 +83,7 @@ class AuthService {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role,
+            roleId: ((_a = user.role) === null || _a === void 0 ? void 0 : _a.id) || 0,
         };
         const accessToken = (0, jwt_1.generateAccessToken)({ userInfo: { user_info_encrypted } });
         const refreshToken = (0, jwt_1.generateRefreshToken)({ userInfo: { user_info_encrypted } });
@@ -94,6 +101,90 @@ class AuthService {
             throw error;
         }
         return user;
+    }
+    async authForgetPassword(payload) {
+        // check if user exists
+        const { email, phone, ip, browser, os, date, time, geoLocation } = payload;
+        const user = await this.repository.getAuthByEmailOrPhone(email, phone);
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        const lockStatus = await this.repository.isOTPLocked(user.id);
+        if (lockStatus && lockStatus.locked) {
+            const unlockTime = new Date(lockStatus.unlockTime).toLocaleString();
+            const error = new Error(`Too many failed OTP attempts. Try again after ${unlockTime}`);
+            error.statusCode = 429;
+            throw error;
+        }
+        const OTP = await (0, OTPGenerate_1.generateOTP)();
+        // if email than send otp to email
+        // if phone than send otp to phone
+        if (email) {
+            // Send OTP to email
+            const emailObj = { email: user.email, name: user.name || '' };
+            // ip,
+            // browser,
+            // os,
+            // date,
+            // time,
+            // geoLocation  make email template dynamic data
+            const dynamicTemplateData = {
+                ip,
+                browser,
+                os,
+                date,
+                time,
+                geoLocation
+            };
+            const imgArray = {
+                forgetpassword: "https://e-china-express-server-k3vi.onrender.com/public/social/forget-password.png",
+                facebook: "https://e-china-express-server-k3vi.onrender.com/public/social/facebook.png",
+                youtube: "https://e-china-express-server-k3vi.onrender.com/public/social/youtube.png",
+                instagram: "https://e-china-express-server-k3vi.onrender.com/public/social/instagram.png",
+                linkedin: "https://e-china-express-server-k3vi.onrender.com/public/social/linkedin.png",
+                telegram: "https://e-china-express-server-k3vi.onrender.com/public/social/telegram.png",
+                whatsapp: "https://e-china-express-server-k3vi.onrender.com/public/social/whatsapp.png",
+                locationIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/destination.png",
+                deviceIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/video-lesson.png",
+                dateIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/time-management.png",
+            };
+            await new Email_1.default(emailObj, OTP).sendSignInAlert(dynamicTemplateData, imgArray);
+        }
+        else if (phone) {
+            // await this.sendOtpToPhone(phone);
+        }
+        // otp save to db with user id and expiry time
+        await this.repository.saveOTP(user.id, OTP);
+        return user;
+    }
+    async authForgetPasswordVarification(payload) {
+        const { email, phone, otp, newPassword } = payload;
+        // Basic validation
+        if (!otp || !newPassword) {
+            const error = new Error('otp and newPassword are required');
+            error.statusCode = 400;
+            throw error;
+        }
+        const user = await this.repository.getAuthByEmailOrPhone(email, phone);
+        if (!user) {
+            const error = new Error('User not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        // Verify OTP via repository helper
+        const verifyResult = await this.repository.verifyOTP(user.id, otp);
+        if (!verifyResult || !verifyResult.success) {
+            const reason = (verifyResult === null || verifyResult === void 0 ? void 0 : verifyResult.reason) || 'OTP verification failed';
+            const error = new Error(reason === 'expired' ? 'OTP expired' : reason === 'invalid' ? 'Invalid OTP' : reason);
+            error.statusCode = 400;
+            throw error;
+        }
+        // OTP verified — hash and update the password
+        const hashed = await bcryptjs_1.default.hash(String(newPassword), 10);
+        const newUser = await this.repository.updateUserPassword(user.id, hashed);
+        return newUser;
     }
     async updateUser(userId, payloadFiles, payload, session) {
         // File upload logic can be added here if needed
