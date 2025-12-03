@@ -1,5 +1,8 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('customer', 'user', 'admin');
+CREATE TYPE "WarehouseStatus" AS ENUM ('OPERATIONAL', 'MAINTENANCE', 'CLOSED', 'CONSTRUCTION', 'ARCHIVE');
+
+-- CreateEnum
+CREATE TYPE "WarehouseType" AS ENUM ('DISTRIBUTION', 'STORAGE', 'FULFILLMENT', 'OTHERS');
 
 -- CreateEnum
 CREATE TYPE "PortType" AS ENUM ('Sea', 'Air', 'Land');
@@ -94,9 +97,9 @@ CREATE TABLE "Wishlist" (
 
 -- CreateTable
 CREATE TABLE "WarehouseTransfer" (
-    "id" SERIAL NOT NULL,
-    "fromWarehouseRefId" INTEGER NOT NULL,
-    "toWarehouseRefId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "fromWarehouseRefId" TEXT NOT NULL,
+    "toWarehouseRefId" TEXT NOT NULL,
     "inventoryRefId" INTEGER NOT NULL,
     "quantity" INTEGER NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'Pending',
@@ -134,23 +137,38 @@ CREATE TABLE "ShippingMethod" (
 );
 
 -- CreateTable
-CREATE TABLE "Warehouse" (
-    "id" SERIAL NOT NULL,
+CREATE TABLE "warehouses" (
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "totalCapacity" DOUBLE PRECISION DEFAULT 0,
-    "usedCapacity" DOUBLE PRECISION DEFAULT 0,
-    "remaining" DOUBLE PRECISION DEFAULT 0,
+    "code" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "city" TEXT NOT NULL,
+    "state" TEXT NOT NULL,
+    "zipCode" TEXT NOT NULL,
+    "country" TEXT NOT NULL DEFAULT 'USA',
+    "phone" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
     "location" TEXT,
-    "managerRefId" INTEGER,
-    "contact" TEXT,
-    "status" BOOLEAN NOT NULL DEFAULT true,
+    "status" "WarehouseStatus" NOT NULL DEFAULT 'OPERATIONAL',
+    "type" "WarehouseType" NOT NULL,
+    "totalCapacity" INTEGER NOT NULL,
+    "usedCapacity" INTEGER NOT NULL DEFAULT 0,
+    "capacityUnit" TEXT NOT NULL DEFAULT 'sq ft',
+    "latitude" DOUBLE PRECISION,
+    "longitude" DOUBLE PRECISION,
+    "weekdaysHours" TEXT,
+    "weekendsHours" TEXT,
+    "holidaysHours" TEXT,
+    "lastInspection" TIMESTAMP(3),
+    "nextMaintenance" TIMESTAMP(3),
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "managerRefId" INTEGER,
     "countryId" INTEGER,
 
-    CONSTRAINT "Warehouse_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "warehouses_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -363,6 +381,32 @@ CREATE TABLE "Newsletter" (
 );
 
 -- CreateTable
+CREATE TABLE "Inventory" (
+    "id" SERIAL NOT NULL,
+    "productRefId" INTEGER,
+    "quantity" INTEGER,
+    "mrpPrice" DOUBLE PRECISION,
+    "price" DOUBLE PRECISION,
+    "costPrice" DOUBLE PRECISION,
+    "discountType" TEXT,
+    "discount" DOUBLE PRECISION,
+    "discountAmount" DOUBLE PRECISION,
+    "barcode" TEXT,
+    "availableQuantity" INTEGER,
+    "soldQuantity" INTEGER DEFAULT 0,
+    "holdQuantity" INTEGER DEFAULT 0,
+    "inventoryType" TEXT,
+    "color" TEXT,
+    "name" TEXT,
+    "level" TEXT,
+    "inventoryID" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Inventory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "ContactInfo" (
     "id" SERIAL NOT NULL,
     "name" TEXT,
@@ -429,33 +473,6 @@ CREATE TABLE "Campaign" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Campaign_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "BlogTag" (
-    "id" SERIAL NOT NULL,
-    "title" TEXT,
-    "slug" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "BlogTag_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Blog" (
-    "id" SERIAL NOT NULL,
-    "image" TEXT,
-    "title" TEXT,
-    "slug" TEXT,
-    "author" TEXT,
-    "details" TEXT,
-    "tags" TEXT[],
-    "status" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -722,6 +739,85 @@ CREATE TABLE "CartProductVariant" (
     CONSTRAINT "CartProductVariant_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "PolicyType" (
+    "id" SERIAL NOT NULL,
+    "title" VARCHAR(150) NOT NULL,
+    "slug" VARCHAR(100) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PolicyType_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Policies" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "policyTypeId" INTEGER NOT NULL,
+    "helpfulCount" INTEGER NOT NULL DEFAULT 0,
+    "notHelpfulCount" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Policies_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BlogTag" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT,
+    "slug" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "BlogTag_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Blog" (
+    "id" SERIAL NOT NULL,
+    "image" TEXT,
+    "title" TEXT,
+    "slug" TEXT,
+    "author" TEXT,
+    "details" TEXT,
+    "tags" TEXT[],
+    "status" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Guide" (
+    "id" SERIAL NOT NULL,
+    "serial" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Guide_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "GuideVideo" (
+    "id" SERIAL NOT NULL,
+    "guideId" INTEGER NOT NULL,
+    "url" VARCHAR(500) NOT NULL,
+    "imgSrc" TEXT,
+    "videoLength" TEXT,
+    "title" TEXT,
+    "shortDes" TEXT,
+    "videoSerial" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "GuideVideo_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -733,6 +829,12 @@ CREATE UNIQUE INDEX "Role_role_key" ON "Role"("role");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SubCategory_slug_key" ON "SubCategory"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "warehouses_name_key" ON "warehouses"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "warehouses_code_key" ON "warehouses"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_SKU_key" ON "Product"("SKU");
@@ -753,9 +855,6 @@ CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 CREATE UNIQUE INDEX "BuyNowCart_correlationId_key" ON "BuyNowCart"("correlationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Blog_slug_key" ON "Blog"("slug");
-
--- CreateIndex
 CREATE UNIQUE INDEX "RateShippingMethod_name_key" ON "RateShippingMethod"("name");
 
 -- CreateIndex
@@ -766,6 +865,15 @@ CREATE UNIQUE INDEX "Category1688_hsCodeConfigId_key" ON "Category1688"("hsCodeC
 
 -- CreateIndex
 CREATE UNIQUE INDEX "HsCodeConfig_categoryId_key" ON "HsCodeConfig"("categoryId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PolicyType_title_key" ON "PolicyType"("title");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PolicyType_slug_key" ON "PolicyType"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Blog_slug_key" ON "Blog"("slug");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -783,25 +891,25 @@ ALTER TABLE "Wishlist" ADD CONSTRAINT "Wishlist_userRefId_fkey" FOREIGN KEY ("us
 ALTER TABLE "Wishlist" ADD CONSTRAINT "Wishlist_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WarehouseTransfer" ADD CONSTRAINT "WarehouseTransfer_fromWarehouseRefId_fkey" FOREIGN KEY ("fromWarehouseRefId") REFERENCES "Warehouse"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WarehouseTransfer" ADD CONSTRAINT "WarehouseTransfer_fromWarehouseRefId_fkey" FOREIGN KEY ("fromWarehouseRefId") REFERENCES "warehouses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WarehouseTransfer" ADD CONSTRAINT "WarehouseTransfer_toWarehouseRefId_fkey" FOREIGN KEY ("toWarehouseRefId") REFERENCES "Warehouse"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "WarehouseTransfer" ADD CONSTRAINT "WarehouseTransfer_toWarehouseRefId_fkey" FOREIGN KEY ("toWarehouseRefId") REFERENCES "warehouses"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SubCategory" ADD CONSTRAINT "SubCategory_categoryRefId_fkey" FOREIGN KEY ("categoryRefId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Warehouse" ADD CONSTRAINT "Warehouse_managerRefId_fkey" FOREIGN KEY ("managerRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "warehouses" ADD CONSTRAINT "warehouses_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Warehouse" ADD CONSTRAINT "Warehouse_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "warehouses" ADD CONSTRAINT "warehouses_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Warehouse" ADD CONSTRAINT "Warehouse_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "warehouses" ADD CONSTRAINT "warehouses_managerRefId_fkey" FOREIGN KEY ("managerRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Warehouse" ADD CONSTRAINT "Warehouse_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "countries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "warehouses" ADD CONSTRAINT "warehouses_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "countries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SubChildCategory" ADD CONSTRAINT "SubChildCategory_childCategoryRefId_fkey" FOREIGN KEY ("childCategoryRefId") REFERENCES "ChildCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -846,10 +954,16 @@ ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_categoryRefId_fkey" FOREIGN KEY ("ca
 ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_subCategoryRefId_fkey" FOREIGN KEY ("subCategoryRefId") REFERENCES "SubCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Inventory" ADD CONSTRAINT "Inventory_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_userRefId_fkey" FOREIGN KEY ("userRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_inventoryRefId_fkey" FOREIGN KEY ("inventoryRefId") REFERENCES "Inventory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OTP" ADD CONSTRAINT "OTP_userRefId_fkey" FOREIGN KEY ("userRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -919,3 +1033,9 @@ ALTER TABLE "CartProductVariant" ADD CONSTRAINT "CartProductVariant_cartProductI
 
 -- AddForeignKey
 ALTER TABLE "CartProductVariant" ADD CONSTRAINT "CartProductVariant_shippingRateId_fkey" FOREIGN KEY ("shippingRateId") REFERENCES "Rate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Policies" ADD CONSTRAINT "Policies_policyTypeId_fkey" FOREIGN KEY ("policyTypeId") REFERENCES "PolicyType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "GuideVideo" ADD CONSTRAINT "GuideVideo_guideId_fkey" FOREIGN KEY ("guideId") REFERENCES "Guide"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

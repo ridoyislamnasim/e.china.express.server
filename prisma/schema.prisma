@@ -117,8 +117,6 @@ model Wishlist {
   updatedAt    DateTime @updatedAt
 }
 
-<<<<<<< HEAD
-=======
 model WarehouseTransfer {
   id                 String    @id @default(cuid())
   fromWarehouseRef   Warehouse @relation("FromWarehouse", fields: [fromWarehouseRefId], references: [id])
@@ -131,7 +129,6 @@ model WarehouseTransfer {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 }
->>>>>>> origin/warehouseapi
 
 model SubCategory {
   id              Int             @id @default(autoincrement())
@@ -159,25 +156,6 @@ model ShippingMethod {
 }
 
 model Warehouse {
-<<<<<<< HEAD
-  id          String   @id @default(cuid())
-  name        String   @unique
-  code        String   @unique
-  address     String
-  city        String
-  state       String
-  zipCode     String
-  country     String   @default("USA")
-  phone       String
-  email       String
-  location    String
-  status      WarehouseStatus @default(OPERATIONAL)
-  type        WarehouseType
-  
-  totalCapacity   Int
-  usedCapacity    Int
-  capacityUnit    String @default("sq ft")
-=======
   id              String         @id @default(cuid())
   name            String         @unique
   code            String         @unique
@@ -195,7 +173,6 @@ model Warehouse {
   totalCapacity   Int
   usedCapacity    Int            @default(0)
   capacityUnit    String         @default("sq ft")
->>>>>>> origin/warehouseapi
   
   latitude        Float?
   longitude       Float?
@@ -207,30 +184,21 @@ model Warehouse {
   lastInspection  DateTime?
   nextMaintenance DateTime?
 
-<<<<<<< HEAD
-  createdBy     Int?
-  createdByRef  User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
-=======
   createdBy     Int? 
   createdByRef  User? @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
->>>>>>> origin/warehouseapi
   updatedBy     Int?
   updatedByRef  User? @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   managerRefId  Int?
-<<<<<<< HEAD
-  managerRef    User?    @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
-=======
   managerRef    User? @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
->>>>>>> origin/warehouseapi
 
   countryId  Int?
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
-<<<<<<< HEAD
-  // Add this missing relation field for Inventory
+  fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
+  toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
 
   @@map("warehouses")
 }
@@ -241,6 +209,7 @@ enum WarehouseStatus {
   CLOSED
   CONSTRUCTION
   ARCHIVE
+  OVERLOADED
 }
 
 enum WarehouseType {
@@ -248,12 +217,6 @@ enum WarehouseType {
   STORAGE
   FULFILLMENT
   OTHERS
-=======
-  fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
-  toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
-
-  @@map("warehouses")
->>>>>>> origin/warehouseapi
 }
 
 model WarehouseSpace {
@@ -577,27 +540,6 @@ model Campaign {
   updatedAt   DateTime @updatedAt
 }
 
-model BlogTag {
-  id        Int      @id @default(autoincrement())
-  title     String?
-  slug      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Blog {
-  id        Int      @id @default(autoincrement())
-  image     String?
-  title     String?
-  slug      String?  @unique
-  author    String?
-  details   String?
-  tags      String[]
-  status    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model Brand {
   id        Int      @id @default(autoincrement())
   name      String?
@@ -667,6 +609,11 @@ model Ports {
   country   Country? @relation(fields: [countryId], references: [id])
 }
 
+enum PortType {
+  Sea
+  Air
+  Land
+}
 
 model RateSippingMethod {
   id          Int      @id @default(autoincrement())
@@ -855,6 +802,11 @@ model CartProduct {
 
   variants CartProductVariant[]
 }
+enum ProductFor {
+  FROM1688
+  LOCAL
+  ALIBABA
+}
 
 model CartProductVariant {
   id            Int @id @default(autoincrement())
@@ -881,38 +833,122 @@ model CartProductVariant {
 }
 
 
-// User role enum
-enum UserRole {
-  customer
-  user
-  admin
-}
-// cart 
-enum ProductFor {
-  FROM1688
-  LOCAL
-  ALIBABA
-}
-enum PortType {
-  Sea
-  Air
-  Land
+
+model PolicyType {
+  id         Int       @id @default(autoincrement())
+  title      String    @unique @db.VarChar(150)
+  slug       String    @unique @db.VarChar(100)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime @updatedAt
+
+  policies   Policies[]
 }
 
-enum WarehouseStatus {
-  OPERATIONAL
-  MAINTENANCE
-  CLOSED
-  OVERLOADED
-  UNDER_CONSTRUCTION
+
+
+model Policies {
+  id              Int       @id @default(autoincrement())
+  
+  title           String
+  description     String?
+  policyTypeId    Int
+
+  helpfulCount    Int       @default(0)
+  notHelpfulCount Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+ 
+  policyType      PolicyType @relation(fields: [policyTypeId], references: [id])
 }
 
-enum WarehouseType {
-  DISTRIBUTION_CENTER
-  FULFILLMENT_CENTER
-  COLD_STORAGE
-  BONDED
-  RETAIL
-  MANUFACTURING
-  CROSS_DOCK
+
+
+model BlogTag {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  slug      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Blog {
+  id        Int      @id @default(autoincrement())
+  image     String?
+  title     String?
+  slug      String?  @unique
+  author    String?
+  details   String?
+  tags      String[]
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+model Guide {
+  id        Int          @id @default(autoincrement())
+  serial    Int
+  title     String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  videos    GuideVideo[]
+}
+
+model GuideVideo {
+  id                  Int       @id @default(autoincrement())
+  guideId             Int
+
+  url                 String     @db.VarChar(500)
+  imgSrc              String?
+  videoLength         String?
+  title               String?
+  shortDes            String?
+  videoSerial         Int
+
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  guide               Guide      @relation(fields: [guideId], references: [id])
 }

@@ -17,6 +17,8 @@ import rateProductRoute from "./routes/rateProduct.route";
 import rateRoute from "./routes/rate.route";
 import Category1688Router from "./routes/category1688.route";
 import warehouseRoute from "./routes/warehouse.route";
+import policiesRoute from "./routes/policies.route";
+import guideRoute from "./routes/guide.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -31,7 +33,7 @@ rootRouter.use("/category", CategoryRouter);
 rootRouter.use("/banner", BannerRouter);
 rootRouter.use("/subcategory", SubCategoryRouter);
 rootRouter.use("/product", ProductRouter);
-rootRouter.use("/blog", BlogRouter);
+// rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/coupon", CouponRouter);
 rootRouter.use("/order", OrderRouter);
 rootRouter.use("/wishlist", WishlistRouter);
@@ -48,6 +50,12 @@ rootRouter.use('/rate', rateRoute);
 
 
 
+
+
+//done by rafi
+rootRouter.use("/policies",policiesRoute ); // policies routes
+rootRouter.use("/blog", BlogRouter);
+rootRouter.use("/guide", guideRoute);
 
 
 export default rootRouter;
