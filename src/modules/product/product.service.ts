@@ -1,7 +1,7 @@
 import { NotFoundError } from '../../utils/errors';
 import BaseService from '../base/base.service';
 import productRepository from './product.repository';
-import inventoryRepository from '../inventory/inventory.repository';
+// import inventoryRepository from '../inventory/inventory.repository';
 import { calculateDiscountAmount } from '../../utils/calculation';
 import ImgUploader from '../../middleware/upload/ImgUploder';
 import { idGenerate } from '../../utils/IdGenerator';

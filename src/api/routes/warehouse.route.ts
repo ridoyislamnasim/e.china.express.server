@@ -1,22 +1,28 @@
 import { Router } from "express";
 import controller from "../../modules/warehouse/warehouse.controller";
-import jwtAuth from "../../middleware/auth/jwtAuth";
+// import jwtAuth from "../../middleware/auth/jwtAuth";
 import { upload } from "../../middleware/upload/upload";
 
-const WarehouseRoute = Router();
-// WarehouseRoute.use(jwtAuth());
+const warehouseRoute = Router();
+// warehouseRoute.use(jwtAuth()); // Uncomment if authentication is required
 
-WarehouseRoute.route("/")
-  .post(jwtAuth(), controller.createWarehouse)
-//   .get(controller.getAllWarehouse);
+warehouseRoute.route("/")
+    .post(controller.createWarehouse)
+    .get(controller.getAllWarehouses);
 
-// WarehouseRoute.get("/pagination", controller.getWarehouseWithPagination);
+warehouseRoute.get("/stats", controller.getWarehouseStats);
+warehouseRoute.get("/available", controller.getAvailableWarehouses);
+warehouseRoute.get("/search", controller.searchWarehouses);
 
-// WarehouseRoute.route(":id")
-//   .get(controller.getSingleWarehouse)
-//   .put(controller.updateWarehouse)
-//   .delete(controller.deleteWarehouse);
+warehouseRoute.get("/pagination", controller.getWarehousesWithPagination);
+warehouseRoute.get("/manager/:managerId", controller.getWarehousesByManager);
 
-// WarehouseRoute.put("/status/:id", controller.updateWarehouseStatus);
+warehouseRoute.route("/:id")
+    .get(controller.getWarehouseById)
+    .patch(upload.any(), controller.updateWarehouse)
+    .delete(controller.deleteWarehouse);
 
-export default WarehouseRoute;
+warehouseRoute.patch("/:id/capacity", controller.updateWarehouseCapacity);
+warehouseRoute.patch("/:id/status", controller.changeWarehouseStatus);
+
+export default warehouseRoute;

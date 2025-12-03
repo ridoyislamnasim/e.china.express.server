@@ -1,139 +1,181 @@
-import { NotFoundError } from '../../utils/errors';
-import { BaseService } from '../base/base.service';
-import productRepository from '../product/product.repository';
-import warehouseRepository from './warehouse.repository';
+import { WarehousePayload, WarehouseUpdatePayload, WarehouseFilter } from './warehouse.type';
+import warehouseRepository, { WarehouseRepository } from './warehouse.repository';
 
-export class WarehouseService extends BaseService<typeof warehouseRepository> {
-  private repository: typeof warehouseRepository;
-  constructor(repository: typeof warehouseRepository) {
-    super(repository);
+export class WarehouseService {
+  private repository: WarehouseRepository;
+
+  constructor(repository: WarehouseRepository = warehouseRepository) {
     this.repository = repository;
   }
 
-  async createWarehouse(payload: any, tx?: any) {
-    const { name, totalCapacity, location, countryId } = payload;
-    // name , totalCapacity, location are requrired fields
-    if (!name || !totalCapacity || !location || !countryId) {
-      throw new Error('Name, Total Capacity, Location, and Country ID are required fields');
+  async createWarehouse(payload: WarehousePayload): Promise<any> {
+    const {
+      name,
+      code,
+      address,
+      city,
+      state,
+      zipCode,
+      country,
+      phone,
+      email,
+      status = 'OPERATIONAL',
+      type = 'DISTRIBUTION_CENTER',
+      totalCapacity,
+      usedCapacity = 0,
+      capacityUnit = 'sq ft',
+      managerRefId,
+      countryId,
+      createdBy,
+      ...rest
+    } = payload;
+
+    // Validate required fields
+    if (!name || !code || !address || !city || !state || !zipCode || !phone || !email || !totalCapacity) {
+      const error = new Error('Required fields are missing');
+      (error as any).statusCode = 400;
+      throw error;
     }
-    const warehouseData = await this.repository.createWarehouse(payload, tx);
 
+    // Check if warehouse code already exists
+    const existingWarehouse = await this.repository.getWarehouseByCode(code);
+    if (existingWarehouse) {
+      const error = new Error('Warehouse code already exists');
+      (error as any).statusCode = 409;
+      throw error;
+    }
 
+    // Validate capacity
+    if (usedCapacity > totalCapacity) {
+      const error = new Error('Used capacity cannot exceed total capacity');
+      (error as any).statusCode = 400;
+      throw error;
+    }
 
+    const warehouseData: any = {
+      name,
+      code,
+      address,
+      city,
+      state,
+      zipCode,
+      country,
+      phone,
+      email,
+      status,
+      type,
+      totalCapacity,
+      usedCapacity,
+      capacityUnit,
+      managerRefId,
+      countryId,
+      createdBy,
+      ...rest
+    };
 
-    return warehouseData;
+    return await this.repository.createWarehouse(warehouseData);
   }
 
-//   async getUserAllWarehouseById(userId: string) {
-//     return await this.repository.getUserAllWarehouseById(userId);
-//   }
+  async getAllWarehouses(filter: WarehouseFilter = {}): Promise<any> {
+    return await this.repository.getAllWarehouses(filter);
+  }
 
-//   async getAllWarehouseByUser(payload: any) {
-//     return await this.repository.getAllWarehouseByUser(payload);
-//   }
+  async getWarehouseById(id: string): Promise<any> {
+    const warehouse = await this.repository.getWarehouseById(id);
+    if (!warehouse) {
+      const error = new Error('Warehouse not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    return warehouse;
+  }
 
-//   async getWarehouseWithPagination(payload: any) {
-//     const warehouse = await this.repository.getWarehouseWithPagination(payload);
-//     return warehouse;
-//   }
+  async getWarehousesWithPagination(filter: WarehouseFilter, tx?: any): Promise<any> {
+    return await this.repository.getWarehousesWithPagination(filter, tx);
+  }
 
-//   async getSingleWarehouse(id: number) {
-//     // const warehouseData = await this.repository.getSingleWarehouse(id);
-//     // if (!warehouseData) throw new NotFoundError('Warehouse Not Find');
-//     return null;
-//   }
+  async updateWarehouse(id: string, payload: WarehouseUpdatePayload, tx?: any): Promise<any> {
+    // Check if warehouse exists
+    const existingWarehouse = await this.repository.getWarehouseById(id);
+    if (!existingWarehouse) {
+      const error = new Error('Warehouse not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
 
-//     async getSingleBuyNowWarehouse(id: number) {
-//     const warehouseData = await this.repository.getSingleBuyNowWarehouse(id);
-//     if (!warehouseData) throw new NotFoundError('Warehouse Not Find');
-//     return warehouseData;
-//   }
+    // Check if code is being changed and if it already exists
+    if (payload.code && payload.code !== existingWarehouse.code) {
+      const warehouseWithCode = await this.repository.getWarehouseByCode(payload.code);
+      if (warehouseWithCode) {
+        const error = new Error('Warehouse code already exists');
+        (error as any).statusCode = 409;
+        throw error;
+      }
+    }
 
-//   async updateWarehouse(id: number, payload: any) {
-//     const warehouseData = await this.repository.updateWarehouse(id, payload);
-//     return warehouseData;
-//   }
+    // Validate capacity if being updated
+    if (payload.totalCapacity !== undefined || payload.usedCapacity !== undefined) {
+      const totalCapacity = payload.totalCapacity || existingWarehouse.totalCapacity;
+      const usedCapacity = payload.usedCapacity || existingWarehouse.usedCapacity;
+      
+      if (usedCapacity > totalCapacity) {
+        const error = new Error('Used capacity cannot exceed total capacity');
+        (error as any).statusCode = 400;
+        throw error;
+      }
+    }
 
-//   async updateWarehouseQuantity(warehouseId: number, newQuantity: number) {
-//     const updatedWarehouse = await this.repository.updateWarehouseQuantity(
-//       warehouseId,
-//       newQuantity
-//     );
-//     if (!updatedWarehouse) {
-//       throw new Error('Warehouse not found');
-//     }
-//     // Optionally, calculate totals and return them here
-//     return updatedWarehouse;
-//   }
+    return await this.repository.updateWarehouse(id, payload, tx);
+  }
 
-//   async deleteWarehouse(id: string) {
-//     const deletedWarehouse = await this.repository.deleteWarehouse(id);
-//     return deletedWarehouse;
-//   }
+  async deleteWarehouse(id: string): Promise<void> {
+    // Check if warehouse exists
+    const warehouse = await this.repository.getWarehouseById(id);
+    if (!warehouse) {
+      const error = new Error('Warehouse not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
 
-//   // Buy now Warehouse ==========================================
-//   async createBuyNowWarehouse(payload: any, tx?: any) {
-//     const { quantity, userRef, productRef, inventoryRef } = payload;
-//     if (!productRef && !inventoryRef) {
-//       throw new Error('Product ID & Inventory ID is required');
-//     }
-//     console.log("Creating warehouse with query buy now 1:", payload);
-//     const productExists = await productRepository.getSingleProduct(productRef);
-//     console.log('Product exists:', productExists);
-//     payload.productRef = productExists?.id;
-//     const query: any = {};
-//     console.log('Creating warehouse with query buy now 2:', payload);
-// const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-//     .test(payload?.userRef || '');
-//     console.log('Creating warehouse with query 3:', isUUID);
-//     if (!isUUID) {
-//       console.log('Creating warehouse with query 4:', isUUID);
-//       query.userRef = Number(userRef);
-//       payload.userRef = query.userRef;
-//       // query.productRef = productRef;
-//       // query.inventoryRef = inventoryRef;
-//     } else {
-//       console.log('Creating warehouse with query 5:', isUUID);
-//       query.correlationId = userRef;
-//       payload.correlationId = query.correlationId;
-//       delete payload.userRef;
-//       // query.productRef = productRef;
-//       // query.inventoryRef = inventoryRef;
-//     }
-//     console.log('Creating warehouse with query:', query);
-//     const existingWarehouse = await this.repository.findBuyNowWarehouseByUserAndProduct(query);
-//     console.log('Existing warehouse found:', existingWarehouse);
-//     let warehouseData;
-//     if (existingWarehouse) {
-//       // Update the existing warehouse's quantity
-//       await this.repository.deleteBuyNowWarehouse(String(existingWarehouse.id));
-//       // const updatedQuantity = Number(existingWarehouse.quantity) + Number(quantity);
-//       // warehouseData = await this.repository.updateWarehouseQuantity(
-//       //   existingWarehouse.id,
-//       //   updatedQuantity
-//       // );
-//     } 
-//       // Create a new warehouse document
-//       warehouseData = await this.repository.createBuyNowWarehouse(payload);
+    // Check if warehouse has any transfers
+    if (warehouse.fromWarehouseTransfers.length > 0 || warehouse.toWarehouseTransfers.length > 0) {
+      const error = new Error('Cannot delete warehouse with existing transfers');
+      (error as any).statusCode = 400;
+      throw error;
+    }
 
-//     return warehouseData;
-//   }
+    await this.repository.deleteWarehouse(id);
+  }
 
-//   async getAllBuyNowWarehouseByUser(payload: any) {
-//     return await this.repository.getAllBuyNowWarehouseByUser(payload);
-//   }
+  async updateWarehouseCapacity(id: string, usedCapacity: number, tx?: any): Promise<any> {
+    return await this.repository.updateWarehouseCapacity(id, usedCapacity, tx);
+  }
 
-//     async updateBuyNowWarehouseQuantity(warehouseId: number, newQuantity: number) {
-//     const updatedWarehouse = await this.repository.updateBuyNowWarehouseQuantity(
-//       warehouseId,
-//       newQuantity
-//     );
-//     if (!updatedWarehouse) {
-//       throw new Error('Warehouse not found');
-//     }
-//     // Optionally, calculate totals and return them here
-//     return updatedWarehouse;
-//   }
+  async getWarehouseStats(): Promise<any> {
+    return await this.repository.getWarehouseStats();
+  }
+
+  async getWarehousesByManager(managerId: number): Promise<any> {
+    return await this.repository.getWarehousesByManager(managerId);
+  }
+
+  async getAvailableCapacityWarehouses(minAvailableCapacity: number = 0): Promise<any> {
+    return await this.repository.getAvailableCapacityWarehouses(minAvailableCapacity);
+  }
+
+  async searchWarehouses(searchTerm: string): Promise<any> {
+    return await this.repository.getAllWarehouses({ search: searchTerm });
+  }
+
+  async changeWarehouseStatus(id: string, status: string): Promise<any> {
+    const validStatuses = ['OPERATIONAL', 'MAINTENANCE', 'CLOSED', 'OVERLOADED', 'UNDER_CONSTRUCTION'];
+    
+    if (!validStatuses.includes(status)) {
+      const error = new Error('Invalid status');
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
+    return await this.repository.updateWarehouse(id, { status });
+  }
 }
-
-export default new WarehouseService(warehouseRepository);
