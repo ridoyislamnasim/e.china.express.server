@@ -1,13 +1,13 @@
 import { Router } from "express";
 import controller from "../../modules/wishlist/wishlist.controller";
-// import jwtAuth from "../../middleware/auth/jwtAuth";
+import jwtAuth from "../../middleware/auth/jwtAuth";
 import { upload } from "../../middleware/upload/upload";
 
 const WishlistRoute = Router();
 // WishlistRoute.use(jwtAuth());
 
 WishlistRoute.route("/")
-  .post( controller.createWishList)
+  .post(jwtAuth(), controller.createWishList)
   .get(controller.getAllWishList);
 
 WishlistRoute.get("/pagination", controller.getWishListWithPagination);
