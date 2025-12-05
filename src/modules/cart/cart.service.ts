@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 
 export class CartService extends BaseService<typeof cartRepository> {
   private repository:
-    typeof cartRepository;
+  typeof cartRepository;
   constructor(repository: typeof cartRepository) {
     super(repository);
     this.repository = repository;

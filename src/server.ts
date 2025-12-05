@@ -65,5 +65,16 @@ app.use(globalErrorHandler);
 // Start the server on the specified port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+console.log(`
+=========================================
+ 🚀  Server Started Successfully
+-----------------------------------------
+ 🌐  URL:        http://localhost:${PORT}
+ 🏷️  Mode:       ${process.env.NODE_ENV}
+ ⏰  Started At:  ${new Date().toLocaleString()}
+ 💾  Memory:     ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB
+=========================================
+
+⚡  Ready to receive requests!  
+`);
 });

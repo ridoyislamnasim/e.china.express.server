@@ -2,8 +2,13 @@ import { NextFunction, Request, Response } from "express";
 import policiesService from "./policies.service";
 import { responseHandler } from "../../utils/responseHandler";
 import catchError from "../../middleware/errors/catchError";
+import withTransaction from "../../middleware/transactions/withTransaction";
 
-export default new (class PoliciesController {
+export default new class PoliciesController {
+
+  
+
+
   getAllPolicyTitles = catchError(async (req: Request, res: Response) => {
     const getAllPolicies = await policiesService.getAllPolicyTitles();
     res.send(getAllPolicies);
@@ -46,4 +51,16 @@ export default new (class PoliciesController {
     const resDoc = responseHandler(200, `Policy with id ${id} deleted successfully`, null);
     res.status(resDoc.statusCode).json(resDoc);
   });
-})();
+
+
+  getPolicesWithPagination = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 10;
+      const payload = { page, limit };
+      const countries = await policiesService.getPolicesWithPagination(payload, tx);
+      const resDoc = responseHandler(200, 'Countries retrieved successfully with pagination', countries);
+      res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
+};

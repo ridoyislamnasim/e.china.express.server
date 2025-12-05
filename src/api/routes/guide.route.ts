@@ -9,8 +9,12 @@ guideRoute.get("/:slug", guideController.getGuideBySlug);
 
 guideRoute.post("/", guideController.createGuide);
 
-guideRoute.put("/:slug", guideController.updateGuide);
+guideRoute.put("/:id", guideController.updateGuide);
 
-guideRoute.delete("/:slug", guideController.deleteGuide);
+guideRoute.delete("/:id", guideController.deleteGuide);
+
+guideRoute.delete("/video/:id", guideController.deleteGuideVideo);
+
+guideRoute.put("/video/:id", guideController.updateGuideVideo);
 
 export default guideRoute;

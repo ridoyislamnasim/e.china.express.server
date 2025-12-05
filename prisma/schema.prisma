@@ -805,36 +805,30 @@ model CartProductVariant {
   shippingRate Rate?       @relation(fields: [shippingRateId], references: [id])
 }
 
-
-
 model PolicyType {
-  id         Int       @id @default(autoincrement())
-  title      String    @unique @db.VarChar(150)
-  slug       String    @unique @db.VarChar(100)
-  createdAt DateTime  @default(now())
+  id        Int      @id @default(autoincrement())
+  title     String   @unique @db.VarChar(150)
+  slug      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  policies   Policies[]
+  policies Policies[]
 }
-
-
 
 model Policies {
-  id              Int       @id @default(autoincrement())
-  
-  title           String
-  description     String?
-  policyTypeId    Int
+  id Int @id @default(autoincrement())
 
-  helpfulCount    Int       @default(0)
-  notHelpfulCount Int       @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
- 
-  policyType      PolicyType @relation(fields: [policyTypeId], references: [id])
+  title        String
+  description  String?
+  policyTypeId Int
+
+  helpfulCount    Int      @default(0)
+  notHelpfulCount Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  policyType PolicyType @relation(fields: [policyTypeId], references: [id])
 }
-
-
 
 model BlogTag {
   id        Int      @id @default(autoincrement())
@@ -857,71 +851,31 @@ model Blog {
   updatedAt DateTime @updatedAt
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 model Guide {
-  id        Int          @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   serial    Int
   title     String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  videos    GuideVideo[]
+  videos      GuideVideo[] @relation("GuideToVideos", onDelete: Cascade)
+  guideVideos GuideVideo[]
 }
 
 model GuideVideo {
-  id                  Int       @id @default(autoincrement())
-  guideId             Int
+  id      Int @id @default(autoincrement())
+  guideId Int
 
-  url                 String     @db.VarChar(500)
-  imgSrc              String?
-  videoLength         String?
-  title               String?
-  shortDes            String?
-  videoSerial         Int
+  url         String  @db.VarChar(500)
+  imgSrc      String?
+  videoLength String?
+  title       String?
+  shortDes    String?
+  videoSerial Int
 
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  guide               Guide      @relation(fields: [guideId], references: [id])
+  guide Guide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  guide Guide @relation(fields: [guideId], references: [id])
 }
