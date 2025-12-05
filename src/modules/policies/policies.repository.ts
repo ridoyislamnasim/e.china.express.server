@@ -1,8 +1,11 @@
 import prisma from "../../config/prismadatabase";
 import { CreatePolicyRequestDTO, CreatePolicyTypeRequestDTO, PolicyRequestDTO } from "../../types/policy";
+import { PrismaClient } from '@prisma/client';
+import { pagination } from "../../utils/pagination";
 
-export default new (class PoliciesRepository {
+export default new class PoliciesRepository {
   private prisma = prisma;
+
 
   getAllPolicyTitlesRepository = async () => {
     const allPolicyTypes = await this.prisma.policyType.findMany();
@@ -65,4 +68,27 @@ export default new (class PoliciesRepository {
       where: { id },
     });
   };
-})();
+
+
+   async getPolicesWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
+    console.log("🚀 ~ policies.repository.ts:74 ~ getPolicesWithPagination ~ payload:", payload)
+    const { limit, offset } = payload;
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+        const [doc, totalDoc] = await Promise.all([
+        this.prisma.policyType.findMany({
+          where: {  },
+          skip: offset,
+          take: limit,
+        }),
+        prisma.policyType.count({ where: {  } }),
+      ]);
+      return { doc, totalDoc };
+    });
+
+
+ }
+
+
+
+};

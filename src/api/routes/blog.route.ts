@@ -6,9 +6,10 @@ import { upload } from "../../middleware/upload/upload";
 const BlogRoute = Router();
 // BlogRoute.use(jwtAuth());
 
-BlogRoute.route("/")
-  .post(upload.any(), controller.createBlog)
-  .get(controller.getAllBlog);
+BlogRoute.route("/").get(controller.getAllBlog);
+
+
+BlogRoute.route("/").post(upload.any(), controller.createBlog)
 
 BlogRoute.get("/pagination", controller.getBlogWithPagination);
 BlogRoute.get("/single/:slug", controller.getSingleBlog);

@@ -13,21 +13,23 @@ class CartRepository extends BaseRepository<Cart> {
   }
   async createCart(payload: TCart, tx?: any) {
     const client = tx || this.prisma;
-    
+
     // try to find existing active cart for the user
     const existing = await client.cart.findFirst({ where: { userId: Number(payload.userId) } });
     if (existing) {
       // update existing cart with provided fields (totals, status, currency)
-      return await client.cart.update({ where: { id: existing.id }, data: {
-        totalPrice: payload.totalPrice ?? existing.totalPrice,
-        totalWeight: payload.totalWeight ?? existing.totalWeight,
-        currency: payload.currency ?? existing.currency,
-        status: payload.status ?? existing.status,
-      } });
+      return await client.cart.update({
+        where: { id: existing.id }, data: {
+          totalPrice: payload.totalPrice ?? existing.totalPrice,
+          totalWeight: payload.totalWeight ?? existing.totalWeight,
+          currency: payload.currency ?? existing.currency,
+          status: payload.status ?? existing.status,
+        }
+      });
+    } else {
+      // create new cart when no existing cart found
+      return await client.cart.create({ data: payload as any });
     }
-
-    // create new cart when no existing cart found
-    return await client.cart.create({ data: payload as any });
   }
 
   async createCartProduct(payload: TCartProduct, tx?: any) {
@@ -45,7 +47,7 @@ class CartRepository extends BaseRepository<Cart> {
 
     if (existing) {
       // update existing: sum quantities and totals
-      const newQuantity =  (payload.quantity ?? 0);
+      const newQuantity = (payload.quantity ?? 0);
       const newTotalPrice = (payload.totalPrice ?? 0);
       const newTotalWeight = (payload.totalWeight ?? 0);
       console.log("Updating existing Cart Product ID:", existing.id, "New Quantity:", newQuantity, "New Total Price:", newTotalPrice, "New Total Weight:", newTotalWeight);
@@ -122,50 +124,79 @@ class CartRepository extends BaseRepository<Cart> {
     return await client.cartProductVariant.create({ data: payload as any });
   }
 
-async findCartItemByUserAndProduct(userId: string | number, productId: string | number, tx?: any) {
-  const client = tx || this.prisma;
+  async findCartItemByUserAndProduct(userId: string | number, productId: string | number, tx?: any) {
+    const client = tx || this.prisma;
 
- const pidStr = String(productId);
+    const pidStr = String(productId);
 
-  // filter বানানো
-  const productFilter = {
-    OR: [
-      { product1688Id: pidStr },
-      // { productLocalId: pidStr },
-      { productAlibabaId: pidStr },
-    ],
-  };
+    // filter বানানো
+    const productFilter = {
+      OR: [
+        { product1688Id: pidStr },
+        // { productLocalId: pidStr },
+        { productAlibabaId: pidStr },
+      ],
+    };
 
-  const cart = await client.cart.findFirst({
-    where: {
-      userId: Number(userId),
-      products: {
-        some: productFilter,
+    const cart = await client.cart.findFirst({
+      where: {
+        userId: Number(userId),
+        products: {
+          some: productFilter,
+        },
       },
-    },
-    include: {
-      products: {
-        where: productFilter,
-        include: {
-          variants: {
-            select: {
-              id: true,
-              cartProductId: true,
-              skuId: true,
-              specId: true,
-              quantity: true,
+      include: {
+        products: {
+          where: productFilter,
+          include: {
+            variants: {
+              select: {
+                id: true,
+                cartProductId: true,
+                skuId: true,
+                specId: true,
+                quantity: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!cart) {
-    throw new NotFoundError('Cart not found for the user');
+    if (!cart) {
+      throw new NotFoundError('Cart not found for the user');
+    }
+    return cart?.products[0]?.variants;
   }
-  return cart?.products[0]?.variants;
-}
+
+  async findAllCartByUser(userId: string | number, tx?: any) {
+    const client = tx || this.prisma;
+    const carts = await client.cart.findMany({
+      where: { userId: Number(userId) },
+      include: {
+        products: {
+          include: {
+            variants: true,
+          },
+        },
+      },
+    });
+    return carts;
+  }
+
+  async deleteCartProductByProductTId(productTId: string | number, tx?: any) {
+    const client = tx || this.prisma;
+    return await client.cartProduct.deleteMany({
+      where: { id: Number(productTId) },     
+    });
+  }
+
+  async delteCartProductVariantByTId(variantTId: number, tx?: any) {
+    const client = tx || this.prisma;
+    return await client.cartProductVariant.delete({
+      where: { id: variantTId },
+    });
+  }
 
 
 

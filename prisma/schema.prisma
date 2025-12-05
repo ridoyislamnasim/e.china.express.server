@@ -41,9 +41,9 @@ model Role {
   permission   Permission? @relation(fields: [permissionId], references: [id])
   users        User[]
   text         String?
-  text2         String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  text2        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   // @@map("roles")
 }
@@ -157,43 +157,43 @@ model ShippingMethod {
 }
 
 model Warehouse {
-  id              String         @id @default(cuid())
-  name            String         @unique
-  code            String         @unique
-  address         String
-  city            String
-  state           String
-  zipCode         String
-  country         String         @default("USA")
-  phone           String
-  email           String
-  location        String?
-  status          WarehouseStatus @default(OPERATIONAL)
-  type            WarehouseType
-  
-  totalCapacity   Int
-  usedCapacity    Int            @default(0)
-  capacityUnit    String         @default("sq ft")
-  
-  latitude        Float?
-  longitude       Float?
-  
-  weekdaysHours   String?
-  weekendsHours   String?
-  holidaysHours   String?
-  
+  id       String          @id @default(cuid())
+  name     String          @unique
+  code     String          @unique
+  address  String
+  city     String
+  state    String
+  zipCode  String
+  country  String          @default("USA")
+  phone    String
+  email    String
+  location String?
+  status   WarehouseStatus @default(OPERATIONAL)
+  type     WarehouseType
+
+  totalCapacity Int
+  usedCapacity  Int    @default(0)
+  capacityUnit  String @default("sq ft")
+
+  latitude  Float?
+  longitude Float?
+
+  weekdaysHours String?
+  weekendsHours String?
+  holidaysHours String?
+
   lastInspection  DateTime?
   nextMaintenance DateTime?
 
-  createdBy     Int? 
-  createdByRef  User? @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
-  updatedBy     Int?
-  updatedByRef  User? @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdBy    Int?
+  createdByRef User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
+  updatedBy    Int?
+  updatedByRef User?    @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  managerRefId  Int?
-  managerRef    User? @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
+  managerRefId Int?
+  managerRef   User? @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
 
   countryId  Int?
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
@@ -323,14 +323,14 @@ model Product {
   updatedAt             DateTime          @updatedAt
   wishlists             Wishlist[]        @relation("ProductToWishlist")
   inventories           Inventory[]
-  
-  productReviews        ProductReview[]
+
+  productReviews ProductReview[]
   // carts                 Cart[]            
-  buyNowCarts           BuyNowCart[]      @relation("ProductToCart")
-  publishStatus         String?           @default("Publish") // Add publish status with default value
-  viewProduct           Int?              @default(0) // Add view count with default value
+  buyNowCarts    BuyNowCart[]    @relation("ProductToCart")
+  publishStatus  String?         @default("Publish") // Add publish status with default value
+  viewProduct    Int?            @default(0) // Add view count with default value
   // orderProducts         OrderProduct[]
-  cartProducts          CartProduct[]
+  cartProducts   CartProduct[]
 }
 
 model Policy {
@@ -451,9 +451,9 @@ model Newsletter {
 }
 
 model Inventory {
-  id                Int        @id @default(autoincrement())
-  productRef        Product?   @relation(fields: [productRefId], references: [id])
-  productRefId      Int?   // Changed from Int? to String?
+  id                Int      @id @default(autoincrement())
+  productRef        Product? @relation(fields: [productRefId], references: [id])
+  productRefId      Int? // Changed from Int? to String?
   quantity          Int?
   mrpPrice          Float?
   price             Float?
@@ -463,19 +463,18 @@ model Inventory {
   discountAmount    Float?
   barcode           String?
   availableQuantity Int?
-  soldQuantity      Int?       @default(0)
-  holdQuantity      Int?       @default(0)
+  soldQuantity      Int?     @default(0)
+  holdQuantity      Int?     @default(0)
   inventoryType     String?
   color             String?
   name              String?
   level             String?
   inventoryID       String?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // carts              Cart[]
-  buyNowCarts        BuyNowCart[]
+  buyNowCarts BuyNowCart[]
   // orderProducts      OrderProduct[]      @relation("InventoryToOrderProduct")
 }
 
@@ -506,19 +505,19 @@ model Category {
 }
 
 model BuyNowCart {
-  id             Int      @id @default(autoincrement())
+  id             Int        @id @default(autoincrement())
   quantity       Int?
-  isGuestUser    Boolean  @default(false)
+  isGuestUser    Boolean    @default(false)
   guestUserRef   String?
-  correlationId  String?  @unique
-  userRef        User?    @relation(fields: [userRefId], references: [id])
+  correlationId  String?    @unique
+  userRef        User?      @relation(fields: [userRefId], references: [id])
   userRefId      Int?
-  productRef     Product? @relation("ProductToCart", fields: [productRefId], references: [id])
+  productRef     Product?   @relation("ProductToCart", fields: [productRefId], references: [id])
   productRefId   Int?
   inventoryRef   Inventory? @relation(fields: [inventoryRefId], references: [id])
   inventoryRefId Int?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 }
 
 model OTP {
@@ -764,7 +763,6 @@ model CountryHsCode {
   updatedAt DateTime @updatedAt
 }
 
-
 model Cart {
   id        Int      @id @default(autoincrement())
   userId    Int
@@ -803,6 +801,7 @@ model CartProduct {
 
   variants CartProductVariant[]
 }
+
 enum ProductFor {
   FROM1688
   LOCAL
@@ -828,41 +827,34 @@ model CartProductVariant {
 
   shippingRateId Int?
   rate           Int?
-
-  cartProduct  CartProduct @relation(fields: [cartProductId], references: [id])
-  shippingRate Rate?       @relation(fields: [shippingRateId], references: [id])
+  cartProduct    CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
+  shippingRate   Rate?       @relation(fields: [shippingRateId], references: [id])
 }
-
-
 
 model PolicyType {
-  id         Int       @id @default(autoincrement())
-  title      String    @unique @db.VarChar(150)
-  slug       String    @unique @db.VarChar(100)
-  createdAt DateTime  @default(now())
+  id        Int      @id @default(autoincrement())
+  title     String   @unique @db.VarChar(150)
+  slug      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  policies   Policies[]
+  policies Policies[]
 }
-
-
 
 model Policies {
-  id              Int       @id @default(autoincrement())
-  
-  title           String
-  description     String?
-  policyTypeId    Int
+  id Int @id @default(autoincrement())
 
-  helpfulCount    Int       @default(0)
-  notHelpfulCount Int       @default(0)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
- 
-  policyType      PolicyType @relation(fields: [policyTypeId], references: [id])
+  title        String
+  description  String?
+  policyTypeId Int
+
+  helpfulCount    Int      @default(0)
+  notHelpfulCount Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  policyType PolicyType @relation(fields: [policyTypeId], references: [id])
 }
-
-
 
 model BlogTag {
   id        Int      @id @default(autoincrement())
@@ -885,71 +877,27 @@ model Blog {
   updatedAt DateTime @updatedAt
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 model Guide {
-  id        Int          @id @default(autoincrement())
-  serial    Int
-  title     String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-
-  videos    GuideVideo[]
+  id          Int          @id @default(autoincrement())
+  serial      Int
+  title       String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  guideVideos GuideVideo[] @relation("GuideToVideos")
 }
 
 model GuideVideo {
-  id                  Int       @id @default(autoincrement())
-  guideId             Int
+  id      Int @id @default(autoincrement())
+  guideId Int
+  index   Int
+  url         String  @db.VarChar(500)
+  imgSrc      String?
+  videoLength String?
+  title       String?
+  shortDes    String?
+  videoSerial Int
 
-  url                 String     @db.VarChar(500)
-  imgSrc              String?
-  videoLength         String?
-  title               String?
-  shortDes            String?
-  videoSerial         Int
-
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
-
-  guide               Guide      @relation(fields: [guideId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guide Guide @relation("GuideToVideos", fields: [guideId], references: [id], onDelete: Cascade)
 }

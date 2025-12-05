@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import catchError from "../../middleware/errors/catchError";
 import guideService from "./guide.service";
-import { CreateGuideDTO, UpdateGuideDTO } from "../../types/guide";
+import { CreateGuideDTO, GuideVideoResponseDTO, UpdateGuideDTO } from "../../types/guide";
 
 export default new (class GuideController {
   getAllGuides = catchError(async (req: Request, res: Response) => {
@@ -34,19 +34,50 @@ export default new (class GuideController {
   });
 
   updateGuide = catchError(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const payload: UpdateGuideDTO = req.body;
+    const id = req.params.id;
+    const { serial, title } = req.body;
+    const payload = { serial, title };
     const updatedGuide = await guideService.updateGuideData(id, payload);
     res.status(200).json({
       status: "success",
       message: `Guide with ID ${id} updated successfully.`,
-      data: updatedGuide.data,
+      data: updatedGuide,
     });
   });
 
   deleteGuide = catchError(async (req: Request, res: Response) => {
     const { id } = req.params;
-    await guideService.deleteGuideData(id);
-    res.status(204).send();
+    const result = await guideService.deleteGuideData(id);
+    res.status(200).json({
+      status: "success",
+      message: result.message,
+      data: result.data,
+    });
+  });
+
+  //todo update guide video
+  updateGuideVideo = catchError(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const { guideId, url, imgSrc, videoLength, title, shortDes, videoSerial } = req.body;
+
+    const payload = { guideId, url, imgSrc, videoLength, title, shortDes, videoSerial };
+
+    const updatedGuide = await guideService.updateGuideVideo(parseInt(id), payload as GuideVideoResponseDTO);
+    res.status(200).json({
+      status: "success",
+      message: `Guide with ID ${id} updated successfully.`,
+      data: updatedGuide,
+    });
+  });
+
+  deleteGuideVideo = catchError(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await guideService.deleteGuideVideo(id);
+    const { message, data } = result;
+    res.status(200).json({
+      status: "success",
+      message: message,
+      data: data,
+    });
   });
 })();

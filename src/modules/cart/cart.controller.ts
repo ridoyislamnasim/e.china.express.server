@@ -9,9 +9,9 @@ import { cartItemSchema, cartSchema } from './cart.Zschema';
 
 class CartController {
   // Create a cart item
-  createCartItem = withTransaction (async (req: Request, res: Response, next: NextFunction, tx:any ) => {
-      // Zschema validation can be added here if needed
-      console.log("Request Body: ", req.body);
+  createCartItem = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+    // Zschema validation can be added here if needed
+    console.log("Request Body: ", req.body);
     const payload = cartSchema.parse(req.body);
     // attach authenticated user id to payload items safely
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
@@ -25,12 +25,12 @@ class CartController {
       (payload as any).userRef = userRef;
     }
 
-// এখন payload safe
-console.log("Validated Payload: ", payload);
+    // এখন payload safe
+    console.log("Validated Payload: ", payload);
 
-     const cartServiceResult = await CartService.createCartItem(payload, tx);
-     const resDoc = responseHandler(200, "Cart created", cartServiceResult);
-     res.status(resDoc.statusCode).json(resDoc);
+    const cartServiceResult = await CartService.createCartItem(payload, tx);
+    const resDoc = responseHandler(200, "Cart created", cartServiceResult);
+    res.status(resDoc.statusCode).json(resDoc);
 
 
   })
@@ -44,7 +44,30 @@ console.log("Validated Payload: ", payload);
     res.status(resDoc.statusCode).json(resDoc);
   }
   )
- 
+
+  getUserAllCart = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const cartServiceResult = await CartService.getUserAllCart(userRef);
+    const resDoc = responseHandler(200, "User all cart fetched", cartServiceResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  }
+  )
+
+  delteCartProductTId = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const productTId = req.params.productTId;
+    const cartServiceResult = await CartService.delteCartProductTId(Number(productTId));
+    const resDoc = responseHandler(200, "Cart product deleted", cartServiceResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  })
+
+  delteCartProductVariantByTId = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const variantTId = req.params.variantTId;
+    const cartServiceResult = await CartService.delteCartProductVariantByTId(Number(variantTId));
+    const resDoc = responseHandler(200, "Cart product variant deleted", cartServiceResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  }
+  )
+
 }
 
 export default new CartController();

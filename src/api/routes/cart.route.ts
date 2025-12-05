@@ -10,19 +10,9 @@ CartRoute.route("/")
   .post(controller.createCartItem)
 //   .get(controller.getAllCartByUser);
 CartRoute.get("/user-cart/product/:id", jwtAuth(), controller.getUserCartByProductId);
-
-//   CartRoute.route("/buy-now")
-//   .post(controller.createBuyNowCart)
-//   .get(controller.getAllBuyNowCartByUser);
-//   CartRoute.route("/buy-now/:id")
-//   .put( controller.updateBuyNowCartQuantity)
-
-// CartRoute.get("/user-all-cart/:id", controller.getUserAllCartById);
-// CartRoute.get("/pagination", controller.getCartWithPagination);
-
-// CartRoute.route("/:id")
-//   .get(controller.getSingleCart)
-//   .put( controller.updateCartQuantity)
-//   .delete(controller.deleteCart);
+CartRoute.get("/user-cart", jwtAuth(), controller.getUserAllCart);
+// /cart/product/:productId
+CartRoute.delete("/product/:productTId", jwtAuth(), controller.delteCartProductTId);
+CartRoute.delete("/variant/:variantTId", jwtAuth(), controller.delteCartProductVariantByTId);
 
 export default CartRoute;

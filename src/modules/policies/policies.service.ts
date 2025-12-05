@@ -3,7 +3,11 @@ import { NotFoundError } from "../../utils/errors";
 import { slugGenerate } from "../../utils/slugGenerate";
 import policiesRepository from "./policies.repository";
 
-export default new (class PoliciesService {
+export default new class PoliciesService {
+
+
+  
+
   getAllPolicyTitles = async () => {
     try {
       const { allPolicies, allPolicyTypes } = await policiesRepository.getAllPolicyTitlesRepository();
@@ -198,4 +202,18 @@ export default new (class PoliciesService {
       throw error;
     }
   };
-})();
+
+
+
+
+  async getPolicesWithPagination(payload: { page: number; limit: number }, tx: any): Promise<any> {
+    const { page, limit } = payload;
+    const offset = (page - 1) * limit;
+    const countries = await policiesRepository.getPolicesWithPagination({ limit, offset }, tx);
+    return countries;
+  }
+  
+
+
+
+};

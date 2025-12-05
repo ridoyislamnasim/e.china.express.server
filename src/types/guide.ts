@@ -1,26 +1,24 @@
 export interface GuideVideo {
   id: number;
-  guideId: number;             // FK
-  guidSerial: number;             // reference to Guide.id (probably duplicate)
+  guideId: number; // FK
+  guidSerial: number; // reference to Guide.id (probably duplicate)
   videoUrl: string;
   videoTitle?: string;
-  thumbnailImage?: string;     // fixed spelling: thamnailImage -> thumbnailImage
+  thumbnailImage?: string; // fixed spelling: thamnailImage -> thumbnailImage
   videoShortDescription?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-
 export interface Guide {
   id: number;
   title: string;
-  slug:string;
+  slug: string;
   serial: number;
-  videos: GuideVideo[]; 
+  videos: GuideVideo[];
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 // For creating a GuideVideo
 export interface CreateGuideVideoDTO {
@@ -52,10 +50,9 @@ export interface GuideVideoResponseDTO {
   title?: string;
   shortDes?: string;
   videoSerial: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
-
 
 // For creating a Guide with videos
 export interface CreateGuideDTO {
@@ -80,6 +77,3 @@ export interface GuideResponseDTO {
   createdAt: Date;
   updatedAt: Date;
 }
-
-
-

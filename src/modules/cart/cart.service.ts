@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 
 export class CartService extends BaseService<typeof cartRepository> {
   private repository:
-    typeof cartRepository;
+  typeof cartRepository;
   constructor(repository: typeof cartRepository) {
     super(repository);
     this.repository = repository;
@@ -255,6 +255,31 @@ export class CartService extends BaseService<typeof cartRepository> {
     }
     return cartItem;
   }
+
+  getUserAllCart = async (userId: string | number, tx?: any) => {
+    console.log(`Fetching all cart items for userId: ${userId}`);
+    const cartItems = await this.repository.findAllCartByUser(userId, tx);
+    return cartItems;
+  }
+
+  delteCartProductTId = async (productTId: number, tx?: any) => {
+    console.log(`Deleting cart products with productTId: ${productTId}`);
+    const deletedProducts = await this.repository.deleteCartProductByProductTId(productTId, tx);
+
+    if (!deletedProducts || deletedProducts.count === 0) {
+        throw new NotFoundError(`No cart products found with productTId: ${productTId}`);
+    }
+
+    return deletedProducts;
+  }
+
+  delteCartProductVariantByTId = async (variantTId: number, tx?: any) => {
+    console.log(`Deleting cart product variant with id: ${variantTId}`);
+    const deletedVariant = await this.repository.delteCartProductVariantByTId(variantTId, tx);
+    return deletedVariant;
+  }
+
+
 }
 
 export default new CartService(cartRepository);
