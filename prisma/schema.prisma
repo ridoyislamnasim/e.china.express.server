@@ -198,10 +198,216 @@ model Warehouse {
   countryId  Int?
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
+  warehouseSpaces WarehouseSpace[]
+  spaceActivity SpaceActivity[]
   fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
   toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
 
   @@map("warehouses")
+}
+
+model WarehouseSpace {
+  id          String    @id @default(cuid())
+  name        String
+  totalCapacity Int
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  
+  @@unique([warehouseId, name])
+  
+ 
+  airSpaces     AirSpace[]
+  seaSpaces     SeaSpace[]
+  expressSpaces ExpressSpace[]
+  inventory     Inventory[]
+  
+  @@index([warehouseId])
+  @@map("warehouse_spaces")
+}
+
+
+model AirSpace {
+  id          String   @id @default(cuid())
+  spaceId     String  
+  name        String
+  price        String?
+  duration     String?
+  occupied    Boolean?  @default(false)
+  spaceNumber Int?      
+  capacity    Int      
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  
+  warehouseSpaceId String
+  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+  
+  
+  @@unique([warehouseSpaceId, spaceId])
+  @@unique([warehouseSpaceId, spaceNumber])
+  
+  @@index([warehouseSpaceId])
+  @@map("air_spaces")
+}
+
+model SeaSpace {
+  id          String   @id @default(cuid())
+  spaceId     String   
+  name        String
+  price        String?
+  duration     String?
+  occupied    Boolean?  @default(false)
+  spaceNumber Int?      
+  capacity    Int      
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  warehouseSpaceId String
+  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+  
+  @@unique([warehouseSpaceId, spaceId])
+  @@unique([warehouseSpaceId, spaceNumber])
+  
+  @@index([warehouseSpaceId])
+  @@map("sea_spaces")
+}
+
+model ExpressSpace {
+  id          String   @id @default(cuid())
+  spaceId     String  
+  name        String
+  price        String?
+  duration     String?
+  occupied    Boolean?  @default(false)
+  spaceNumber Int?      
+  capacity    Int      
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  warehouseSpaceId String
+  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+  
+  @@unique([warehouseSpaceId, spaceId])
+  @@unique([warehouseSpaceId, spaceNumber])
+  
+  @@index([warehouseSpaceId])
+  @@map("express_spaces")
+}
+
+model Inventory {
+  id          String   @id @default(cuid())
+  name        String   @default("Inventory")
+  description String?
+  price        String?
+  duration     String?
+  occupied    Boolean?  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  warehouseSpaceId String
+  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+  
+  subInventoryX  SubInventoryX[]
+  subInventoryY  SubInventoryY[]
+  subInventoryZ  SubInventoryZ[]
+  
+  @@index([warehouseSpaceId])
+  @@map("inventories")
+}
+
+model SubInventoryX {
+  id          String   @id @default(cuid())
+  spaceId     String   
+  name        String
+  price        String?
+  duration     String?
+  occupied    Boolean?  @default(false)
+  spaceNumber Int?     
+  capacity    Int?     
+  fixedCbm    Boolean  @default(true) 
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  inventoryId String
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([inventoryId, spaceId])
+  @@unique([inventoryId, spaceNumber])
+  
+  @@index([inventoryId])
+  @@map("sub_inventory_x")
+}
+
+model SubInventoryY {
+  id          String   @id @default(cuid())
+  spaceId     String   
+  name        String
+  price        String?
+  duration     String?
+  occupied    Boolean?  @default(false)
+  spaceNumber Int?     
+  capacity    Int?      
+  fixedCbm    Boolean  @default(true) 
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  inventoryId String
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([inventoryId, spaceId])
+  @@unique([inventoryId, spaceNumber])
+  
+  @@index([inventoryId])
+  @@map("sub_inventory_y")
+}
+
+model SubInventoryZ {
+  id          String   @id @default(cuid())
+  spaceId     String   
+  name        String
+  price        String?
+  duration     String?
+  occupied    Boolean?  @default(false)
+  spaceNumber Int?    
+  capacity    Int?     
+  fixedCbm    Boolean  @default(true) 
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  inventoryId String
+  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([inventoryId, spaceId])
+  @@unique([inventoryId, spaceNumber])
+  
+  @@index([inventoryId])
+  @@map("sub_inventory_z")
+}
+
+model SpaceActivity {
+  id          String   @id @default(cuid())
+  spaceType   String   
+  spaceId     String   
+  action      String   
+  details     Json?    
+  userId      String?  
+  createdAt   DateTime @default(now())
+
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  
+  @@index([warehouseId, spaceType, spaceId])
+  @@map("space_activities")
 }
 
 enum WarehouseStatus {
@@ -218,28 +424,6 @@ enum WarehouseType {
   STORAGE
   FULFILLMENT
   OTHERS
-}
-
-model WarehouseSpace {
-  id        Int @id @default(autoincrement()) // SERIAL PK
-  sectionId Int
-  // section      WarehouseSection @relation(fields: [sectionId], references: [id])
-
-  // inventoryType InventoryType
-
-  spaceCode   String @db.VarChar(50)
-  spaceName   String @db.VarChar(255)
-  spaceNumber Int
-
-  capacity      Decimal @db.Decimal(10, 2)
-  totalCapacity Decimal @db.Decimal(10, 2)
-  currentUsage  Decimal @db.Decimal(10, 2)
-
-  // status       SpaceStatus
-
-  created_at DateTime @default(now()) @db.Timestamp(6)
-
-  @@map("warehouse_spaces") // ঐচ্ছিক: টেবিল নাম কাস্টমাইজ করতে
 }
 
 model SubChildCategory {
@@ -322,7 +506,7 @@ model Product {
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
   wishlists             Wishlist[]        @relation("ProductToWishlist")
-  inventories           Inventory[]
+  // inventories           Inventory[]
 
   productReviews ProductReview[]
   // carts                 Cart[]            
@@ -450,33 +634,33 @@ model Newsletter {
   updatedAt DateTime @updatedAt
 }
 
-model Inventory {
-  id                Int      @id @default(autoincrement())
-  productRef        Product? @relation(fields: [productRefId], references: [id])
-  productRefId      Int? // Changed from Int? to String?
-  quantity          Int?
-  mrpPrice          Float?
-  price             Float?
-  costPrice         Float?
-  discountType      String?
-  discount          Float?
-  discountAmount    Float?
-  barcode           String?
-  availableQuantity Int?
-  soldQuantity      Int?     @default(0)
-  holdQuantity      Int?     @default(0)
-  inventoryType     String?
-  color             String?
-  name              String?
-  level             String?
-  inventoryID       String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+// model Inventory {
+//   id                Int      @id @default(autoincrement())
+//   productRef        Product? @relation(fields: [productRefId], references: [id])
+//   productRefId      Int? // Changed from Int? to String?
+//   quantity          Int?
+//   mrpPrice          Float?
+//   price             Float?
+//   costPrice         Float?
+//   discountType      String?
+//   discount          Float?
+//   discountAmount    Float?
+//   barcode           String?
+//   availableQuantity Int?
+//   soldQuantity      Int?     @default(0)
+//   holdQuantity      Int?     @default(0)
+//   inventoryType     String?
+//   color             String?
+//   name              String?
+//   level             String?
+//   inventoryID       String?
+//   createdAt         DateTime @default(now())
+//   updatedAt         DateTime @updatedAt
 
-  // carts              Cart[]
-  buyNowCarts BuyNowCart[]
-  // orderProducts      OrderProduct[]      @relation("InventoryToOrderProduct")
-}
+//   // carts              Cart[]
+//   // buyNowCarts BuyNowCart[]
+//   // orderProducts      OrderProduct[]      @relation("InventoryToOrderProduct")
+// }
 
 model ContactInfo {
   id        Int      @id @default(autoincrement())
@@ -514,8 +698,6 @@ model BuyNowCart {
   userRefId      Int?
   productRef     Product?   @relation("ProductToCart", fields: [productRefId], references: [id])
   productRefId   Int?
-  inventoryRef   Inventory? @relation(fields: [inventoryRefId], references: [id])
-  inventoryRefId Int?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 }
