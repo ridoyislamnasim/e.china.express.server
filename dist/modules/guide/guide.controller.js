@@ -34,19 +34,46 @@ exports.default = new (class GuideController {
             });
         });
         this.updateGuide = (0, catchError_1.default)(async (req, res) => {
-            const { id } = req.params;
-            const payload = req.body;
+            const id = req.params.id;
+            const { serial, title } = req.body;
+            const payload = { serial, title };
             const updatedGuide = await guide_service_1.default.updateGuideData(id, payload);
             res.status(200).json({
                 status: "success",
                 message: `Guide with ID ${id} updated successfully.`,
-                data: updatedGuide.data,
+                data: updatedGuide,
             });
         });
         this.deleteGuide = (0, catchError_1.default)(async (req, res) => {
             const { id } = req.params;
-            await guide_service_1.default.deleteGuideData(id);
-            res.status(204).send();
+            const result = await guide_service_1.default.deleteGuideData(id);
+            res.status(200).json({
+                status: "success",
+                message: result.message,
+                data: result.data,
+            });
+        });
+        //todo update guide video
+        this.updateGuideVideo = (0, catchError_1.default)(async (req, res) => {
+            const id = req.params.id;
+            const { guideId, url, imgSrc, videoLength, title, shortDes, videoSerial } = req.body;
+            const payload = { guideId, url, imgSrc, videoLength, title, shortDes, videoSerial };
+            const updatedGuide = await guide_service_1.default.updateGuideVideo(parseInt(id), payload);
+            res.status(200).json({
+                status: "success",
+                message: `Guide with ID ${id} updated successfully.`,
+                data: updatedGuide,
+            });
+        });
+        this.deleteGuideVideo = (0, catchError_1.default)(async (req, res) => {
+            const { id } = req.params;
+            const result = await guide_service_1.default.deleteGuideVideo(id);
+            const { message, data } = result;
+            res.status(200).json({
+                status: "success",
+                message: message,
+                data: data,
+            });
         });
     }
 })();

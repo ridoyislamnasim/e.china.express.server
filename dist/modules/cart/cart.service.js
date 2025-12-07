@@ -84,17 +84,22 @@ class CartService extends base_service_1.BaseService {
             const createdProducts = [];
             for (const it of items) {
                 const qty = Number(it.quantity) || 0;
+                const productTotalQty = items.reduce((sum, item) => { var _a; return sum + ((_a = item.quantity) !== null && _a !== void 0 ? _a : 0); }, 0); // Calculate total quantity of all products
+                console.log("Product Total Quantity for all items: ", productTotalQty);
                 const price = (() => {
                     var _a, _b, _c, _d;
                     if (it.skuId && ((_a = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _a === void 0 ? void 0 : _a.priceRangeList)) {
-                        const totalQuantity = items.reduce((sum, item) => { var _a; return sum + ((_a = item.quantity) !== null && _a !== void 0 ? _a : 1); }, 0);
                         const priceRange = product.saleInfo.priceRangeList
-                            .filter((range) => totalQuantity >= range.startQuantity)
+                            .filter((range) => productTotalQty >= range.startQuantity)
                             .sort((a, b) => b.startQuantity - a.startQuantity)[0];
                         if ((priceRange === null || priceRange === void 0 ? void 0 : priceRange.price) != null)
                             return Number(priceRange.price);
                     }
-                    return it.skuId ? ((_d = (_c = (_b = product === null || product === void 0 ? void 0 : product.variants) === null || _b === void 0 ? void 0 : _b.find((v) => v.skuId === it.skuId)) === null || _c === void 0 ? void 0 : _c.consignPrice) !== null && _d !== void 0 ? _d : (it.price != null ? Number(it.price) : undefined)) : (it.price != null ? Number(it.price) : undefined);
+                    return it.skuId
+                        ? (_d = (_c = (_b = product === null || product === void 0 ? void 0 : product.variants) === null || _b === void 0 ? void 0 : _b.find((v) => v.skuId === it.skuId)) === null || _c === void 0 ? void 0 : _c.consignPrice) !== null && _d !== void 0 ? _d : (it.price != null ? Number(it.price) : undefined)
+                        : it.price != null
+                            ? Number(it.price)
+                            : undefined;
                 })();
                 const weight = (() => {
                     var _a, _b;
@@ -121,9 +126,9 @@ class CartService extends base_service_1.BaseService {
                     productLocalId: it.productLocalId != null ? Number(it.productLocalId) : undefined,
                     productAlibabaId: it.productAlibabaId != null ? String(it.productAlibabaId) : undefined,
                     cartId: cart.id,
-                    quantity: qty,
-                    totalPrice: (price != null && Number.isFinite(Number(price)) ? Number(price) * qty : 0),
-                    totalWeight: (weight !== null && weight !== void 0 ? weight : 0) * qty,
+                    quantity: productTotalQty,
+                    totalPrice: (price != null && Number.isFinite(Number(price)) ? Number(price) * productTotalQty : 0),
+                    totalWeight: (weight !== null && weight !== void 0 ? weight : 0) * productTotalQty,
                     mainSkuImageUrl: product.images && product.images.length > 0 ? product.images[0] : null,
                 };
                 console.log("Creating Cart Product with payload -------- ", cartProductPayload);
@@ -252,6 +257,29 @@ class CartService extends base_service_1.BaseService {
             const result = await this.repository.findCartItemByUserAndProduct(userId, productId, tx);
             console.log("Final Cart with Products: ", result);
             return result;
+        };
+        this.getUserAllCart = async (userId, tx) => {
+            console.log(`Fetching all cart items for userId: ${userId}`);
+            const cartItems = await this.repository.findAllCartByUser(userId, tx);
+            return cartItems;
+        };
+        this.deleteCartById = async (cartId, tx) => {
+            console.log(`Deleting cart with id: ${cartId}`);
+            const deletedCart = await this.repository.deleteCartById(cartId, tx);
+            return deletedCart;
+        };
+        this.delteCartProductTId = async (productTId, tx) => {
+            console.log(`Deleting cart products with productTId: ${productTId}`);
+            const deletedProducts = await this.repository.deleteCartProductByProductTId(productTId, tx);
+            if (!deletedProducts || deletedProducts.count === 0) {
+                throw new errors_1.NotFoundError(`No cart products found with productTId: ${productTId}`);
+            }
+            return deletedProducts;
+        };
+        this.delteCartProductVariantByTId = async (variantTId, tx) => {
+            console.log(`Deleting cart product variant with id: ${variantTId}`);
+            const deletedVariant = await this.repository.delteCartProductVariantByTId(variantTId, tx);
+            return deletedVariant;
         };
         this.repository = repository;
     }

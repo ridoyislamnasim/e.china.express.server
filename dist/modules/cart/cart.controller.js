@@ -42,6 +42,31 @@ class CartController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, "User cart fetched", cartServiceResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.getUserAllCart = (0, catchError_1.default)(async (req, res, next) => {
+            var _a, _b, _c, _d;
+            const userRef = (_d = (_c = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.user_info_encrypted) === null || _b === void 0 ? void 0 : _b.id) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : null;
+            const cartServiceResult = await cart_service_1.default.getUserAllCart(userRef);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "User all cart fetched", cartServiceResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.deleteCartById = (0, catchError_1.default)(async (req, res, next) => {
+            const cartId = req.params.cartId;
+            const cartServiceResult = await cart_service_1.default.deleteCartById(Number(cartId));
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Cart deleted", cartServiceResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.delteCartProductTId = (0, catchError_1.default)(async (req, res, next) => {
+            const productTId = req.params.productTId;
+            const cartServiceResult = await cart_service_1.default.delteCartProductTId(Number(productTId));
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Cart product deleted", cartServiceResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.delteCartProductVariantByTId = (0, catchError_1.default)(async (req, res, next) => {
+            const variantTId = req.params.variantTId;
+            const cartServiceResult = await cart_service_1.default.delteCartProductVariantByTId(Number(variantTId));
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Cart product variant deleted", cartServiceResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
     }
 }
 exports.default = new CartController();

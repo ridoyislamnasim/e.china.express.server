@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("../../utils/errors");
 const slugGenerate_1 = require("../../utils/slugGenerate");
 const policies_repository_1 = __importDefault(require("./policies.repository"));
-exports.default = new (class PoliciesService {
+exports.default = new class PoliciesService {
     constructor() {
         this.getAllPolicyTitles = async () => {
             try {
@@ -188,4 +188,10 @@ exports.default = new (class PoliciesService {
             }
         };
     }
-})();
+    async getPolicesWithPagination(payload, tx) {
+        const { page, limit } = payload;
+        const offset = (page - 1) * limit;
+        const countries = await policies_repository_1.default.getPolicesWithPagination({ limit, offset }, tx);
+        return countries;
+    }
+};

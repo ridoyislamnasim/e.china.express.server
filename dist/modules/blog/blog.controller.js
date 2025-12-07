@@ -35,6 +35,7 @@ class BlogController {
                 order: req.query.order,
             };
             const blog = await blog_service_1.default.getBlogWithPagination(payload);
+            console.log("🚀 ~ blog.controller.ts:70 ~ BlogController ~ blog:", blog);
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Blogs get successfully', blog);
             res.status(resDoc.statusCode).json(resDoc);
         });

@@ -8,12 +8,15 @@ const category_1688_repository_1 = __importDefault(require("../category1688/cate
 const country_repository_1 = __importDefault(require("../country/country.repository"));
 const shippingMethod_repository_1 = __importDefault(require("../rateShippingMethod/shippingMethod.repository"));
 const rate_repository_1 = __importDefault(require("./rate.repository"));
+const cart_repository_1 = __importDefault(require("../cart/cart.repository"));
 class RateService {
     constructor(repository = rate_repository_1.default) {
         this.repository = repository;
         this.category1688Repository = category_1688_repository_1.default;
         this.countryRepository = country_repository_1.default;
         this.shippingMethodRepository = shippingMethod_repository_1.default;
+        this.cartRepository = cart_repository_1.default;
+        this.prisma = repository.prisma || repository.db;
     }
     async createRate(payload) {
         const { price, weightCategoryId, shippingMethodId, category1688Id, importCountryId, exportCountryId } = payload;
@@ -182,13 +185,16 @@ class RateService {
                 }
                 if (!applyToNonEmptyOnly) {
                     queryPayload.price = newPrice;
+                    console.log('Creating new rate for categoryId', catId, queryPayload);
                     await this.repository.createRate(queryPayload, transaction);
                     return { categoryId: catId, action: 'created', price: newPrice };
                 }
                 return { categoryId: catId, action: 'skipped', reason: 'no existing price and applyToNonEmptyOnly=true' };
             }
             catch (err) {
-                return { categoryId: catId, action: 'error', error: String(err) };
+                // return { categoryId: catId, action: 'error', error: String(err) };
+                console.error('Error during adjustCategory for categoryId', catId, err);
+                throw err;
             }
         };
         // gather tasks for parent categories and their immediate children
@@ -228,31 +234,14 @@ class RateService {
         return results;
     }
     async findShippingRateForProduct(payload) {
-        const { importCountryId, weight, category1688Id, subCategory1688Id, childCategory1688Id } = payload;
+        var _a, _b;
+        const { importCountryId, productId, categoryId, subCategoryId, userRef } = payload;
         // all fields are required
-        if (!importCountryId || !weight) {
-            const error = new Error('importCountryId, exportCountryId, shippingMethodId, weight and productId are required');
+        if (!importCountryId || !productId) {
+            const error = new Error('importCountryId, and productId are required');
             error.statusCode = 400;
             throw error;
         }
-        let categoryId;
-        if (subCategory1688Id) {
-            const subCategory = await this.category1688Repository.geSubCategoryIdExit(subCategory1688Id);
-            if (subCategory) {
-                categoryId = subCategory.id;
-            }
-            else {
-                // category1688Id not id than error send 
-                const categoryExit = await this.category1688Repository.getCategoryByCategoryId(category1688Id);
-                if (!categoryExit) {
-                    const error = new Error('subCategory1688Id is not valid for rate calculation');
-                    error.statusCode = 400;
-                    throw error;
-                }
-                categoryId = categoryExit.id;
-            }
-        }
-        // find country wish isShippingCountry true
         const importCountry = await this.countryRepository.getCountryByCondition({ isShippingCountry: true });
         if (!importCountry) {
             const error = new Error('No import country found for shipping');
@@ -266,10 +255,22 @@ class RateService {
         };
         const existingCountryCombination = await this.repository.existingCountryConbination(countryCombinationPayload);
         if (!existingCountryCombination) {
-            // no rates found
+            return [];
+        }
+        const shippingMethod = await this.shippingMethodRepository.getShippingMethod();
+        if (!shippingMethod) {
+            const error = new Error('No shipping method found for rate calculation');
+            error.statusCode = 404;
+            throw error;
+        }
+        const cartProduct = await this.cartRepository.findCartItemByUserAndProductForRate(userRef, productId);
+        // console.log("cartItems found for shipping rate calculation:", cartProduct);
+        if (!cartProduct || cartProduct.length === 0) {
             return [];
         }
         // find weight category id based on weight
+        const weight = ((_a = cartProduct.products[0]) === null || _a === void 0 ? void 0 : _a.totalWeight) || 0;
+        console.log("Total weight for cart product:", weight);
         const weightCategory = await this.repository.findWeightCategoryByWeight(weight);
         if (!weightCategory) {
             // error send not found
@@ -277,21 +278,14 @@ class RateService {
             error.statusCode = 404;
             throw error;
         }
-        // find shipping method id based on some logic or payload (not shown in the snippet)
-        const shippingMethod = await this.shippingMethodRepository.getShippingMethod();
-        if (!shippingMethod) {
-            const error = new Error('No shipping method found for rate calculation');
-            error.statusCode = 404;
-            throw error;
-        }
+        const catagoryExit = (_b = await this.category1688Repository.geSubCategoryIdExit(subCategoryId)) !== null && _b !== void 0 ? _b : await this.category1688Repository.getCategoryIdExit(categoryId);
         const { id } = existingCountryCombination;
-        // find weight if 
         let rate = [];
         for (const method of shippingMethod) {
             const payloadWithCombinationId = {
                 weightCategoryId: weightCategory.id,
                 countryCombinationId: id,
-                category1688Id: categoryId,
+                category1688Id: catagoryExit.id,
                 shippingMethodId: method.id
             };
             console.log("payloadWithCombinationId", payloadWithCombinationId);

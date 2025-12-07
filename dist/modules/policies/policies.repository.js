@@ -4,7 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const prismadatabase_1 = __importDefault(require("../../config/prismadatabase"));
-exports.default = new (class PoliciesRepository {
+const pagination_1 = require("../../utils/pagination");
+exports.default = new class PoliciesRepository {
     constructor() {
         this.prisma = prismadatabase_1.default;
         this.getAllPolicyTitlesRepository = async () => {
@@ -61,4 +62,20 @@ exports.default = new (class PoliciesRepository {
             });
         };
     }
-})();
+    async getPolicesWithPagination(payload, tx) {
+        console.log("🚀 ~ policies.repository.ts:74 ~ getPolicesWithPagination ~ payload:", payload);
+        const { limit, offset } = payload;
+        const prismaClient = tx || this.prisma;
+        return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
+            const [doc, totalDoc] = await Promise.all([
+                this.prisma.policyType.findMany({
+                    where: {},
+                    skip: offset,
+                    take: limit,
+                }),
+                prismadatabase_1.default.policyType.count({ where: {} }),
+            ]);
+            return { doc, totalDoc };
+        });
+    }
+};

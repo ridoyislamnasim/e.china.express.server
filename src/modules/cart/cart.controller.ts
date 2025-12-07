@@ -53,6 +53,13 @@ class CartController {
   }
   )
 
+  deleteCartById = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const cartId = req.params.cartId;
+    const cartServiceResult = await CartService.deleteCartById(Number(cartId));
+    const resDoc = responseHandler(200, "Cart deleted", cartServiceResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  })
+
   delteCartProductTId = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const productTId = req.params.productTId;
     const cartServiceResult = await CartService.delteCartProductTId(Number(productTId));

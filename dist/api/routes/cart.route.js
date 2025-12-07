@@ -13,15 +13,9 @@ CartRoute.route("/")
     .post(cart_controller_1.default.createCartItem);
 //   .get(controller.getAllCartByUser);
 CartRoute.get("/user-cart/product/:id", (0, jwtAuth_1.default)(), cart_controller_1.default.getUserCartByProductId);
-//   CartRoute.route("/buy-now")
-//   .post(controller.createBuyNowCart)
-//   .get(controller.getAllBuyNowCartByUser);
-//   CartRoute.route("/buy-now/:id")
-//   .put( controller.updateBuyNowCartQuantity)
-// CartRoute.get("/user-all-cart/:id", controller.getUserAllCartById);
-// CartRoute.get("/pagination", controller.getCartWithPagination);
-// CartRoute.route("/:id")
-//   .get(controller.getSingleCart)
-//   .put( controller.updateCartQuantity)
-//   .delete(controller.deleteCart);
+CartRoute.get("/user-cart", (0, jwtAuth_1.default)(), cart_controller_1.default.getUserAllCart);
+// /cart/product/:productId
+CartRoute.delete("/:cartId", (0, jwtAuth_1.default)(), cart_controller_1.default.deleteCartById);
+CartRoute.delete("/product/:productTId", (0, jwtAuth_1.default)(), cart_controller_1.default.delteCartProductTId);
+CartRoute.delete("/variant/:variantTId", (0, jwtAuth_1.default)(), cart_controller_1.default.delteCartProductVariantByTId);
 exports.default = CartRoute;

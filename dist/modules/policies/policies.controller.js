@@ -6,7 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const policies_service_1 = __importDefault(require("./policies.service"));
 const responseHandler_1 = require("../../utils/responseHandler");
 const catchError_1 = __importDefault(require("../../middleware/errors/catchError"));
-exports.default = new (class PoliciesController {
+const withTransaction_1 = __importDefault(require("../../middleware/transactions/withTransaction"));
+exports.default = new class PoliciesController {
     constructor() {
         this.getAllPolicyTitles = (0, catchError_1.default)(async (req, res) => {
             const getAllPolicies = await policies_service_1.default.getAllPolicyTitles();
@@ -45,5 +46,13 @@ exports.default = new (class PoliciesController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, `Policy with id ${id} deleted successfully`, null);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.getPolicesWithPagination = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+            const page = parseInt(req.query.page, 10) || 1;
+            const limit = parseInt(req.query.limit, 10) || 10;
+            const payload = { page, limit };
+            const countries = await policies_service_1.default.getPolicesWithPagination(payload, tx);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Countries retrieved successfully with pagination', countries);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
     }
-})();
+};

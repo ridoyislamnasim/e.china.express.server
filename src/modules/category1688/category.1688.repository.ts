@@ -161,6 +161,12 @@ export class Category1688Repository {
 
   }
 
+  async getCategoryIdExit(category1688Id:number) {
+        return await prisma.category1688.findUnique({
+            where: { categoryId: category1688Id },
+        });
+    }
+
   
   async geSubCategoryIdExit(subCategory1688Id: number): Promise<any> {
     return await prisma.category1688.findUnique({

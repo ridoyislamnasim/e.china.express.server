@@ -1,4 +1,3 @@
-
 import prisma from '../../config/prismadatabase';
 import { PrismaClient } from '@prisma/client';
 // import { AuthUserSignUpPayload } from '../../types/auth.types';
@@ -76,6 +75,47 @@ export class RateRepository {
         weightCategoryId,
         shippingMethodId,
         category1688Id: Number(category1688Id)
+      },
+      include: {
+        countryCombination: {
+          select: {
+            id: true,
+            importCountryId: true,
+            exportCountryId: true,
+            importCountry: {
+              select: {
+                id: true,
+                name: true
+              }
+            },
+            exportCountry: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        },
+        weightCategory: {
+          select: {
+            id: true,
+            label: true,
+            min_weight: true,
+            max_weight: true
+          }
+        },
+        shippingMethod: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        category1688: {
+          select: {
+            categoryId: true,
+            translatedName: true
+          }
+        }
       }
     });
     return rates;

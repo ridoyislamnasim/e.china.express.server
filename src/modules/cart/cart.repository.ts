@@ -4,13 +4,14 @@ import { BaseRepository } from '../base/base.repository';
 import { NotFoundError } from '../../utils/errors';
 import { TCart, TCartProduct, TCartProductVariant } from '../../types/cart';
 
-class CartRepository extends BaseRepository<Cart> {
+export class CartRepository extends BaseRepository<Cart> {
   private prisma: PrismaClient;
 
   constructor(prisma: PrismaClient) {
     super(prisma.cart);
     this.prisma = prisma;
   }
+
   async createCart(payload: TCart, tx?: any) {
     const client = tx || this.prisma;
 
@@ -124,7 +125,8 @@ class CartRepository extends BaseRepository<Cart> {
     return await client.cartProductVariant.create({ data: payload as any });
   }
 
-  async findCartItemByUserAndProduct(userId: string | number, productId: string | number, tx?: any) {
+
+    async findCartItemByUserAndProduct(userId: string | number, productId: string | number, tx?: any) {
     const client = tx || this.prisma;
 
     const pidStr = String(productId);
@@ -169,6 +171,52 @@ class CartRepository extends BaseRepository<Cart> {
     return cart?.products[0]?.variants;
   }
 
+  async findCartItemByUserAndProductForRate(userId: string | number, productId: string | number, tx?: any) {
+    const client = tx || this.prisma;
+
+    const pidStr = String(productId);
+
+    // filter বানানো
+    const productFilter = {
+      OR: [
+        { product1688Id: pidStr },
+        // { productLocalId: pidStr },
+        { productAlibabaId: pidStr },
+      ],
+    };
+
+    const cart = await client.cart.findFirst({
+      where: {
+        userId: Number(userId),
+        products: {
+          some: productFilter,
+        },
+      },
+      include: {
+        products: {
+          where: productFilter,
+          include: {
+            variants: {
+              select: {
+                id: true,
+                cartProductId: true,
+                skuId: true,
+                specId: true,
+                quantity: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!cart) {
+      throw new NotFoundError('Cart not found for the user');
+    }
+    // return cart?.products[0]?.variants;
+    return cart;
+  }
+
   async findAllCartByUser(userId: string | number, tx?: any) {
     const client = tx || this.prisma;
     const carts = await client.cart.findMany({
@@ -182,6 +230,13 @@ class CartRepository extends BaseRepository<Cart> {
       },
     });
     return carts;
+  }
+
+  async deleteCartById(cartId: number, tx?: any) {
+    const client = tx || this.prisma;
+    return await client.cart.delete({
+      where: { id: cartId },
+    });
   }
 
   async deleteCartProductByProductTId(productTId: string | number, tx?: any) {
@@ -198,9 +253,9 @@ class CartRepository extends BaseRepository<Cart> {
     });
   }
 
-
-
 }
 
+
 const prisma = new PrismaClient();
-export default new CartRepository(prisma);
+const cartRepository = new CartRepository(prisma);
+export default  cartRepository;

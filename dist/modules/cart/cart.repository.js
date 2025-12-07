@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CartRepository = void 0;
 const client_1 = require("@prisma/client");
 const base_repository_1 = require("../base/base.repository");
 const errors_1 = require("../../utils/errors");
@@ -15,15 +16,19 @@ class CartRepository extends base_repository_1.BaseRepository {
         const existing = await client.cart.findFirst({ where: { userId: Number(payload.userId) } });
         if (existing) {
             // update existing cart with provided fields (totals, status, currency)
-            return await client.cart.update({ where: { id: existing.id }, data: {
+            return await client.cart.update({
+                where: { id: existing.id }, data: {
                     totalPrice: (_a = payload.totalPrice) !== null && _a !== void 0 ? _a : existing.totalPrice,
                     totalWeight: (_b = payload.totalWeight) !== null && _b !== void 0 ? _b : existing.totalWeight,
                     currency: (_c = payload.currency) !== null && _c !== void 0 ? _c : existing.currency,
                     status: (_d = payload.status) !== null && _d !== void 0 ? _d : existing.status,
-                } });
+                }
+            });
         }
-        // create new cart when no existing cart found
-        return await client.cart.create({ data: payload });
+        else {
+            // create new cart when no existing cart found
+            return await client.cart.create({ data: payload });
+        }
     }
     async createCartProduct(payload, tx) {
         var _a, _b, _c, _d;
@@ -155,6 +160,81 @@ class CartRepository extends base_repository_1.BaseRepository {
         }
         return (_a = cart === null || cart === void 0 ? void 0 : cart.products[0]) === null || _a === void 0 ? void 0 : _a.variants;
     }
+    async findCartItemByUserAndProductForRate(userId, productId, tx) {
+        const client = tx || this.prisma;
+        const pidStr = String(productId);
+        // filter বানানো
+        const productFilter = {
+            OR: [
+                { product1688Id: pidStr },
+                // { productLocalId: pidStr },
+                { productAlibabaId: pidStr },
+            ],
+        };
+        const cart = await client.cart.findFirst({
+            where: {
+                userId: Number(userId),
+                products: {
+                    some: productFilter,
+                },
+            },
+            include: {
+                products: {
+                    where: productFilter,
+                    include: {
+                        variants: {
+                            select: {
+                                id: true,
+                                cartProductId: true,
+                                skuId: true,
+                                specId: true,
+                                quantity: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        if (!cart) {
+            throw new errors_1.NotFoundError('Cart not found for the user');
+        }
+        // return cart?.products[0]?.variants;
+        return cart;
+    }
+    async findAllCartByUser(userId, tx) {
+        const client = tx || this.prisma;
+        const carts = await client.cart.findMany({
+            where: { userId: Number(userId) },
+            include: {
+                products: {
+                    include: {
+                        variants: true,
+                    },
+                },
+            },
+        });
+        return carts;
+    }
+    async deleteCartById(cartId, tx) {
+        const client = tx || this.prisma;
+        return await client.cart.delete({
+            where: { id: cartId },
+        });
+    }
+    async deleteCartProductByProductTId(productTId, tx) {
+        const client = tx || this.prisma;
+        return await client.cartProduct.deleteMany({
+            where: { id: Number(productTId) },
+        });
+    }
+    async delteCartProductVariantByTId(variantTId, tx) {
+        const client = tx || this.prisma;
+        return await client.cartProductVariant.delete({
+            where: { id: variantTId },
+        });
+    }
 }
+exports.CartRepository = CartRepository;
 const prisma = new client_1.PrismaClient();
-exports.default = new CartRepository(prisma);
+const cartRepository = new CartRepository(prisma);
+exports.default = cartRepository;

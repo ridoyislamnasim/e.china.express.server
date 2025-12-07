@@ -146,6 +146,11 @@ class Category1688Repository {
             countryHsCodes: countryHsCodes,
         };
     }
+    async getCategoryIdExit(category1688Id) {
+        return await prismadatabase_1.default.category1688.findUnique({
+            where: { categoryId: category1688Id },
+        });
+    }
     async geSubCategoryIdExit(subCategory1688Id) {
         return await prismadatabase_1.default.category1688.findUnique({
             where: { categoryId: subCategory1688Id, isRateCategory: true },
