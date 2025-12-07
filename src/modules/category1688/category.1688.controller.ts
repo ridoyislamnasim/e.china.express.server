@@ -21,6 +21,23 @@ export class Category1688Controller {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+    getAllCategory1688ForAgent = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const category1688Result = await Category1688Service.getAllCategory1688ForAgent();
+    const resDoc = responseHandler(200, 'Get All Category1688s', category1688Result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+    getCategoryIdBySubcategoryForAgent = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const { categoryId } = req.params;
+   const payload ={
+      categoryId: Number(categoryId)
+   }
+   const category1688Result = await Category1688Service.getCategoryIdBySubcategoryForAgent(payload);
+    const resDoc = responseHandler(200, 'Get Category1688 by Subcategory', category1688Result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
   getCategoryIdBySubcategory = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const { categoryId } = req.params;
    const payload ={

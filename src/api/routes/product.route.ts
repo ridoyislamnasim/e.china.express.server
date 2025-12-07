@@ -9,10 +9,12 @@ const ProductRoute = Router();
 // 1688 API Routes
 // getCategoryTranslation
 ProductRoute.post("/1688/category-translation", controller.getCategoryTranslation);
+ProductRoute.get("/agent/1688/product/filter", controller.get1688ProductFilterForAgent); //for production agent
 ProductRoute.get("/1688/product/filter", controller.get1688ProductFilter); //for production use
-ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails); // for production use
+ProductRoute.get("/agent/1688/details/:productId", controller.get1688ProductDetailsForAgent); // for production use
+ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails); // for production agent
 ProductRoute.get("/1688/details/test/:productId", controller.get1688ProductDetailsTest);
-ProductRoute.get("/1688/search", controller.get1688Products);
+ProductRoute.get("/1688/search", controller.get1688Products); // for production use
 
 // ProductRoute.route("/")
 //   // .post(upload.any(), controller.createProduct)

@@ -68,6 +68,26 @@ class ProductController {
     }
   };
 
+    get1688ProductFilterForAgent = catchError(async (req: Request, res: Response) => {
+    console.log("Request Body:", req.body);
+    console.log("Request Params:", req.params);
+    console.log("Request Query:", req.query);
+    const payload = {
+      keyword: req.query.keyword,
+      beginPage: req.query.beginPage,
+      pageSize: req.query.pageSize,
+      categoryId: req.query.categoryId,
+      categoryIdList: req.query.categoryIdList,
+      priceEnd: req.query.priceEnd,
+      priceStart: req.query.priceStart,
+      sort: req.query.sort,
+      saleFilterList: req.query.saleFilterList,
+    };
+    const result = await ProductService.get1688ProductFilterForAgent(payload);
+    const resDoc = responseHandler(200, '1688 Product Filter created successfully', result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+  
   get1688ProductFilter = catchError(async (req: Request, res: Response) => {
     console.log("Request Body:", req.body);
     console.log("Request Params:", req.params);
@@ -88,6 +108,16 @@ class ProductController {
     res.status(resDoc.statusCode).json(resDoc);
   });
   // 1688 API Controllers
+    get1688ProductDetailsForAgent = catchError(async (req: Request, res: Response) => {
+    const payload = {
+      productId: req.params.productId,
+    };
+    const productResult = await ProductService.get1688ProductDetailsForAgent(payload);
+    // console.log("productResult", productResult);
+    const resDoc = responseHandler(200, 'Product Details Retrieved Successfully', productResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
   get1688ProductDetails = catchError(async (req: Request, res: Response) => {
     const payload = {
       productId: req.params.productId,

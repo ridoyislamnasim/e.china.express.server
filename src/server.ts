@@ -31,8 +31,7 @@ app.use(express.json());
 // Parse URL-encoded data
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploads directory as public static files at /public
-// Example: http://localhost:3000/public/social/<your-file>
+
 app.use("/public", express.static(path.join(__dirname, "..", "uploads")));
 
 // Enable Cross-Origin Resource Sharing

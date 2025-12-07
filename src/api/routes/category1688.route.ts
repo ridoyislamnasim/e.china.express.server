@@ -8,8 +8,11 @@ const Category1688Router = Router();
 
 // Category1688Router.get("/navbar", controller.getNavBar);
 Category1688Router.route("/")
-.post( controller.createCategory1688) //
-.get(controller.getAllCategory1688); //
+   .post(controller.createCategory1688) //
+   .get(controller.getAllCategory1688); //
+
+Category1688Router.get("/agent", controller.getAllCategory1688ForAgent); //
+Category1688Router.get('/agent/category/:categoryId', controller.getCategoryIdBySubcategoryForAgent);
 
 // Fetch raw 1688 API response for a given categoryId (no DB upsert)
 Category1688Router.get('/category/:categoryId', controller.getCategoryIdBySubcategory);
