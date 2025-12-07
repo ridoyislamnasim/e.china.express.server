@@ -856,6 +856,31 @@ model Policies {
   policyType PolicyType @relation(fields: [policyTypeId], references: [id])
 }
 
+model Guide {
+  id          Int          @id @default(autoincrement())
+  serial      Int
+  title       String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  guideVideos GuideVideo[] @relation("GuideToVideos")
+}
+
+model GuideVideo {
+  id          Int     @id @default(autoincrement())
+  guideId     Int
+  index       Int
+  url         String  @db.VarChar(500)
+  imgSrc      String?
+  videoLength String?
+  title       String?
+  shortDes    String?
+  videoSerial Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  guide     Guide    @relation("GuideToVideos", fields: [guideId], references: [id], onDelete: Cascade)
+}
+
 model BlogTag {
   id        Int      @id @default(autoincrement())
   title     String?
@@ -875,29 +900,4 @@ model Blog {
   status    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Guide {
-  id          Int          @id @default(autoincrement())
-  serial      Int
-  title       String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  guideVideos GuideVideo[] @relation("GuideToVideos")
-}
-
-model GuideVideo {
-  id      Int @id @default(autoincrement())
-  guideId Int
-  index   Int
-  url         String  @db.VarChar(500)
-  imgSrc      String?
-  videoLength String?
-  title       String?
-  shortDes    String?
-  videoSerial Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  guide Guide @relation("GuideToVideos", fields: [guideId], references: [id], onDelete: Cascade)
 }
