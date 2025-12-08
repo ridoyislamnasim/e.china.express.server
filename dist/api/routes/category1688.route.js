@@ -11,6 +11,8 @@ const Category1688Router = (0, express_1.Router)();
 Category1688Router.route("/")
     .post(category_1688_controller_1.default.createCategory1688) //
     .get(category_1688_controller_1.default.getAllCategory1688); //
+Category1688Router.get("/agent", category_1688_controller_1.default.getAllCategory1688ForAgent); //
+Category1688Router.get('/agent/category/:categoryId', category_1688_controller_1.default.getCategoryIdBySubcategoryForAgent);
 // Fetch raw 1688 API response for a given categoryId (no DB upsert)
 Category1688Router.get('/category/:categoryId', category_1688_controller_1.default.getCategoryIdBySubcategory);
 Category1688Router.get('/rate', category_1688_controller_1.default.getAllCategory1688ForRateCalculation);

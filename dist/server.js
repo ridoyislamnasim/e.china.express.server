@@ -24,8 +24,6 @@ app.use((0, morgan_1.default)("dev"));
 app.use(express_1.default.json());
 // Parse URL-encoded data
 app.use(express_1.default.urlencoded({ extended: true }));
-// Serve uploads directory as public static files at /public
-// Example: http://localhost:3000/public/social/<your-file>
 app.use("/public", express_1.default.static(path_1.default.join(__dirname, "..", "uploads")));
 // Enable Cross-Origin Resource Sharing
 // Allowlist for frontends that are allowed to make credentialed requests
