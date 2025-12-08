@@ -52,6 +52,8 @@ rootRouter.use('/rate', rateRoute);
 
 
 
+
+
 //done by rafi
 rootRouter.use("/policies",policiesRoute ); // policies routes
 rootRouter.use("/blog", BlogRouter);

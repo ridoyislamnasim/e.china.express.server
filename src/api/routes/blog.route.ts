@@ -6,16 +6,20 @@ import { upload } from "../../middleware/upload/upload";
 const BlogRoute = Router();
 // BlogRoute.use(jwtAuth());
 
-BlogRoute.route("/").get(controller.getAllBlog);
+//done
+BlogRoute.route("/").post(upload.any(), controller.createBlog);
+BlogRoute.route("/create-tag").post(controller.createBlogTag);
+BlogRoute.route("/").get(controller.getAllBlogs);
+BlogRoute.route("/blog-tags").post(controller.getAllBlogTags);
+BlogRoute.get("/:slug", controller.getSingleBlog);
+BlogRoute.patch("/:slug", controller.updateBlogBySlug);
+BlogRoute.patch("/blog-tags/:slug", controller.updateBlogTagBySlug);
+BlogRoute.delete("/:slug", controller.deleteBlogBySlug);
+BlogRoute.delete("/blog-tags/:slug", controller.deleteBlogTagBySlug);
 
-
-BlogRoute.route("/").post(upload.any(), controller.createBlog)
-
+//todo
 BlogRoute.get("/pagination", controller.getBlogWithPagination);
-BlogRoute.get("/single/:slug", controller.getSingleBlog);
-
-BlogRoute.route("/:slug")
-  .put(upload.any(), controller.updateBlog)
-  .delete(controller.deleteBlog);
+BlogRoute.route("/:slug").put(upload.any(), controller.updateBlog);
+BlogRoute.delete("/:slug", controller.deleteBlog);
 
 export default BlogRoute;
