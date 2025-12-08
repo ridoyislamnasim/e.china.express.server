@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { EmailProps, EmailUser } from "../types/auth/auth.types";
+import { EmailProps, EmailUser } from "../types/auth";
 
 // import { convert } from "html-to-text";
 

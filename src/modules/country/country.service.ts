@@ -1,6 +1,6 @@
 // AuthService (TypeScript version)
 // import CountryPayload from '../../types/country.type';
-import CountryPayload from '../../types/auth/country.type';
+import CountryPayload from '../../types/country.type';
 import countryRepository, { CountryRepository } from './country.repository';
 
 

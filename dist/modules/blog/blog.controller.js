@@ -10,22 +10,74 @@ const withTransaction_1 = __importDefault(require("../../middleware/transactions
 const blog_service_1 = __importDefault(require("./blog.service"));
 class BlogController {
     constructor() {
+        //done
         this.createBlog = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             const payloadFiles = {
                 files: req.files,
             };
+            const { image, title, slug, author, details, tags, status, createdAt, updatedAt, files } = req.body;
             const payload = {
-                title: req.body.title,
-                details: req.body.details,
+                image,
+                title,
+                slug,
+                author,
+                details,
+                tags,
+                status,
+                createdAt,
+                updatedAt,
+                files,
             };
             console.log("blog playload", payload);
             const blogResult = await blog_service_1.default.createBlog(payloadFiles, payload, tx);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Blog Created successfully', blogResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Created successfully", blogResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
-        this.getAllBlog = (0, catchError_1.default)(async (req, res, next) => {
-            const blogResult = await blog_service_1.default.getAllBlog();
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Get All Blogs', blogResult);
+        this.createBlogTag = (0, catchError_1.default)(async (req, res, next) => {
+            const title = req.body.title;
+            const result = await blog_service_1.default.createBlogTag(title);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Created successfully", result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.getSingleBlog = (0, catchError_1.default)(async (req, res, next) => {
+            const slug = req.params.slug;
+            const blogResult = await blog_service_1.default.getSingleBlog(slug);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Single Blog successfully", blogResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.updateBlogBySlug = (0, catchError_1.default)(async (req, res, next) => {
+            const slugStr = req.params.slug;
+            const { image, title, slug, author, details, tags, status, files } = req.body;
+            const payload = { image, title, slug, author, details, tags, status, files };
+            const blogResult = await blog_service_1.default.updateBlog(slugStr, payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Status Update successfully", blogResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.updateBlogTagBySlug = (0, catchError_1.default)(async (req, res, next) => {
+            const slugStr = req.params.slug;
+            const { title, slug } = req.body;
+            const payload = { title, slug };
+            const blogResult = await blog_service_1.default.updateBlogTag(slugStr, payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Status Update successfully", blogResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.deleteBlogTagBySlug = (0, catchError_1.default)(async (req, res) => {
+            const slugStr = req.params.slug;
+            const result = await blog_service_1.default.deleteBlogTagBySlug(slugStr);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Blog tag deleted successfully", result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.deleteBlogBySlug = (0, catchError_1.default)(async (req, res) => {
+            const slugStr = req.params.slug;
+            const result = await blog_service_1.default.deleteBlogBySlug(slugStr);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Blog deleted successfully", result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        //todo
+        this.getSingleBlogWithSlug = (0, catchError_1.default)(async (req, res, next) => {
+            const slug = req.params.slug;
+            const blogResult = await blog_service_1.default.getSingleBlogWithSlug(slug);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Single Blog successfully", blogResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getBlogWithPagination = (0, catchError_1.default)(async (req, res, next) => {
@@ -35,26 +87,13 @@ class BlogController {
                 order: req.query.order,
             };
             const blog = await blog_service_1.default.getBlogWithPagination(payload);
-            console.log("🚀 ~ blog.controller.ts:70 ~ BlogController ~ blog:", blog);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Blogs get successfully', blog);
-            res.status(resDoc.statusCode).json(resDoc);
-        });
-        this.getSingleBlog = (0, catchError_1.default)(async (req, res, next) => {
-            const slug = req.params.slug;
-            const blogResult = await blog_service_1.default.getSingleBlog(slug);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Single Blog successfully', blogResult);
-            res.status(resDoc.statusCode).json(resDoc);
-        });
-        this.getSingleBlogWithSlug = (0, catchError_1.default)(async (req, res, next) => {
-            const slug = req.params.slug;
-            const blogResult = await blog_service_1.default.getSingleBlogWithSlug(slug);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Single Blog successfully', blogResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Blogs get successfully", blog);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getNavBar = (0, catchError_1.default)(async (req, res, next) => {
-            console.log('Fetching Navbar Data...');
+            console.log("Fetching Navbar Data...");
             const navBarResult = await blog_service_1.default.getNavBar();
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Navbar successfully', navBarResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Navbar successfully", navBarResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.updateBlog = (0, catchError_1.default)(async (req, res, next) => {
@@ -66,23 +105,40 @@ class BlogController {
                 title: req.body.title,
                 details: req.body.details,
             };
-            const blogResult = await blog_service_1.default.updateBlog(slug, payloadFiles, payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Blog Update successfully');
-            res.status(resDoc.statusCode).json(resDoc);
-        });
-        this.updateBlogStatus = (0, catchError_1.default)(async (req, res, next) => {
-            const slug = req.params.slug;
-            const status = req.query.status;
-            const blogResult = await blog_service_1.default.updateBlogStatus(slug, status);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Blog Status Update successfully');
+            const blogResult = await blog_service_1.default.updateBlog(slug, payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Update successfully", blogResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.deleteBlog = (0, catchError_1.default)(async (req, res, next) => {
             const slug = req.params.slug;
             const blogResult = await blog_service_1.default.deleteBlog(slug);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Blog Deleted successfully');
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Blog Deleted successfully");
             res.status(resDoc.statusCode).json(resDoc);
         });
+    }
+    async getAllBlogs(req, res, next) {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const resDoc = await blog_service_1.default.getAllBlogs(page, limit);
+            const result = (0, responseHandler_1.responseHandler)(200, "Blogs fetched successfully", resDoc);
+            res.status(result.statusCode).json(result);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async getAllBlogTags(req, res, next) {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const resDoc = await blog_service_1.default.getAllBlogTags(page, limit);
+            const result = (0, responseHandler_1.responseHandler)(200, "Blog tags fetched successfully", resDoc);
+            res.status(result.statusCode).json(result);
+        }
+        catch (error) {
+            next(error);
+        }
     }
 }
 exports.BlogController = BlogController;
