@@ -50,14 +50,27 @@ export class Category1688Service {
             }
           }
         }
-      }  
+      }
     }
-     return results;
-    }
+    return results;
+  }
 
   async getAllCategory1688() {
-      return await this.repository.getAllCategory1688();
+    return await this.repository.getAllCategory1688();
+  }
+
+  async getAllCategory1688ForAgent() {
+    return await this.repository.getAllCategory1688();
+  }
+
+  async getCategoryIdBySubcategoryForAgent(payload: any): Promise<any> {
+    const { categoryId } = payload;
+    const subcategories = await this.repository.getCategoryIdBySubcategory(categoryId);
+    if (!subcategories) {
+      throw new NotFoundError(`No subcategories found for categoryId ${categoryId}`);
     }
+    return subcategories;
+  }
 
   async getCategoryIdBySubcategory(payload: any): Promise<any> {
     const { categoryId } = payload;
@@ -67,9 +80,11 @@ export class Category1688Service {
     }
     return subcategories;
   }
+
+
   async addCategoryForRateCalculation(payload: any): Promise<any> {
     const { categoryId } = payload;
-    const category = await this.repository.getCategoryByCategoryId(categoryId); 
+    const category = await this.repository.getCategoryByCategoryId(categoryId);
     if (!category) {
       throw new NotFoundError(`Category with categoryId ${categoryId} not found`);
     }
@@ -85,7 +100,7 @@ export class Category1688Service {
   // HS Code Entry Services
   async createHsCodeEntryByCategoryId(payload: any): Promise<any> {
     const { id, globalHsCodes, chinaHsCodes, globalMaterialComment, countryHsCode } = payload;
-    const category = await this.repository.getCategoryById(id); 
+    const category = await this.repository.getCategoryById(id);
     console.log('Fetched category:', category);
     if (!category) {
       throw new NotFoundError(`Category with categoryId ${id} not found`);

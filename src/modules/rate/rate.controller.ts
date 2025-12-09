@@ -5,6 +5,7 @@ import { RateService } from './rate.service';
 import rateRepository from './rate.repository';
 import catchError from '../../middleware/errors/catchError';
 import withTransaction from '../../middleware/transactions/withTransaction';
+import withBalkTransaction from '../../middleware/transactions/withBalkTransaction';
 const rateService = new RateService(rateRepository);
 
 
@@ -66,7 +67,7 @@ class RateController {
     res.status(resDoc.statusCode).json(resDoc);
   })
 
-  bulkAdjustRate = withTransaction(async (req: Request, res: Response, next: NextFunction, transaction: any) => {
+  bulkAdjustRate = withBalkTransaction(async (req: Request, res: Response, next: NextFunction, transaction: any) => {
     const { adjustIsPercent, adjustMode, amount, weightCategoryId, applyToNonEmptyOnly, exportCountryId, importCountryId, shippingMethodId } = req.body;
     const payload: any = {
       adjustIsPercent,
@@ -84,14 +85,16 @@ class RateController {
   });
 
   findShippingRateForProduct = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const {  importCountryId, weight, category1688Id, subCategory1688Id, childCategory1688Id } = req.body;
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const {  importCountryId, productId, topCategoryId, secondCategoryId } = req.body;
     const payload: any = {
       importCountryId,
-      weight,
-      category1688Id,
-      subCategory1688Id,
-      childCategory1688Id
+      productId: Number(productId),
+      categoryId: Number(topCategoryId),
+      subCategoryId: Number(secondCategoryId),
+      userRef
     };
+    console.log("Finding shipping rate for product with payload:", payload);
     const rates = await rateService.findShippingRateForProduct(payload);
     const resDoc = responseHandler(200, 'Shipping Rates for Product retrieved successfully', rates);
     res.status(resDoc.statusCode).json(resDoc);

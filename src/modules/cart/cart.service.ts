@@ -93,15 +93,20 @@ export class CartService extends BaseService<typeof cartRepository> {
 
     for (const it of items) {
       const qty = Number(it.quantity) || 0;
+      const productTotalQty = items.reduce((sum, item) => sum + (item.quantity ?? 0), 0); // Calculate total quantity of all products
+console.log("Product Total Quantity for all items: ", productTotalQty);
       const price = (() => {
         if (it.skuId && product?.saleInfo?.priceRangeList) {
-          const totalQuantity = items.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
           const priceRange = product.saleInfo.priceRangeList
-            .filter((range: any) => totalQuantity >= range.startQuantity)
+            .filter((range: any) => productTotalQty >= range.startQuantity)
             .sort((a: any, b: any) => b.startQuantity - a.startQuantity)[0];
           if (priceRange?.price != null) return Number(priceRange.price);
         }
-        return it.skuId ? (product?.variants?.find((v: any) => v.skuId === it.skuId)?.consignPrice ?? (it.price != null ? Number(it.price) : undefined)) : (it.price != null ? Number(it.price) : undefined);
+        return it.skuId
+          ? product?.variants?.find((v: any) => v.skuId === it.skuId)?.consignPrice ?? (it.price != null ? Number(it.price) : undefined)
+          : it.price != null
+          ? Number(it.price)
+          : undefined;
       })();
       const weight = (() => {
         try {
@@ -127,9 +132,9 @@ export class CartService extends BaseService<typeof cartRepository> {
         productLocalId: it.productLocalId != null ? Number(it.productLocalId) : undefined,
         productAlibabaId: it.productAlibabaId != null ? String(it.productAlibabaId) : undefined,
         cartId: cart.id,
-        quantity: qty,
-        totalPrice: (price != null && Number.isFinite(Number(price)) ? Number(price) * qty : 0),
-        totalWeight: (weight ?? 0) * qty,
+        quantity: productTotalQty,
+        totalPrice: (price != null && Number.isFinite(Number(price)) ? Number(price) * productTotalQty : 0),
+        totalWeight: (weight ?? 0) * productTotalQty,
         mainSkuImageUrl: product.images && product.images.length > 0 ? product.images[0] : null,
       };
       console.log("Creating Cart Product with payload -------- ", cartProductPayload);
@@ -260,6 +265,13 @@ export class CartService extends BaseService<typeof cartRepository> {
     console.log(`Fetching all cart items for userId: ${userId}`);
     const cartItems = await this.repository.findAllCartByUser(userId, tx);
     return cartItems;
+  }
+
+
+  deleteCartById = async (cartId: number, tx?: any) => {
+    console.log(`Deleting cart with id: ${cartId}`);
+    const deletedCart = await this.repository.deleteCartById(cartId, tx);
+    return deletedCart;
   }
 
   delteCartProductTId = async (productTId: number, tx?: any) => {

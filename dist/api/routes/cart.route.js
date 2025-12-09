@@ -15,6 +15,7 @@ CartRoute.route("/")
 CartRoute.get("/user-cart/product/:id", (0, jwtAuth_1.default)(), cart_controller_1.default.getUserCartByProductId);
 CartRoute.get("/user-cart", (0, jwtAuth_1.default)(), cart_controller_1.default.getUserAllCart);
 // /cart/product/:productId
+CartRoute.delete("/:cartId", (0, jwtAuth_1.default)(), cart_controller_1.default.deleteCartById);
 CartRoute.delete("/product/:productTId", (0, jwtAuth_1.default)(), cart_controller_1.default.delteCartProductTId);
 CartRoute.delete("/variant/:variantTId", (0, jwtAuth_1.default)(), cart_controller_1.default.delteCartProductVariantByTId);
 exports.default = CartRoute;

@@ -52,6 +52,17 @@ class Category1688Service {
     async getAllCategory1688() {
         return await this.repository.getAllCategory1688();
     }
+    async getAllCategory1688ForAgent() {
+        return await this.repository.getAllCategory1688();
+    }
+    async getCategoryIdBySubcategoryForAgent(payload) {
+        const { categoryId } = payload;
+        const subcategories = await this.repository.getCategoryIdBySubcategory(categoryId);
+        if (!subcategories) {
+            throw new errors_1.NotFoundError(`No subcategories found for categoryId ${categoryId}`);
+        }
+        return subcategories;
+    }
     async getCategoryIdBySubcategory(payload) {
         const { categoryId } = payload;
         const subcategories = await this.repository.getCategoryIdBySubcategory(categoryId);

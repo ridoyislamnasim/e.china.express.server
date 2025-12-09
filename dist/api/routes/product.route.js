@@ -10,10 +10,12 @@ const ProductRoute = (0, express_1.Router)();
 // 1688 API Routes
 // getCategoryTranslation
 ProductRoute.post("/1688/category-translation", product_controller_1.default.getCategoryTranslation);
+ProductRoute.get("/agent/1688/product/filter", product_controller_1.default.get1688ProductFilterForAgent); //for production agent
 ProductRoute.get("/1688/product/filter", product_controller_1.default.get1688ProductFilter); //for production use
-ProductRoute.get("/1688/details/:productId", product_controller_1.default.get1688ProductDetails); // for production use
+ProductRoute.get("/agent/1688/details/:productId", product_controller_1.default.get1688ProductDetailsForAgent); // for production use
+ProductRoute.get("/1688/details/:productId", product_controller_1.default.get1688ProductDetails); // for production agent
 ProductRoute.get("/1688/details/test/:productId", product_controller_1.default.get1688ProductDetailsTest);
-ProductRoute.get("/1688/search", product_controller_1.default.get1688Products);
+ProductRoute.get("/1688/search", product_controller_1.default.get1688Products); // for production use
 // ProductRoute.route("/")
 //   // .post(upload.any(), controller.createProduct)
 //   .get(controller.getAllProduct);

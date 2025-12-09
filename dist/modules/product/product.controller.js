@@ -54,6 +54,25 @@ class ProductController {
                 res.status(500).json({ error: ((_b = err.response) === null || _b === void 0 ? void 0 : _b.data) || err.message });
             }
         };
+        this.get1688ProductFilterForAgent = (0, catchError_1.default)(async (req, res) => {
+            console.log("Request Body:", req.body);
+            console.log("Request Params:", req.params);
+            console.log("Request Query:", req.query);
+            const payload = {
+                keyword: req.query.keyword,
+                beginPage: req.query.beginPage,
+                pageSize: req.query.pageSize,
+                categoryId: req.query.categoryId,
+                categoryIdList: req.query.categoryIdList,
+                priceEnd: req.query.priceEnd,
+                priceStart: req.query.priceStart,
+                sort: req.query.sort,
+                saleFilterList: req.query.saleFilterList,
+            };
+            const result = await product_service_1.default.get1688ProductFilterForAgent(payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, '1688 Product Filter created successfully', result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         this.get1688ProductFilter = (0, catchError_1.default)(async (req, res) => {
             console.log("Request Body:", req.body);
             console.log("Request Params:", req.params);
@@ -74,6 +93,15 @@ class ProductController {
             res.status(resDoc.statusCode).json(resDoc);
         });
         // 1688 API Controllers
+        this.get1688ProductDetailsForAgent = (0, catchError_1.default)(async (req, res) => {
+            const payload = {
+                productId: req.params.productId,
+            };
+            const productResult = await product_service_1.default.get1688ProductDetailsForAgent(payload);
+            // console.log("productResult", productResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Product Details Retrieved Successfully', productResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         this.get1688ProductDetails = (0, catchError_1.default)(async (req, res) => {
             const payload = {
                 productId: req.params.productId,

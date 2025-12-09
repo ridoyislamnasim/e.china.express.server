@@ -49,6 +49,12 @@ class CartController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, "User all cart fetched", cartServiceResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.deleteCartById = (0, catchError_1.default)(async (req, res, next) => {
+            const cartId = req.params.cartId;
+            const cartServiceResult = await cart_service_1.default.deleteCartById(Number(cartId));
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Cart deleted", cartServiceResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         this.delteCartProductTId = (0, catchError_1.default)(async (req, res, next) => {
             const productTId = req.params.productTId;
             const cartServiceResult = await cart_service_1.default.delteCartProductTId(Number(productTId));

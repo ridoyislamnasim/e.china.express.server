@@ -12,6 +12,7 @@ CartRoute.route("/")
 CartRoute.get("/user-cart/product/:id", jwtAuth(), controller.getUserCartByProductId);
 CartRoute.get("/user-cart", jwtAuth(), controller.getUserAllCart);
 // /cart/product/:productId
+CartRoute.delete("/:cartId", jwtAuth(), controller.deleteCartById);
 CartRoute.delete("/product/:productTId", jwtAuth(), controller.delteCartProductTId);
 CartRoute.delete("/variant/:variantTId", jwtAuth(), controller.delteCartProductVariantByTId);
 

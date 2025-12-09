@@ -7,7 +7,7 @@ const responseHandler_1 = require("../../utils/responseHandler");
 const rate_service_1 = require("./rate.service");
 const rate_repository_1 = __importDefault(require("./rate.repository"));
 const catchError_1 = __importDefault(require("../../middleware/errors/catchError"));
-const withTransaction_1 = __importDefault(require("../../middleware/transactions/withTransaction"));
+const withBalkTransaction_1 = __importDefault(require("../../middleware/transactions/withBalkTransaction"));
 const rateService = new rate_service_1.RateService(rate_repository_1.default);
 class RateController {
     constructor() {
@@ -65,7 +65,7 @@ class RateController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Country Method Wise Rates retrieved successfully', rates);
             res.status(resDoc.statusCode).json(resDoc);
         });
-        this.bulkAdjustRate = (0, withTransaction_1.default)(async (req, res, next, transaction) => {
+        this.bulkAdjustRate = (0, withBalkTransaction_1.default)(async (req, res, next, transaction) => {
             const { adjustIsPercent, adjustMode, amount, weightCategoryId, applyToNonEmptyOnly, exportCountryId, importCountryId, shippingMethodId } = req.body;
             const payload = {
                 adjustIsPercent,
@@ -82,14 +82,17 @@ class RateController {
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.findShippingRateForProduct = (0, catchError_1.default)(async (req, res, next) => {
-            const { importCountryId, weight, category1688Id, subCategory1688Id, childCategory1688Id } = req.body;
+            var _a, _b, _c, _d;
+            const userRef = (_d = (_c = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.user_info_encrypted) === null || _b === void 0 ? void 0 : _b.id) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : null;
+            const { importCountryId, productId, topCategoryId, secondCategoryId } = req.body;
             const payload = {
                 importCountryId,
-                weight,
-                category1688Id,
-                subCategory1688Id,
-                childCategory1688Id
+                productId: Number(productId),
+                categoryId: Number(topCategoryId),
+                subCategoryId: Number(secondCategoryId),
+                userRef
             };
+            console.log("Finding shipping rate for product with payload:", payload);
             const rates = await rateService.findShippingRateForProduct(payload);
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Shipping Rates for Product retrieved successfully', rates);
             res.status(resDoc.statusCode).json(resDoc);

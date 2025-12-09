@@ -2,20 +2,33 @@ import category1688Repository from "../category1688/category.1688.repository";
 import countryRepository, { CountryRepository } from "../country/country.repository";
 import shippingMethodRepository, { ShippingMethodRepository } from "../rateShippingMethod/shippingMethod.repository";
 import rateRepository, { RateRepository } from "./rate.repository";
+import cartRepository, { CartRepository } from '../cart/cart.repository';
+
+/** Result type for bulk rate processing */
+interface RateProcessResult {
+  categoryId: number;
+  action: 'updated' | 'created' | 'skipped' | 'error';
+  price?: number;
+  reason?: string;
+  error?: string;
+}
 
 
 export class RateService {
   private repository: RateRepository;
   private category1688Repository: typeof category1688Repository;
   private countryRepository: CountryRepository;
-  // ShippingMethodRepository
+  private cartRepository: CartRepository;
   private shippingMethodRepository: ShippingMethodRepository;
+  private prisma: any;
 
   constructor(repository: RateRepository = rateRepository) {
     this.repository = repository;
     this.category1688Repository = category1688Repository;
     this.countryRepository = countryRepository;
     this.shippingMethodRepository = shippingMethodRepository;
+    this.cartRepository = cartRepository;
+    this.prisma = (repository as any).prisma || (repository as any).db;
   }
 
   async createRate(payload: { price: number; weightCategoryId: number; shippingMethodId: number; category1688Id: number; importCountryId: number; exportCountryId: number }): Promise<any> {
@@ -198,13 +211,16 @@ export class RateService {
 
         if (!applyToNonEmptyOnly) {
           queryPayload.price = newPrice;
+          console.log('Creating new rate for categoryId', catId, queryPayload);
           await this.repository.createRate(queryPayload, transaction);
           return { categoryId: catId, action: 'created', price: newPrice };
         }
 
         return { categoryId: catId, action: 'skipped', reason: 'no existing price and applyToNonEmptyOnly=true' };
       } catch (err) {
-        return { categoryId: catId, action: 'error', error: String(err) };
+        // return { categoryId: catId, action: 'error', error: String(err) };
+        console.error('Error during adjustCategory for categoryId', catId, err);
+        throw err;
       }
     };
 
@@ -244,32 +260,19 @@ export class RateService {
     return results;
   }
 
+
+
   async findShippingRateForProduct(payload: any): Promise<any> {
-    const { importCountryId, weight, category1688Id, subCategory1688Id, childCategory1688Id } = payload;
+    const { importCountryId, productId, categoryId, subCategoryId, userRef } = payload;
     // all fields are required
-    if (!importCountryId || !weight) {
-      const error = new Error('importCountryId, exportCountryId, shippingMethodId, weight and productId are required');
+    if (!importCountryId || !productId) {
+      const error = new Error('importCountryId, and productId are required');
       (error as any).statusCode = 400;
       throw error;
     }
 
-    let categoryId;
-    if (subCategory1688Id) {
-      const subCategory = await this.category1688Repository.geSubCategoryIdExit(subCategory1688Id);
-      if (subCategory) {
-        categoryId = subCategory.id;
-      } else {
-        // category1688Id not id than error send 
-        const categoryExit = await this.category1688Repository.getCategoryByCategoryId(category1688Id);
-        if (!categoryExit) {
-          const error = new Error('subCategory1688Id is not valid for rate calculation');
-          (error as any).statusCode = 400;
-          throw error;
-        }
-        categoryId = categoryExit.id;
-      }
-    }
-    // find country wish isShippingCountry true
+
+
     const importCountry = await this.countryRepository.getCountryByCondition({ isShippingCountry: true });
     if (!importCountry) {
       const error = new Error('No import country found for shipping');
@@ -283,10 +286,25 @@ export class RateService {
     };
     const existingCountryCombination = await this.repository.existingCountryConbination(countryCombinationPayload);
     if (!existingCountryCombination) {
-      // no rates found
       return [];
     }
+
+    const shippingMethod = await this.shippingMethodRepository.getShippingMethod();
+    if (!shippingMethod) {
+      const error = new Error('No shipping method found for rate calculation');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    const cartProduct = await this.cartRepository.findCartItemByUserAndProductForRate(userRef, productId);
+    // console.log("cartItems found for shipping rate calculation:", cartProduct);
+    if (!cartProduct || cartProduct.length === 0) {
+      return [];
+    }
+
     // find weight category id based on weight
+    const weight = cartProduct.products[0]?.totalWeight || 0;
+    console.log("Total weight for cart product:", weight);
     const weightCategory = await this.repository.findWeightCategoryByWeight(weight);
     if (!weightCategory) {
       // error send not found
@@ -294,29 +312,21 @@ export class RateService {
       (error as any).statusCode = 404;
       throw error;
     }
-    // find shipping method id based on some logic or payload (not shown in the snippet)
-    const shippingMethod = await this.shippingMethodRepository.getShippingMethod();
-    if (!shippingMethod) {
-      const error = new Error('No shipping method found for rate calculation');
-      (error as any).statusCode = 404;
-      throw error;
-    }
+    const catagoryExit = await this.category1688Repository.geSubCategoryIdExit(subCategoryId) ??  await this.category1688Repository.getCategoryIdExit(categoryId);
     const { id } = existingCountryCombination;
-    // find weight if 
-
-    let  rate =[];
+    let rate = [];
     for (const method of shippingMethod) {
-     
-    const payloadWithCombinationId = {
-      weightCategoryId: weightCategory.id,
-      countryCombinationId: id,
-      category1688Id: categoryId,
-      shippingMethodId: method.id
-    };
-    console.log("payloadWithCombinationId", payloadWithCombinationId);
-    const result = await this.repository.findRateByCriteria(payloadWithCombinationId);
-    rate.push(...result);
-     console.log("method.id", method.id);
+
+      const payloadWithCombinationId = {
+        weightCategoryId: weightCategory.id,
+        countryCombinationId: id,
+        category1688Id: catagoryExit.id,
+        shippingMethodId: method.id
+      };
+      console.log("payloadWithCombinationId", payloadWithCombinationId);
+      const result = await this.repository.findRateByCriteria(payloadWithCombinationId);
+      rate.push(...result);
+      console.log("method.id", method.id);
     }
     return rate;
   }

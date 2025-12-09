@@ -775,7 +775,7 @@ model Cart {
   status      String @default("active") // active, pending, checkout
 
   user     User          @relation(fields: [userId], references: [id])
-  products CartProduct[]
+  products CartProduct[] 
 }
 
 model CartProduct {
@@ -784,6 +784,7 @@ model CartProduct {
 
   product1688Id    String?
   productLocalId   Int?
+  
   productLocal     Product? @relation(fields: [productLocalId], references: [id])
   productAlibabaId String?
 
@@ -791,7 +792,7 @@ model CartProduct {
   vendorId        Int? // highly recommended
 
   cartId Int
-  cart   Cart @relation(fields: [cartId], references: [id])
+  cart   Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
   quantity    Int   @default(1)
   totalPrice  Float @default(0)
