@@ -1,13 +1,10 @@
-import { CreatePolicyRequestDTO, CreatePolicyTypeRequestDTO, PolicyRequestDTO } from "../../types/policy";
+import { CreatePolicyRequestDTO, CreatePolicyTypeRequestDTO, PoliciesI, PolicyRequestDTO } from "../../types/policy";
 import { NotFoundError } from "../../utils/errors";
+import { responseHandler } from "../../utils/responseHandler";
 import { slugGenerate } from "../../utils/slugGenerate";
 import policiesRepository from "./policies.repository";
 
-export default new class PoliciesService {
-
-
-  
-
+export default new (class PoliciesService {
   getAllPolicyTitles = async () => {
     try {
       const { allPolicies, allPolicyTypes } = await policiesRepository.getAllPolicyTitlesRepository();
@@ -126,7 +123,7 @@ export default new class PoliciesService {
       if (policyType) {
         try {
           const { id } = policyType;
-          const policy = await policiesRepository.getPolicyByIdRepository(id);
+          const policy = await policiesRepository.getPolicyByPolicyTypeIdRepository(id);
           return policy;
         } catch (error) {
           console.error("Error finding policy:", error);
@@ -160,7 +157,7 @@ export default new class PoliciesService {
         throw error;
       }
 
-      const policy = await policiesRepository.getPolicyByIdRepository(policyType.id);
+      const policy = await policiesRepository.getPolicyByPolicyTypeIdRepository(policyType.id);
       if (!policy) {
         const error = new Error("Policy not found for this policy type");
         (error as any).statusCode = 404;
@@ -189,7 +186,7 @@ export default new class PoliciesService {
         throw error;
       }
 
-      const policy = await policiesRepository.getPolicyByIdRepository(id);
+      const policy = await policiesRepository.getPolicyByPolicyTypeIdRepository(id);
       if (!policy) {
         const error = new Error("Policy not found");
         (error as any).statusCode = 404;
@@ -203,17 +200,104 @@ export default new class PoliciesService {
     }
   };
 
-
-
-
   async getPolicesWithPagination(payload: { page: number; limit: number }, tx: any): Promise<any> {
     const { page, limit } = payload;
     const offset = (page - 1) * limit;
     const countries = await policiesRepository.getPolicesWithPagination({ limit, offset }, tx);
     return countries;
   }
-  
+
+  addHelpfulCount = async (id: number): Promise<any> => {
+    try {
+      if (!id) {
+        const error = new Error("Missing required field: id");
+        (error as any).statusCode = 400;
+        throw error;
+      }
+
+      const policy = await policiesRepository.getPolicyByIdRepository(id);
+      if (!policy) {
+        const error = new Error(`Policy not found for id ${id}`);
+        (error as any).statusCode = 404;
+        throw error;
+      }
+
+      const { id: policyId, title, description, policyTypeId, helpfulCount: helpfulCounter, notHelpfulCount, createdAt, updatedAt }: PoliciesI = policy;
+      const payload = { id: policyId, title, description, policyTypeId, helpfulCount: helpfulCounter, notHelpfulCount, createdAt, updatedAt };
+
+      if (payload?.helpfulCount == null) {
+        const error = new Error("Missing required field: helpfulCount");
+        (error as any).statusCode = 400;
+        throw error;
+      }
+      payload.helpfulCount = payload.helpfulCount+1;
+
+      const { helpfulCount } = payload;
+
+      const updated = await policiesRepository.addHelpfulCount(id, helpfulCount);
+
+      return responseHandler(200, "Helpful count updated successfully", updated);
+    } catch (error: any) {
+      console.error("Error updating helpful count:", error);
+      throw error;
+    }
+  };
 
 
+  addUnhelpfulCount = async (id: number): Promise<any> => {
+  try {
+    if (!id) {
+      const error = new Error("Missing required field: id");
+      (error as any).statusCode = 400;
+      throw error;
+    }
 
+    const policy = await policiesRepository.getPolicyByIdRepository(id);
+    if (!policy) {
+      const error = new Error(`Policy not found for id ${id}`);
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    const { 
+      id: policyId, 
+      title, 
+      description, 
+      policyTypeId, 
+      helpfulCount, 
+      notHelpfulCount: unhelpfulCounter, 
+      createdAt, 
+      updatedAt 
+    }: PoliciesI = policy;
+
+    const payload = { 
+      id: policyId, 
+      title, 
+      description, 
+      policyTypeId, 
+      helpfulCount, 
+      notHelpfulCount: unhelpfulCounter, 
+      createdAt, 
+      updatedAt 
+    };
+
+    if (payload?.notHelpfulCount == null) {
+      const error = new Error("Missing required field: notHelpfulCount");
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
+    payload.notHelpfulCount = payload.notHelpfulCount + 1;
+
+    const { notHelpfulCount } = payload;
+
+    const updated = await policiesRepository.addUnhelpfulCount(id, notHelpfulCount);
+
+    return responseHandler(200, "Unhelpful count updated successfully", updated);
+  } catch (error: any) {
+    console.error("Error updating unhelpful count:", error);
+    throw error;
+  }
 };
+
+})();

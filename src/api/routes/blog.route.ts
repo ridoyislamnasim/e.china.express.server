@@ -16,6 +16,7 @@ BlogRoute.patch("/:slug", controller.updateBlogBySlug);
 BlogRoute.patch("/blog-tags/:slug", controller.updateBlogTagBySlug);
 BlogRoute.delete("/:slug", controller.deleteBlogBySlug);
 BlogRoute.delete("/blog-tags/:slug", controller.deleteBlogTagBySlug);
+BlogRoute.route("/get-blog-by-tag").post(controller.getBlogsByTags);
 
 //todo
 BlogRoute.get("/pagination", controller.getBlogWithPagination);

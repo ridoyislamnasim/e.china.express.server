@@ -165,6 +165,12 @@ export class BlogService {
     return deleted;
   }
 
+  async getBlogsByTags(tags: string[], tx?: any) {
+    const blogs = await blogRepository.getBlogsByTags(tags, tx);
+    return blogs;
+  }
+
+
   //todo
   async getBlogWithPagination(payload: any) {
     return await this.repository.getBlogWithPagination(payload);

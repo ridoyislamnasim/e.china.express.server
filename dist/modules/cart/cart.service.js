@@ -253,6 +253,24 @@ class CartService extends base_service_1.BaseService {
             console.log("Final Cart with Products: ", result);
             return result;
         };
+        this.getUserAllCart = async (userId, tx) => {
+            console.log(`Fetching all cart items for userId: ${userId}`);
+            const cartItems = await this.repository.findAllCartByUser(userId, tx);
+            return cartItems;
+        };
+        this.delteCartProductTId = async (productTId, tx) => {
+            console.log(`Deleting cart products with productTId: ${productTId}`);
+            const deletedProducts = await this.repository.deleteCartProductByProductTId(productTId, tx);
+            if (!deletedProducts || deletedProducts.count === 0) {
+                throw new errors_1.NotFoundError(`No cart products found with productTId: ${productTId}`);
+            }
+            return deletedProducts;
+        };
+        this.delteCartProductVariantByTId = async (variantTId, tx) => {
+            console.log(`Deleting cart product variant with id: ${variantTId}`);
+            const deletedVariant = await this.repository.delteCartProductVariantByTId(variantTId, tx);
+            return deletedVariant;
+        };
         this.repository = repository;
     }
     async getUserCartByProductId(userId, productId, tx) {

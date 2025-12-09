@@ -13,8 +13,10 @@ export interface PoliciesI {
   description?: string | null;
   helpfulCount: number;
   notHelpfulCount: number;
-  created_at: Date;
-  updated_at: Date; 
+  created_at?: Date;
+  updated_at?: Date; 
+  createdAt ?: Date;
+  updatedAt ?:Date;
   policyTypeId: number;
   policyType?: PolicyTypeI;
 }

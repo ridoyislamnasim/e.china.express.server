@@ -831,6 +831,20 @@ model CartProductVariant {
   shippingRate   Rate?       @relation(fields: [shippingRateId], references: [id])
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 model PolicyType {
   id        Int      @id @default(autoincrement())
   title     String   @unique @db.VarChar(150)
@@ -856,6 +870,20 @@ model Policies {
   policyType PolicyType @relation(fields: [policyTypeId], references: [id])
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 model Guide {
   id          Int          @id @default(autoincrement())
   serial      Int
@@ -880,6 +908,8 @@ model GuideVideo {
   updatedAt DateTime @updatedAt
   guide     Guide    @relation("GuideToVideos", fields: [guideId], references: [id], onDelete: Cascade)
 }
+
+
 
 model BlogTag {
   id        Int      @id @default(autoincrement())

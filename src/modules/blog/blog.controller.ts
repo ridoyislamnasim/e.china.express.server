@@ -108,6 +108,27 @@ export class BlogController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+
+  getBlogsByTags = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+    const { tags } = req.body; // expect array of strings from checkboxes
+
+    if (!tags || !Array.isArray(tags) || tags.length === 0) {
+      return res.status(400).json(responseHandler(400, "Tags array is required"));
+    }
+
+    console.log("Filtering blogs by tags:", tags);
+
+    // call service with tx (optional, in case you want transaction for complex logic)
+    const blogs = await BlogService.getBlogsByTags(tags, tx);
+
+    const resDoc = responseHandler(200, "Blogs fetched successfully", blogs);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
+  
+
+
   //todo
 
   getSingleBlogWithSlug = catchError(async (req: Request, res: Response, next: NextFunction) => {

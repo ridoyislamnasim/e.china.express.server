@@ -24,7 +24,7 @@ exports.default = new (class GuideService {
                 title: guide.title,
                 createdAt: guide.createdAt,
                 updatedAt: guide.updatedAt,
-                videos: guide.videos.map((video) => {
+                videos: guide.guideVideos.map((video) => {
                     var _a, _b, _c, _d;
                     return ({
                         id: video.id,
@@ -48,20 +48,33 @@ exports.default = new (class GuideService {
         }
     }
     async getAllGuides() {
+        let allGuides = [];
+        let allGuidesVideos = [];
         try {
-            const allGuides = await guide_repository_1.default.getAllGuidesRepository();
-            if (!allGuides || allGuides.length === 0) {
-                return [];
-            }
-            return allGuides;
+            allGuides = await guide_repository_1.default.getAllGuidesRepository();
+            allGuidesVideos = await guide_repository_1.default.getAllGuidesVideosRepository();
         }
         catch (error) {
             console.error("Error getting all guides:", error);
             throw error;
         }
+        return { allGuides, allGuidesVideos };
     }
     async createGuideData(payload) {
         const { title, serial, videos } = payload;
+        if (serial !== undefined) {
+            try {
+                const serialExist = await guide_repository_1.default.isSerialExists(serial);
+                if (serialExist) {
+                    const error = new Error(`Serial ${serial} already exists.`);
+                    error.statusCode = 400;
+                    throw error;
+                }
+            }
+            catch (error) {
+                throw error; // Let your controller/service catch this
+            }
+        }
         if (!title || serial === undefined) {
             const missingFields = [];
             if (!title)
@@ -86,20 +99,46 @@ exports.default = new (class GuideService {
         }
     }
     async updateGuideData(id, payload) {
-        const guideId = parseInt(id, 10);
-        if (isNaN(guideId)) {
-            const error = new Error("Invalid Guide ID provided for update.");
+        const serial = parseInt(id, 10);
+        if (isNaN(serial)) {
+            const error = new Error("Invalid Serial provided for update.");
             error.statusCode = 400;
             throw error;
         }
-        const existingGuide = await guide_repository_1.default.getGuideData(guideId);
+        const existingGuide = await guide_repository_1.default.getGuideData(serial);
         if (!existingGuide) {
-            throw new errors_1.NotFoundError(`Guide with ID ${guideId} not found for update.`);
+            throw new errors_1.NotFoundError(`Serial ${serial} not found for update.`);
         }
         try {
-            const updatedGuide = await guide_repository_1.default.updateGuideRepository(guideId, payload);
+            const updatedGuide = await guide_repository_1.default.updateGuideRepository(serial, payload);
             return {
-                message: `Guide data with id ${id} updated successfully`,
+                message: `Guide data with serial ${id} updated successfully`,
+                data: updatedGuide,
+            };
+        }
+        catch (error) {
+            console.error("Error updating guide data:", error);
+            throw error;
+        }
+    }
+    async updateGuideVideo(id, payload) {
+        if (isNaN(id)) {
+            const error = new Error("Invalid id provided for update.");
+            error.statusCode = 400;
+            throw error;
+        }
+        const existingGuide = await guide_repository_1.default.getGuideVideoData(id);
+        if (!existingGuide) {
+            throw new errors_1.NotFoundError(`Id ${id} not found for update.`);
+        }
+        const isSameSerial = await guide_repository_1.default.getGuideVideo(id);
+        if (Object.keys(isSameSerial).length != 0 && isSameSerial.videoSerial === payload.videoSerial) {
+            throw new errors_1.NotFoundError(`Change the video Serial.`);
+        }
+        try {
+            const updatedGuide = await guide_repository_1.default.updateGuideVideoRepository(id, payload);
+            return {
+                message: `Guide data with serial ${id} updated successfully`,
                 data: updatedGuide,
             };
         }
@@ -120,8 +159,29 @@ exports.default = new (class GuideService {
             if (!existingGuide) {
                 throw new errors_1.NotFoundError(`Guide with ID ${guideId} not found for deletion.`);
             }
-            await guide_repository_1.default.deleteGuideRepository(guideId);
-            return { message: `Guide data with id ${id} deleted successfully` };
+            const totalDeleted = await guide_repository_1.default.deleteAllGuideVideos(guideId);
+            const data = await guide_repository_1.default.deleteGuideRepository(guideId);
+            return { message: `Guide data with id ${id} deleted successfully`, data: data };
+        }
+        catch (error) {
+            console.error("Error deleting guide data:", error);
+            throw error;
+        }
+    }
+    async deleteGuideVideo(id) {
+        const guideId = parseInt(id, 10);
+        if (isNaN(guideId)) {
+            const error = new Error("Invalid Guide Video ID provided for deletion.");
+            error.statusCode = 400;
+            throw error;
+        }
+        try {
+            const existingGuide = await guide_repository_1.default.getGuideVideo(guideId);
+            if (!existingGuide) {
+                throw new errors_1.NotFoundError(`Guide Video ID ${guideId} not found for deletion.`);
+            }
+            const data = await guide_repository_1.default.deleteGuideVideoRepository(guideId);
+            return { message: `Guide Video ID ${id} deleted successfully`, data };
         }
         catch (error) {
             console.error("Error deleting guide data:", error);

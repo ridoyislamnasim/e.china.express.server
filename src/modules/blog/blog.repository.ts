@@ -109,6 +109,21 @@ export class BlogRepository {
     });
   }
 
+  async getBlogsByTags(tags: string[], tx?: any) {
+    const client = tx || prisma;
+    return client.blog.findMany({
+      where: {
+        tags: {
+          hasSome: tags,
+        },
+        status: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
   async getBlogWithPagination(payload: any) {
     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
       const [doc, totalDoc] = await Promise.all([

@@ -15,15 +15,19 @@ class CartRepository extends base_repository_1.BaseRepository {
         const existing = await client.cart.findFirst({ where: { userId: Number(payload.userId) } });
         if (existing) {
             // update existing cart with provided fields (totals, status, currency)
-            return await client.cart.update({ where: { id: existing.id }, data: {
+            return await client.cart.update({
+                where: { id: existing.id }, data: {
                     totalPrice: (_a = payload.totalPrice) !== null && _a !== void 0 ? _a : existing.totalPrice,
                     totalWeight: (_b = payload.totalWeight) !== null && _b !== void 0 ? _b : existing.totalWeight,
                     currency: (_c = payload.currency) !== null && _c !== void 0 ? _c : existing.currency,
                     status: (_d = payload.status) !== null && _d !== void 0 ? _d : existing.status,
-                } });
+                }
+            });
         }
-        // create new cart when no existing cart found
-        return await client.cart.create({ data: payload });
+        else {
+            // create new cart when no existing cart found
+            return await client.cart.create({ data: payload });
+        }
     }
     async createCartProduct(payload, tx) {
         var _a, _b, _c, _d;
@@ -154,6 +158,32 @@ class CartRepository extends base_repository_1.BaseRepository {
             throw new errors_1.NotFoundError('Cart not found for the user');
         }
         return (_a = cart === null || cart === void 0 ? void 0 : cart.products[0]) === null || _a === void 0 ? void 0 : _a.variants;
+    }
+    async findAllCartByUser(userId, tx) {
+        const client = tx || this.prisma;
+        const carts = await client.cart.findMany({
+            where: { userId: Number(userId) },
+            include: {
+                products: {
+                    include: {
+                        variants: true,
+                    },
+                },
+            },
+        });
+        return carts;
+    }
+    async deleteCartProductByProductTId(productTId, tx) {
+        const client = tx || this.prisma;
+        return await client.cartProduct.deleteMany({
+            where: { id: Number(productTId) },
+        });
+    }
+    async delteCartProductVariantByTId(variantTId, tx) {
+        const client = tx || this.prisma;
+        return await client.cartProductVariant.delete({
+            where: { id: variantTId },
+        });
     }
 }
 const prisma = new client_1.PrismaClient();

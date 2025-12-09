@@ -1,10 +1,11 @@
 import prisma from "../../config/prismadatabase";
-import { CreatePolicyRequestDTO, CreatePolicyTypeRequestDTO, PolicyRequestDTO } from "../../types/policy";
-import { PrismaClient } from '@prisma/client';
+import { CreatePolicyRequestDTO, CreatePolicyTypeRequestDTO, PoliciesI, PolicyRequestDTO } from "../../types/policy";
+import { PrismaClient } from "@prisma/client";
 import { pagination } from "../../utils/pagination";
 
-export default new class PoliciesRepository {
+export default new (class PoliciesRepository {
   private prisma = prisma;
+
 
 
   getAllPolicyTitlesRepository = async () => {
@@ -21,9 +22,16 @@ export default new class PoliciesRepository {
     return policyType;
   };
 
-  getPolicyByIdRepository = async (id: number) => {
+  getPolicyByPolicyTypeIdRepository = async (id: number) => {
     const policy = await this.prisma.policies.findFirst({
       where: { policyTypeId: id },
+    });
+    return policy;
+  };
+
+  getPolicyByIdRepository=async (id: number) => {
+    const policy = await this.prisma.policies.findUnique({
+      where: { id: id },
     });
     return policy;
   };
@@ -69,26 +77,39 @@ export default new class PoliciesRepository {
     });
   };
 
-
-   async getPolicesWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
-    console.log("🚀 ~ policies.repository.ts:74 ~ getPolicesWithPagination ~ payload:", payload)
+  async getPolicesWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
     const { limit, offset } = payload;
     const prismaClient: PrismaClient = tx || this.prisma;
     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
-        const [doc, totalDoc] = await Promise.all([
+      const [doc, totalDoc] = await Promise.all([
         this.prisma.policyType.findMany({
-          where: {  },
+          where: {},
           skip: offset,
           take: limit,
         }),
-        prisma.policyType.count({ where: {  } }),
+        prisma.policyType.count({ where: {} }),
       ]);
       return { doc, totalDoc };
     });
+  }
 
 
- }
+async addHelpfulCount(id: number, helpfulCount: number) {
 
+  return await this.prisma.policies.update({
+    where: { id: id },
+    data: {
+      helpfulCount: helpfulCount
+    }
+  });
+}
 
-
+addUnhelpfulCount = async (id: number, notHelpfulCount: number): Promise<any> => {
+  const updatedPolicy = await this.prisma.policies.update({
+    where: { id: id },
+    data: { notHelpfulCount: notHelpfulCount },
+  });
+  return updatedPolicy;
 };
+
+})();
