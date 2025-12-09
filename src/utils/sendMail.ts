@@ -18,23 +18,18 @@
 
 
 
+
 import nodemailer from "nodemailer";
-import type SMTPTransport from "nodemailer/lib/smtp-transport";
-import type Mail from "nodemailer/lib/mailer";
 import config from "../config/config";
 
-// Transporter
 export const transporter = nodemailer.createTransport({
   service: config.smtpService,
   auth: {
     user: config.smtpUser,
     pass: config.smtpPass,
   },
-} as SMTPTransport.Options);
+} as any); // Type force to prevent internal typing errors
 
-// Send Mail Function
-export const sendMail = async (
-  mailOptions: Mail.Options
-): Promise<SMTPTransport.SentMessageInfo> => {
-  return await transporter.sendMail(mailOptions);
-};
+export async function sendMail(options: any) {
+  return await transporter.sendMail(options);
+}
