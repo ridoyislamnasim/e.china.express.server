@@ -3,30 +3,33 @@ import { Request } from 'express';
 
 const storage = multer.memoryStorage();
 
+const allowedMimes = [
+  'image/png',
+  'image/webp',
+  'image/jpg',
+  'image/jpeg',
+  'image/gif',
+  'image/avif',
+  'image/bmp',
+  'image/svg+xml',
+  'application/pdf',
+  // video type allow
+  'video/mp4',
+  'video/webm',
+  'video/ogg',
+  'video/mpeg',
+];
+
 export const upload = multer({
   storage,
   limits: {
-    fileSize: 102400000,
+    fileSize: 1024 * 1024 * 100, // 100MB
   },
   fileFilter: (req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile: boolean) => void) => {
-    // console.log('file', file);
-    // Check if the file type is allowed
-    if (
-      file.mimetype === 'image/png' ||
-      file.mimetype === 'image/webp' ||
-      file.mimetype === 'image/jpg' ||
-      file.mimetype === 'image/jpeg' ||
-      file.mimetype === 'application/pdf' ||
-      file.mimetype === 'image/svg+xml' ||
-      file.mimetype === 'image/svg' ||
-      file.mimetype === 'image/gif' ||
-      file.mimetype === 'image/avif' ||
-      file.mimetype === 'image/bmp' ||
-      file.mimetype?.includes('video')
-    ) {
+    if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('only .jpg, .png, .jpeg or .webp format allowed'), false);
+      cb(new Error(`Unsupported file type: ${file.mimetype}`), false);
     }
   },
 });
