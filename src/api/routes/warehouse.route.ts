@@ -1,7 +1,7 @@
 import { Router } from "express";
 import controller from "../../modules/warehouse/warehouse.controller";
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-import { upload } from "../../middleware/upload/upload";
+// import { upload } from "../../middleware/upload/upload";
 
 const warehouseRoute = Router();
 // warehouseRoute.use(jwtAuth()); // Uncomment if authentication is required
@@ -19,7 +19,7 @@ warehouseRoute.get("/manager/:managerId", controller.getWarehousesByManager);
 
 warehouseRoute.route("/:id")
     .get(controller.getWarehouseById)
-    .patch(upload.any(), controller.updateWarehouse)
+    .patch( controller.updateWarehouse)
     .delete(controller.deleteWarehouse);
 
 warehouseRoute.patch("/:id/capacity", controller.updateWarehouseCapacity);

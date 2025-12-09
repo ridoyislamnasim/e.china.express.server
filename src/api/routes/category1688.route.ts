@@ -1,7 +1,7 @@
 import { Router } from "express";
 import controller from "../../modules/category1688/category.1688.controller";
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-import { upload } from "../../middleware/upload/upload";
+// import { upload } from "../../middleware/upload/upload";
 
 const Category1688Router = Router();
 // Category1688Router.use(jwtAuth());

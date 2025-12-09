@@ -1,13 +1,13 @@
 import { Router } from "express";
 import controller from "../../modules/blog/blog.controller";
-import { upload } from "../../middleware/upload/upload";
+// import { upload } from "../../middleware/upload/upload";
 // import jwtAuth from "../../middleware/auth/jwtAuth";
 
 const BlogRoute = Router();
 // BlogRoute.use(jwtAuth());
 
 //done
-BlogRoute.route("/").post(upload.any(), controller.createBlog);
+BlogRoute.route("/").post( controller.createBlog);
 BlogRoute.route("/create-tag").post(controller.createBlogTag);
 BlogRoute.route("/").get(controller.getAllBlogs);
 BlogRoute.route("/blog-tags").post(controller.getAllBlogTags);
@@ -19,7 +19,7 @@ BlogRoute.delete("/blog-tags/:slug", controller.deleteBlogTagBySlug);
 
 //todo
 BlogRoute.get("/pagination", controller.getBlogWithPagination);
-BlogRoute.route("/:slug").put(upload.any(), controller.updateBlog);
+BlogRoute.route("/:slug").put( controller.updateBlog);
 BlogRoute.delete("/:slug", controller.deleteBlog);
 
 export default BlogRoute;

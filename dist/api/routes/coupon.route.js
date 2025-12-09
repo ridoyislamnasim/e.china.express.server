@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+// import jwtAuth from "../../middleware/auth/jwtAuth";
+// import { upload } from "../../middleware/upload/upload";
 const CouponRoute = (0, express_1.Router)();
 // CouponRoute.use(jwtAuth());
 // CouponRoute.route("/")

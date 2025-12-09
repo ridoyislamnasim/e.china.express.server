@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const cart_controller_1 = __importDefault(require("../../modules/cart/cart.controller"));
+// import jwtAuth from "../../middleware/auth/jwtAuth";
+// import { upload } from "../../middleware/upload/upload";
 const jwtAuth_1 = __importDefault(require("../../middleware/auth/jwtAuth"));
 const CartRoute = (0, express_1.Router)();
 CartRoute.use((0, jwtAuth_1.default)());

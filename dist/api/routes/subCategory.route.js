@@ -6,15 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const sub_category_controller_1 = __importDefault(require("../../modules/subCategory/sub.category.controller"));
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-const upload_1 = require("../../middleware/upload/upload");
+// import { upload } from "../../middleware/upload/upload";
 const SubCategoryRoute = (0, express_1.Router)();
 // SubCategoryRoute.use(jwtAuth());
 SubCategoryRoute.route("/")
-    .post(upload_1.upload.any(), sub_category_controller_1.default.createSubCategory)
+    .post(sub_category_controller_1.default.createSubCategory)
     .get(sub_category_controller_1.default.getAllSubCategory);
 SubCategoryRoute.get("/pagination", sub_category_controller_1.default.getSubCategoryWithPagination);
 SubCategoryRoute.route("/:slug")
     .get(sub_category_controller_1.default.getSingleSubCategory)
-    .put(upload_1.upload.any(), sub_category_controller_1.default.updateSubCategory)
+    .put(sub_category_controller_1.default.updateSubCategory)
     .delete(sub_category_controller_1.default.deleteSubCategory);
 exports.default = SubCategoryRoute;

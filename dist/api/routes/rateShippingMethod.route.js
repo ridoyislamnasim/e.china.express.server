@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 // import controller from "../../modules/order/order.controller";
 const shippingMethod_controller_1 = __importDefault(require("../../modules/rateShippingMethod/shippingMethod.controller"));
+// import jwtAuth from "../../middleware/auth/jwtAuth";
+// import { upload } from "../../middleware/upload/upload";
 const rateShippingMethodRoute = (0, express_1.Router)();
 // OrderRoute.use(jwtAuth());
 // rateShippingMethodRoute.post('/',controller.createShippingMethod)

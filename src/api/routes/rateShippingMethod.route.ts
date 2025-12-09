@@ -3,7 +3,7 @@ import { Router } from "express";
 import controller from "../../modules/rateShippingMethod/shippingMethod.controller";
 
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-import { upload } from "../../middleware/upload/upload";
+// import { upload } from "../../middleware/upload/upload";
 
 const rateShippingMethodRoute = Router();
 // OrderRoute.use(jwtAuth());

@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const warehouse_controller_1 = __importDefault(require("../../modules/warehouse/warehouse.controller"));
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-const upload_1 = require("../../middleware/upload/upload");
+// import { upload } from "../../middleware/upload/upload";
 const warehouseRoute = (0, express_1.Router)();
 // warehouseRoute.use(jwtAuth()); // Uncomment if authentication is required
 warehouseRoute.route("/")
@@ -19,7 +19,7 @@ warehouseRoute.get("/pagination", warehouse_controller_1.default.getWarehousesWi
 warehouseRoute.get("/manager/:managerId", warehouse_controller_1.default.getWarehousesByManager);
 warehouseRoute.route("/:id")
     .get(warehouse_controller_1.default.getWarehouseById)
-    .patch(upload_1.upload.any(), warehouse_controller_1.default.updateWarehouse)
+    .patch(warehouse_controller_1.default.updateWarehouse)
     .delete(warehouse_controller_1.default.deleteWarehouse);
 warehouseRoute.patch("/:id/capacity", warehouse_controller_1.default.updateWarehouseCapacity);
 warehouseRoute.patch("/:id/status", warehouse_controller_1.default.changeWarehouseStatus);
