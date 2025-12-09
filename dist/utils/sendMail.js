@@ -1,11 +1,26 @@
 "use strict";
+// import nodemailer from 'nodemailer';
+// import type { SendMailOptions as SendMailOptionsType } from 'nodemailer';
+// import type { Transporter } from 'nodemailer';
+// import config from '../config/config';
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendMail = exports.transporter = void 0;
+// export const transporter: Transporter = nodemailer.createTransport({
+//   service: config.smtpService,
+//   auth: {
+//     user: config.smtpUser,
+//     pass: config.smtpPass,
+//   },
+// });
+// export const sendMail = async (mailOptions: SendMailOptionsType): Promise<void> => {
+//   await transporter.sendMail(mailOptions);
+// };
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const config_1 = __importDefault(require("../config/config"));
+// Transporter
 exports.transporter = nodemailer_1.default.createTransport({
     service: config_1.default.smtpService,
     auth: {
@@ -13,7 +28,8 @@ exports.transporter = nodemailer_1.default.createTransport({
         pass: config_1.default.smtpPass,
     },
 });
+// Send Mail Function
 const sendMail = async (mailOptions) => {
-    await exports.transporter.sendMail(mailOptions);
+    return await exports.transporter.sendMail(mailOptions);
 };
 exports.sendMail = sendMail;

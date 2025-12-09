@@ -29,7 +29,7 @@ exports.upload = (0, multer_1.default)({
             cb(null, true);
         }
         else {
-            cb(new Error('only .jpg, .png, .jpeg or .webp format allowed'));
+            cb(new Error('only .jpg, .png, .jpeg or .webp format allowed'), false);
         }
     },
 });

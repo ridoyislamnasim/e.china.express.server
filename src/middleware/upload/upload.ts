@@ -1,4 +1,4 @@
-import multer, { FileFilterCallback } from 'multer';
+import multer from 'multer';
 import { Request } from 'express';
 
 const storage = multer.memoryStorage();
@@ -8,7 +8,7 @@ export const upload = multer({
   limits: {
     fileSize: 102400000,
   },
-  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+  fileFilter: (req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile: boolean) => void) => {
     // console.log('file', file);
     // Check if the file type is allowed
     if (
@@ -26,7 +26,7 @@ export const upload = multer({
     ) {
       cb(null, true);
     } else {
-      cb(new Error('only .jpg, .png, .jpeg or .webp format allowed'));
+      cb(new Error('only .jpg, .png, .jpeg or .webp format allowed'), false);
     }
   },
 });
