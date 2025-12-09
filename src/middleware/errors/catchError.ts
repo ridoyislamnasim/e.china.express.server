@@ -10,8 +10,6 @@ const catchError = (controller: (req: Request, res: Response, next: NextFunction
       // next(err);
       // console.error("Error caught in catchError middleware:", err);
             const parsedError = parsePostgreSQLError(err);
-
-            // Pass the parsed error to the global error handler
             next(parsedError);
     }
   };
