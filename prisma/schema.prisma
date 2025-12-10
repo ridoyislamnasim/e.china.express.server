@@ -217,7 +217,7 @@ model WarehouseSpace {
   warehouseId String
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   
-  @@unique([warehouseId, name])
+  @@unique([warehouseId])
   
  
   airSpaces     AirSpace[]
