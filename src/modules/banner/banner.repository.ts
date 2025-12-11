@@ -42,17 +42,17 @@ class BannerRepository {
     //   throw error;
     // }
 
-        return await pagination(payload, async (limit: number, offset: number) => {
+    return await pagination(payload, async (limit: number, offset: number) => {
       const [doc, totalDoc] = await Promise.all([
-       await prisma.banner.findMany({
-        skip: payload.offset,
-        take: payload.limit,
-        orderBy: { createdAt: payload.sortOrder },
-      }),
-      await prisma.banner.count(),
-    ]);
-    return { doc, totalDoc };
-  });
+        await prisma.banner.findMany({
+          skip: payload.offset,
+          take: payload.limit,
+          orderBy: { createdAt: payload.sortOrder },
+        }),
+        await prisma.banner.count(),
+      ]);
+      return { doc, totalDoc };
+    });
   }
 
   async getSingleBanner(id: number) {

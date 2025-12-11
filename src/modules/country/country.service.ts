@@ -12,13 +12,6 @@ export class CountryService {
     this.repository = repository;
   }
 
-
-
-
-
-
-
-
   
   async createCountry(payload: CountryPayload): Promise<any> {
     const { name, status, isoCode, ports, zone, isShippingCountry } = payload;
@@ -59,25 +52,9 @@ export class CountryService {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   async getAllCountries(payload?: any){
     const countries = await this.repository.getAllCountries();
+    console.log("Fetched Countries: ", countries);
     return countries;
   }
 

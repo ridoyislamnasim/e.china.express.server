@@ -35,6 +35,22 @@ class CartController {
 
   })
 
+  cartProductConfirm = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+    // Zschema validation can be added here if needed
+    console.log("Request Body: ", req.body);
+    const {productId, rateId} = req.body;
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const payload = {
+      userId: userRef,
+      productId : productId,
+      rateId : rateId,
+    };
+    console.log("Validated Payload: ", payload);
+    const cartServiceResult = await CartService.cartProductConfirm(payload, tx);
+    const resDoc = responseHandler(200, "Cart product confirmed", cartServiceResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  })
+
 
   getUserCartByProductId = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;

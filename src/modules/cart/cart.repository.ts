@@ -126,7 +126,7 @@ export class CartRepository extends BaseRepository<Cart> {
   }
 
 
-    async findCartItemByUserAndProduct(userId: string | number, productId: string | number, tx?: any) {
+  async findCartItemByUserAndProduct(userId: string | number, productId: string | number, tx?: any) {
     const client = tx || this.prisma;
 
     const pidStr = String(productId);
@@ -169,7 +169,7 @@ export class CartRepository extends BaseRepository<Cart> {
       throw new NotFoundError('Cart not found for the user');
     }
     return cart?.products[0]?.variants;
-  }
+  }  
 
   async findCartItemByUserAndProductForRate(userId: string | number, productId: string | number, tx?: any) {
     const client = tx || this.prisma;
@@ -217,6 +217,47 @@ export class CartRepository extends BaseRepository<Cart> {
     return cart;
   }
 
+  async createProductShipping(payload: any, tx?: any) {
+    console.log("Creating/Updating Product Shipping with payload: ", payload);
+    const { userId, cartProductId } = payload;
+    const client = tx || this.prisma;
+
+    // Check if a ProductShipping entry already exists for the given userId and cartProductId
+    const existing = await client.productShipping.findFirst({
+        where: {
+            userId: Number(userId),
+            cartProductId: Number(cartProductId),
+        },
+    });
+
+    if (existing) {
+        // Update the existing ProductShipping entry
+        console.log("Updating existing ProductShipping entry:", existing.id);
+        return await client.productShipping.update({
+            where: { id: existing.id },
+            data: payload,
+        });
+    }
+
+    // Create a new ProductShipping entry if none exists
+    console.log("Creating new ProductShipping entry with payload:", payload);
+    return await client.productShipping.create({ data: payload });
+}
+
+
+  async updateCartProductShippingConfirm(cartProductId: string | number,  tx?: any) {
+    const client = tx || this.prisma;
+
+    return await client.cartProduct.updateMany({
+      where: {
+        id: Number(cartProductId),
+      },
+      data: {
+        confirm: true,
+      },
+    });
+  } 
+
   async findAllCartByUser(userId: string | number, tx?: any) {
     const client = tx || this.prisma;
     const carts = await client.cart.findMany({
@@ -242,7 +283,7 @@ export class CartRepository extends BaseRepository<Cart> {
   async deleteCartProductByProductTId(productTId: string | number, tx?: any) {
     const client = tx || this.prisma;
     return await client.cartProduct.deleteMany({
-      where: { id: Number(productTId) },     
+      where: { id: Number(productTId) },
     });
   }
 
@@ -258,4 +299,4 @@ export class CartRepository extends BaseRepository<Cart> {
 
 const prisma = new PrismaClient();
 const cartRepository = new CartRepository(prisma);
-export default  cartRepository;
+export default cartRepository;

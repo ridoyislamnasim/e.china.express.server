@@ -10,28 +10,29 @@ datasource db {
 }
 
 model User {
-  id                Int             @id @default(autoincrement())
-  email             String          @unique
-  phone             String?         @unique
+  id                Int               @id @default(autoincrement())
+  email             String            @unique
+  phone             String?           @unique
   password          String
   name              String?
-  isVerified        Boolean         @default(false)
+  isVerified        Boolean           @default(false)
   // Relations
   wishlist          Wishlist[]
   cart              Cart[]
   orders            Order[]
   productReviews    ProductReview[]
-  managedWarehouses Warehouse[]     @relation("UserManagedWarehouses")
-  createdWarehouses Warehouse[]     @relation("UserCreatedWarehouses")
-  updatedWarehouses Warehouse[]     @relation("UserUpdatedWarehouses")
+  managedWarehouses Warehouse[]       @relation("UserManagedWarehouses")
+  createdWarehouses Warehouse[]       @relation("UserCreatedWarehouses")
+  updatedWarehouses Warehouse[]       @relation("UserUpdatedWarehouses")
   roleId            Int?
-  role              Role?           @relation(fields: [roleId], references: [id])
+  role              Role?             @relation(fields: [roleId], references: [id])
   addressId         Int?
-  address           Address?        @relation(fields: [addressId], references: [id])
+  address           Address?          @relation(fields: [addressId], references: [id])
   buyNowCarts       BuyNowCart[]
   otp               OTP[]
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  productShipping   ProductShipping[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 }
 
 model Role {
@@ -575,10 +576,11 @@ model Banner {
 }
 
 model RateShippingMethod {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String? // optional field, nullable
-  createdAt   DateTime @default(now())
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  description     String? // optional field, nullable
+  createdAt       DateTime          @default(now())
+  productShipping ProductShipping[]
 }
 
 model Country {
@@ -595,6 +597,8 @@ model Country {
   ports              Ports[]
   warehouses         Warehouse[]
   countryHsCodes     CountryHsCode[]
+  productShipping    ProductShipping[]    @relation("FromCountry")
+  productShippingTo  ProductShipping[]    @relation("ToCountry")
 
   @@map("countries")
 }
@@ -705,6 +709,7 @@ model Rate {
   shippingMethod     RateSippingMethod    @relation(fields: [shippingMethodId], references: [id])
   weightCategory     RateWeightCategorie  @relation(fields: [weightCategoryId], references: [id])
   cartProductVariant CartProductVariant[]
+  productShipping    ProductShipping[]
 }
 
 model Category1688 {
@@ -774,25 +779,27 @@ model Cart {
   currency    String @default("Dollar")
   status      String @default("active") // active, pending, checkout
 
-  user     User          @relation(fields: [userId], references: [id])
-  products CartProduct[] 
+  user            User              @relation(fields: [userId], references: [id])
+  products        CartProduct[]
+  productShipping ProductShipping[]
 }
 
 model CartProduct {
   id         Int        @id @default(autoincrement())
   productFor ProductFor @default(FROM1688)
 
-  product1688Id    String?
-  productLocalId   Int?
-  
+  product1688Id  String?
+  productLocalId Int?
+
   productLocal     Product? @relation(fields: [productLocalId], references: [id])
   productAlibabaId String?
 
   mainSkuImageUrl String?
   vendorId        Int? // highly recommended
 
-  cartId Int
-  cart   Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId  Int
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  confirm Boolean @default(false)
 
   quantity    Int   @default(1)
   totalPrice  Float @default(0)
@@ -800,7 +807,8 @@ model CartProduct {
 
   isDeleted Boolean @default(false)
 
-  variants CartProductVariant[]
+  variants        CartProductVariant[]
+  productShipping ProductShipping[]
 }
 
 enum ProductFor {
@@ -830,6 +838,60 @@ model CartProductVariant {
   rate           Int?
   cartProduct    CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
   shippingRate   Rate?       @relation(fields: [shippingRateId], references: [id])
+}
+
+model ProductShipping {
+  id Int @id @default(autoincrement())
+
+  cartId Int
+  cart   Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  cartProductId Int
+  cartProduct   CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
+
+  rateId Int?
+  rate   Rate? @relation(fields: [rateId], references: [id])
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  fromCountryId Int?
+  fromCountry   Country? @relation("FromCountry", fields: [fromCountryId], references: [id])
+
+  toCountryId Int?
+  toCountry   Country? @relation("ToCountry", fields: [toCountryId], references: [id])
+
+  totalQuantity Int     @default(0)
+  approxWeight  Decimal @default("0") @db.Decimal(10, 3)
+  weightRange   Decimal @default("0") @db.Decimal(10, 3)
+
+  shippingMethodId Int?
+  shippingMethod   RateShippingMethod? @relation(fields: [shippingMethodId], references: [id], onDelete: Cascade)
+  
+  totalCost Decimal @default("0") @db.Decimal(12, 2)
+
+  orderEnabled Boolean @default(false)
+
+  customDuty   Decimal @default("0") @db.Decimal(12, 2)
+  vat          Decimal @default("0") @db.Decimal(6, 2)
+  handlingFee  Decimal @default("0") @db.Decimal(12, 2)
+  packagingFee Decimal @default("0") @db.Decimal(12, 2)
+
+  discount     Decimal @default("0") @db.Decimal(12, 2)
+  finalPayable Decimal @default("0") @db.Decimal(12, 2)
+
+  estDeliveryDays    Int?
+  actualDeliveryDate DateTime?
+
+  trackingNumber    String?
+  trackingURL       String?
+  warehouseLocation String?
+  shippingStatus    String  @default("pending")
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model PolicyType {

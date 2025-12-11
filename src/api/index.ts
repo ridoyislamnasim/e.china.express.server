@@ -35,7 +35,7 @@ rootRouter.use("/subcategory", SubCategoryRouter);
 rootRouter.use("/product", ProductRouter);
 // rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/coupon", CouponRouter);
-rootRouter.use("/order", OrderRouter);
+rootRouter.use("/order", OrderRouter); 
 rootRouter.use("/wishlist", WishlistRouter);
 
 
@@ -47,12 +47,6 @@ rootRouter.use('/rate/product', rateProductRoute);
 rootRouter.use('/rate', rateRoute);
 
 // refi 
-
-
-
-
-
-
 
 //done by rafi
 rootRouter.use("/policies",policiesRoute ); // policies routes
