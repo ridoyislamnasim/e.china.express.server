@@ -19,10 +19,10 @@ warehouseSpaceRoute.route("/:id")
     .patch(upload.any(), controller.updateWarehouseSpace)
     .delete(controller.deleteWarehouseSpace);
 
-warehouseSpaceRoute.post("/:warehouseSpaceId/spaces", controller.createSpace);
-warehouseSpaceRoute.post("/:warehouseSpaceId/inventories", controller.createInventory);
-warehouseSpaceRoute.get("/:warehouseSpaceId/spaces", controller.getAllSpaces);
-warehouseSpaceRoute.get("/:warehouseSpaceId/inventories", controller.getAllInventories);
+warehouseSpaceRoute.post("/spaces/:warehouseSpaceId", controller.createSpace);
+warehouseSpaceRoute.post("/inventories/:warehouseSpaceId", controller.createInventory);
+warehouseSpaceRoute.get("/spaces/:warehouseSpaceId", controller.getAllSpaces);
+warehouseSpaceRoute.get("/inventories/:warehouseSpaceId", controller.getAllInventories);
 
 warehouseSpaceRoute.route("/spaces/:spaceId")
     .get(controller.getSpaceById)
