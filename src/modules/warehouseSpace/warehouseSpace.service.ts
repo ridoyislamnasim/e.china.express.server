@@ -17,7 +17,6 @@ export class WarehouseSpaceService {
     this.spaceActivityService = new SpaceActivityService();
   }
 
-  // WarehouseSpace methods
   async createWarehouseSpace(payload: WarehouseSpacePayload): Promise<any> {
     const { warehouseId, totalCapacity, name } = payload;
 
@@ -27,7 +26,6 @@ export class WarehouseSpaceService {
       throw error;
     }
 
-    // Check if warehouse exists
     const warehouse = await this.repository.getWarehouseById(warehouseId);
     if (!warehouse) {
       const error = new Error('Warehouse not found');
@@ -35,7 +33,6 @@ export class WarehouseSpaceService {
       throw error;
     }
 
-    // Check if warehouse space already exists for this warehouse
     const existingWarehouseSpace = await this.repository.getWarehouseSpaceByWarehouse(warehouseId);
     if (existingWarehouseSpace) {
       const error = new Error('Warehouse space already exists for this warehouse');
@@ -83,7 +80,6 @@ export class WarehouseSpaceService {
       throw error;
     }
 
-    // Check if there are spaces or inventories
     if (warehouseSpace.spaces.length > 0 || warehouseSpace.inventories.length > 0) {
       const error = new Error('Cannot delete warehouse space with existing spaces or inventories');
       (error as any).statusCode = 400;
@@ -93,7 +89,6 @@ export class WarehouseSpaceService {
     await this.repository.deleteWarehouseSpace(id);
   }
 
-  // Space methods
   async createSpace(warehouseSpaceId: string, payload: SpacePayload, tx?: any): Promise<any> {
     const { spaceId, type, name, capacity, spaceNumber } = payload;
 
@@ -103,7 +98,6 @@ export class WarehouseSpaceService {
       throw error;
     }
 
-    // Check if warehouse space exists
     const warehouseSpace = await this.repository.getWarehouseSpaceById(warehouseSpaceId);
     if (!warehouseSpace) {
       const error = new Error('Warehouse space not found');
@@ -111,7 +105,6 @@ export class WarehouseSpaceService {
       throw error;
     }
 
-    // Check if space with same spaceId and type already exists
     const existingSpace = await this.repository.getSpaceBySpaceIdAndType(warehouseSpaceId, spaceId, type);
     if (existingSpace) {
       const error = new Error('Space with this ID and type already exists');
@@ -119,7 +112,6 @@ export class WarehouseSpaceService {
       throw error;
     }
 
-    // Check if space number already exists
     if (spaceNumber) {
       const spaceWithNumber = await this.repository.getSpaceByNumber(warehouseSpaceId, type, spaceNumber);
       if (spaceWithNumber) {
@@ -131,7 +123,6 @@ export class WarehouseSpaceService {
 
     const space = await this.repository.createSpace(warehouseSpaceId, payload, tx);
     
-    // Log activity
     await this.spaceActivityService.logSpaceActivity({
       warehouseId: warehouseSpace.warehouseId,
       spaceType: 'SPACE',
@@ -166,7 +157,6 @@ export class WarehouseSpaceService {
       throw error;
     }
 
-    // Check if space number is being changed and if it conflicts
     if (payload.spaceNumber && payload.spaceNumber !== existingSpace.spaceNumber) {
       const spaceWithNumber = await this.repository.getSpaceByNumber(
         existingSpace.warehouseSpaceId, 
@@ -182,7 +172,6 @@ export class WarehouseSpaceService {
 
     const updatedSpace = await this.repository.updateSpace(id, payload, tx);
     
-    // Log activity
     await this.spaceActivityService.logSpaceActivity({
       warehouseId: existingSpace.warehouseSpace.warehouseId,
       spaceType: 'SPACE',
