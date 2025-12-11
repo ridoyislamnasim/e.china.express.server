@@ -207,207 +207,106 @@ model Warehouse {
 }
 
 model WarehouseSpace {
-  id          String    @id @default(cuid())
-  name        String
-  totalCapacity Int
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  warehouseId String
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  
+  id              String   @id @default(cuid())
+  name            String
+  totalCapacity   Int
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  warehouseId     String
+  warehouse       Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  spaces          Space[]
+  inventories     Inventory[]
+
   @@unique([warehouseId])
-  
- 
-  airSpaces     AirSpace[]
-  seaSpaces     SeaSpace[]
-  expressSpaces ExpressSpace[]
-  inventory     Inventory[]
-  
   @@index([warehouseId])
   @@map("warehouse_spaces")
 }
 
+model Space {
+  id                String    @id @default(cuid())
+  spaceId           String
+  type              SpaceType             // AIR, SEA, or EXPRESS
+  name              String
+  price             String?
+  duration          String?
+  occupied          Boolean?  @default(false)
+  spaceNumber       Int?
+  capacity          Int
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-model AirSpace {
-  id          String   @id @default(cuid())
-  spaceId     String  
-  name        String
-  price        String?
-  duration     String?
-  occupied    Boolean?  @default(false)
-  spaceNumber Int?      
-  capacity    Int      
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  
-  warehouseSpaceId String
-  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
-  
-  
-  @@unique([warehouseSpaceId, spaceId])
-  @@unique([warehouseSpaceId, spaceNumber])
-  
-  @@index([warehouseSpaceId])
-  @@map("air_spaces")
-}
+  warehouseSpaceId  String
+  warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
-model SeaSpace {
-  id          String   @id @default(cuid())
-  spaceId     String   
-  name        String
-  price        String?
-  duration     String?
-  occupied    Boolean?  @default(false)
-  spaceNumber Int?      
-  capacity    Int      
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  warehouseSpaceId String
-  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
-  
-  @@unique([warehouseSpaceId, spaceId])
-  @@unique([warehouseSpaceId, spaceNumber])
-  
-  @@index([warehouseSpaceId])
-  @@map("sea_spaces")
-}
+  activities        SpaceActivity[]
 
-model ExpressSpace {
-  id          String   @id @default(cuid())
-  spaceId     String  
-  name        String
-  price        String?
-  duration     String?
-  occupied    Boolean?  @default(false)
-  spaceNumber Int?      
-  capacity    Int      
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  warehouseSpaceId String
-  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
-  
-  @@unique([warehouseSpaceId, spaceId])
-  @@unique([warehouseSpaceId, spaceNumber])
-  
+  @@unique([warehouseSpaceId, type, spaceId])
+  @@unique([warehouseSpaceId, type, spaceNumber])
   @@index([warehouseSpaceId])
-  @@map("express_spaces")
+  @@index([type])
+  @@map("spaces")
 }
 
 model Inventory {
-  id          String   @id @default(cuid())
-  name        String   @default("Inventory")
-  description String?
-  price        String?
-  duration     String?
-  occupied    Boolean?  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  warehouseSpaceId String
-  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
-  
-  subInventoryX  SubInventoryX[]
-  subInventoryY  SubInventoryY[]
-  subInventoryZ  SubInventoryZ[]
-  
+  id                String        @id @default(cuid())
+  name              String        @default("Inventory")
+  type              InventoryType             // TYPE_X, TYPE_Y, or TYPE_Z
+  description       String?
+  price             String?
+  duration          String?
+  occupied          Boolean?      @default(false)
+  spaceNumber       Int?
+  capacity          Int?
+  fixedCbm          Boolean       @default(true)
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  warehouseSpaceId  String
+  warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+
+  activities        SpaceActivity[]
+
+  @@unique([warehouseSpaceId, type])
   @@index([warehouseSpaceId])
+  @@index([type])
   @@map("inventories")
 }
 
-model SubInventoryX {
-  id          String   @id @default(cuid())
-  spaceId     String   
-  name        String
-  price        String?
-  duration     String?
-  occupied    Boolean?  @default(false)
-  spaceNumber Int?     
-  capacity    Int?     
-  fixedCbm    Boolean  @default(true) 
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  inventoryId String
-  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-  
-  @@unique([inventoryId, spaceId])
-  @@unique([inventoryId, spaceNumber])
-  
-  @@index([inventoryId])
-  @@map("sub_inventory_x")
-}
-
-model SubInventoryY {
-  id          String   @id @default(cuid())
-  spaceId     String   
-  name        String
-  price        String?
-  duration     String?
-  occupied    Boolean?  @default(false)
-  spaceNumber Int?     
-  capacity    Int?      
-  fixedCbm    Boolean  @default(true) 
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  inventoryId String
-  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-  
-  @@unique([inventoryId, spaceId])
-  @@unique([inventoryId, spaceNumber])
-  
-  @@index([inventoryId])
-  @@map("sub_inventory_y")
-}
-
-model SubInventoryZ {
-  id          String   @id @default(cuid())
-  spaceId     String   
-  name        String
-  price        String?
-  duration     String?
-  occupied    Boolean?  @default(false)
-  spaceNumber Int?    
-  capacity    Int?     
-  fixedCbm    Boolean  @default(true) 
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  inventoryId String
-  inventory   Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
-  
-  @@unique([inventoryId, spaceId])
-  @@unique([inventoryId, spaceNumber])
-  
-  @@index([inventoryId])
-  @@map("sub_inventory_z")
-}
-
 model SpaceActivity {
-  id          String   @id @default(cuid())
-  spaceType   String   
-  spaceId     String   
-  action      String   
-  details     Json?    
-  userId      String?  
-  createdAt   DateTime @default(now())
+  id                String   @id @default(cuid())
+  spaceType         String   
+  spaceId           String
+  action            String   // CREATE, UPDATE, DELETE, etc.
+  details           Json?
+  userId            String?
+  createdAt         DateTime @default(now())
 
-  warehouseId String
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  
+  warehouseId       String
+  warehouse         Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  space             Space?   @relation(fields: [spaceId], references: [id], map: "space_activities_space_fkey")
+  inventory         Inventory? @relation(fields: [spaceId], references: [id], map: "space_activities_inventory_fkey")
+
   @@index([warehouseId, spaceType, spaceId])
+  @@index([createdAt])
   @@map("space_activities")
+}
+
+enum SpaceType {
+  AIR
+  SEA
+  EXPRESS
+}
+
+enum InventoryType {
+  TYPE_X
+  TYPE_Y
+  TYPE_Z
 }
 
 enum WarehouseStatus {
