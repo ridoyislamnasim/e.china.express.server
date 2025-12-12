@@ -19,13 +19,14 @@ import Category1688Router from "./routes/category1688.route";
 import warehouseRoute from "./routes/warehouse.route";
 import policiesRoute from "./routes/policies.route";
 import guideRoute from "./routes/guide.route";
+import warehouseSpaceRoute from "./routes/warehouseSpace.route";
 // import other routers here
 
 const rootRouter = Router();
 
 rootRouter.use("/example", exampleRouter);
 rootRouter.use("/auth", authRouter);
-rootRouter.use('/warehouses', warehouseRoute);
+
 rootRouter.use("/1688/category", Category1688Router);
 
 
@@ -35,8 +36,7 @@ rootRouter.use("/subcategory", SubCategoryRouter);
 rootRouter.use("/product", ProductRouter);
 // rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/coupon", CouponRouter);
-rootRouter.use("/order", OrderRouter); 
-rootRouter.use("/wishlist", WishlistRouter);
+rootRouter.use("/order", OrderRouter);
 
 
 rootRouter.use("/cart", CartRouter); // cart routes
@@ -46,7 +46,13 @@ rootRouter.use('/rate/weightcategories', rateWeightCategoriesRoute);
 rootRouter.use('/rate/product', rateProductRoute);
 rootRouter.use('/rate', rateRoute);
 
-// refi 
+
+
+// WarehouseSpace masud
+rootRouter.use('/warehouses', warehouseRoute);
+rootRouter.use('/warehouse-spaces', warehouseSpaceRoute);
+
+
 
 //done by rafi
 rootRouter.use("/policies",policiesRoute ); // policies routes

@@ -59,6 +59,7 @@ export class CartRepository extends BaseRepository<Cart> {
           totalPrice: newTotalPrice,
           totalWeight: newTotalWeight,
           mainSkuImageUrl: payload.mainSkuImageUrl ?? existing.mainSkuImageUrl,
+          calculatedPrice:  existing.calculatedPrice,
         },
       });
     }
@@ -66,6 +67,7 @@ export class CartRepository extends BaseRepository<Cart> {
     // no existing product -> create new
     return await client.cartProduct.create({ data: payload as any });
   }
+
 
   async createCartProductVariant(payload: TCartProductVariant, tx?: any) {
     console.log("Creating Cart Product Variant with payload: ", payload);
@@ -75,6 +77,11 @@ export class CartRepository extends BaseRepository<Cart> {
     if (payload.skuId == null && payload.specId == null) {
       // find exiting variant by cartProductId only
       const existing = await client.cartProductVariant.findFirst({ where: { cartProductId: payload.cartProductId } });
+      if(payload.quantity == 0) {
+        await client.cartProductVariant.delete({ where: {id: existing.id  } });
+        return [];
+      }
+    
       if (existing) {
         const newQuantity = (payload.quantity ?? 0);
         const newPrice = (payload.price ?? 0);
@@ -261,14 +268,15 @@ export class CartRepository extends BaseRepository<Cart> {
   async findAllCartByUser(userId: string | number, tx?: any) {
     const client = tx || this.prisma;
     const carts = await client.cart.findMany({
-      where: { userId: Number(userId) },
-      include: {
-        products: {
-          include: {
-            variants: true,
-          },
+        where: { userId: Number(userId) },
+        include: {
+            products: {
+                where: { confirm: true }, 
+                include: {
+                    variants: true,
+                },
+            },
         },
-      },
     });
     return carts;
   }

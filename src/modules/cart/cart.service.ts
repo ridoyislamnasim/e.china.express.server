@@ -134,12 +134,14 @@ export class CartService extends BaseService<typeof cartRepository> {
       })();
 
       const cartProductPayload = {
+        titleTrans: product?.titleTrans || product?.title || "Unknown Product",
         product1688Id: it.product1688Id != null ? String(it.product1688Id) : undefined,
         productLocalId: it.productLocalId != null ? Number(it.productLocalId) : undefined,
         productAlibabaId: it.productAlibabaId != null ? String(it.productAlibabaId) : undefined,
         cartId: cart.id,
         quantity: productTotalQty,
         totalPrice: (price != null && Number.isFinite(Number(price)) ? Number(price) * productTotalQty : 0),
+        calculatedPrice: price ,
         totalWeight: (weight ?? 0) * productTotalQty,
         mainSkuImageUrl: product.images && product.images.length > 0 ? product.images[0] : null,
       };
@@ -152,6 +154,7 @@ export class CartService extends BaseService<typeof cartRepository> {
         skuId: it.skuId != null ? String(it.skuId) : undefined,
         specId: it.specId != null ? String(it.specId) : undefined,
         quantity: qty,
+        amountOnSale: it.amountOnSale != null ? Number(it.amountOnSale) : 0,
         attributeName: (() => {
           try {
             const sku = product?.productSkuInfos_Variant?.find((s: any) => Number(s.skuId) === Number(it.skuId));
