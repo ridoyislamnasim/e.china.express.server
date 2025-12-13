@@ -208,6 +208,7 @@ model Warehouse {
 }
 
 model WarehouseSpace {
+<<<<<<< HEAD
   id            String   @id @default(cuid())
   name          String
   totalCapacity Int
@@ -222,12 +223,27 @@ model WarehouseSpace {
   seaSpaces     SeaSpace[]
   expressSpaces ExpressSpace[]
   inventory     Inventory[]
+=======
+  id              String   @id @default(cuid())
+  name            String
+  totalCapacity   Int
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  warehouseId     String
+  warehouse       Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  spaces          Space[]
+  inventories     Inventory[]
+>>>>>>> origin/warehouse-space
 
   @@unique([warehouseId])
   @@index([warehouseId])
   @@map("warehouse_spaces")
 }
 
+<<<<<<< HEAD
 model AirSpace {
   id          String   @id @default(cuid())
   spaceId     String
@@ -290,11 +306,36 @@ model ExpressSpace {
 
   @@unique([warehouseSpaceId, spaceId])
   @@unique([warehouseSpaceId, spaceNumber])
+=======
+model Space {
+  id                String    @id @default(cuid())
+  spaceId           String
+  type              SpaceType             // AIR, SEA, or EXPRESS
+  name              String
+  price             String?
+  duration          String?
+  occupied          Boolean?  @default(false)
+  spaceNumber       Int?
+  capacity          Int
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  warehouseSpaceId  String
+  warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+
+  activities        SpaceActivity[]
+
+  @@unique([warehouseSpaceId, type, spaceId])
+  @@unique([warehouseSpaceId, type, spaceNumber])
+>>>>>>> origin/warehouse-space
   @@index([warehouseSpaceId])
-  @@map("express_spaces")
+  @@index([type])
+  @@map("spaces")
 }
 
 model Inventory {
+<<<<<<< HEAD
   id          String   @id @default(cuid())
   name        String   @default("Inventory")
   description String?
@@ -311,10 +352,34 @@ model Inventory {
   subInventoryY SubInventoryY[]
   subInventoryZ SubInventoryZ[]
 
+=======
+  id                String        @id @default(cuid())
+  name              String        @default("Inventory")
+  type              InventoryType             // TYPE_X, TYPE_Y, or TYPE_Z
+  description       String?
+  price             String?
+  duration          String?
+  occupied          Boolean?      @default(false)
+  spaceNumber       Int?
+  capacity          Int?
+  fixedCbm          Boolean       @default(true)
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  warehouseSpaceId  String
+  warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+
+  activities        SpaceActivity[]
+
+  @@unique([warehouseSpaceId, type])
+>>>>>>> origin/warehouse-space
   @@index([warehouseSpaceId])
+  @@index([type])
   @@map("inventories")
 }
 
+<<<<<<< HEAD
 model SubInventoryX {
   id          String   @id @default(cuid())
   spaceId     String
@@ -396,8 +461,38 @@ model SpaceActivity {
   warehouseId String
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
 
+=======
+model SpaceActivity {
+  id                String   @id @default(cuid())
+  spaceType         String   
+  spaceId           String
+  action            String   // CREATE, UPDATE, DELETE, etc.
+  details           Json?
+  userId            String?
+  createdAt         DateTime @default(now())
+
+  warehouseId       String
+  warehouse         Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  space             Space?   @relation(fields: [spaceId], references: [id], map: "space_activities_space_fkey")
+  inventory         Inventory? @relation(fields: [spaceId], references: [id], map: "space_activities_inventory_fkey")
+
+>>>>>>> origin/warehouse-space
   @@index([warehouseId, spaceType, spaceId])
+  @@index([createdAt])
   @@map("space_activities")
+}
+
+enum SpaceType {
+  AIR
+  SEA
+  EXPRESS
+}
+
+enum InventoryType {
+  TYPE_X
+  TYPE_Y
+  TYPE_Z
 }
 
 enum WarehouseStatus {
