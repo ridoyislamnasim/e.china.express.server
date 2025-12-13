@@ -58,6 +58,7 @@ class CartRepository extends base_repository_1.BaseRepository {
                     totalPrice: newTotalPrice,
                     totalWeight: newTotalWeight,
                     mainSkuImageUrl: (_d = payload.mainSkuImageUrl) !== null && _d !== void 0 ? _d : existing.mainSkuImageUrl,
+                    calculatedPrice: existing.calculatedPrice,
                 },
             });
         }
@@ -72,6 +73,10 @@ class CartRepository extends base_repository_1.BaseRepository {
         if (payload.skuId == null && payload.specId == null) {
             // find exiting variant by cartProductId only
             const existing = await client.cartProductVariant.findFirst({ where: { cartProductId: payload.cartProductId } });
+            if (payload.quantity == 0) {
+                await client.cartProductVariant.delete({ where: { id: existing.id } });
+                return [];
+            }
             if (existing) {
                 const newQuantity = ((_a = payload.quantity) !== null && _a !== void 0 ? _a : 0);
                 const newPrice = ((_b = payload.price) !== null && _b !== void 0 ? _b : 0);
@@ -201,12 +206,47 @@ class CartRepository extends base_repository_1.BaseRepository {
         // return cart?.products[0]?.variants;
         return cart;
     }
+    async createProductShipping(payload, tx) {
+        console.log("Creating/Updating Product Shipping with payload: ", payload);
+        const { userId, cartProductId } = payload;
+        const client = tx || this.prisma;
+        // Check if a ProductShipping entry already exists for the given userId and cartProductId
+        const existing = await client.productShipping.findFirst({
+            where: {
+                userId: Number(userId),
+                cartProductId: Number(cartProductId),
+            },
+        });
+        if (existing) {
+            // Update the existing ProductShipping entry
+            console.log("Updating existing ProductShipping entry:", existing.id);
+            return await client.productShipping.update({
+                where: { id: existing.id },
+                data: payload,
+            });
+        }
+        // Create a new ProductShipping entry if none exists
+        console.log("Creating new ProductShipping entry with payload:", payload);
+        return await client.productShipping.create({ data: payload });
+    }
+    async updateCartProductShippingConfirm(cartProductId, tx) {
+        const client = tx || this.prisma;
+        return await client.cartProduct.updateMany({
+            where: {
+                id: Number(cartProductId),
+            },
+            data: {
+                confirm: true,
+            },
+        });
+    }
     async findAllCartByUser(userId, tx) {
         const client = tx || this.prisma;
         const carts = await client.cart.findMany({
             where: { userId: Number(userId) },
             include: {
                 products: {
+                    where: { confirm: true },
                     include: {
                         variants: true,
                     },

@@ -34,6 +34,22 @@ class CartController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Cart created", cartServiceResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.cartProductConfirm = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+            var _a, _b, _c, _d;
+            // Zschema validation can be added here if needed
+            console.log("Request Body: ", req.body);
+            const { productId, rateId } = req.body;
+            const userRef = (_d = (_c = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.user_info_encrypted) === null || _b === void 0 ? void 0 : _b.id) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : null;
+            const payload = {
+                userId: userRef,
+                productId: productId,
+                rateId: rateId,
+            };
+            console.log("Validated Payload: ", payload);
+            const cartServiceResult = await cart_service_1.default.cartProductConfirm(payload, tx);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Cart product confirmed", cartServiceResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         this.getUserCartByProductId = (0, catchError_1.default)(async (req, res, next) => {
             var _a, _b, _c, _d;
             const userRef = (_d = (_c = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.user_info_encrypted) === null || _b === void 0 ? void 0 : _b.id) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : null;

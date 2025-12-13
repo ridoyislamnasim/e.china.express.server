@@ -248,11 +248,13 @@ class RateService {
             error.statusCode = 404;
             throw error;
         }
+        console.log("importCountry", importCountry);
         // find the country combination id first
         const countryCombinationPayload = {
             exportCountryId: importCountry.id,
             importCountryId
         };
+        console.log("countryCombinationPayload", countryCombinationPayload);
         const existingCountryCombination = await this.repository.existingCountryConbination(countryCombinationPayload);
         if (!existingCountryCombination) {
             return [];

@@ -64,19 +64,33 @@ class CountryRepository {
             include: { ports: true, warehouses: true, countryHsCodes: true },
         });
     }
+    //  async getCountryWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
     async getCountryWithPagination(payload, tx) {
         const { limit, offset } = payload;
-        const prismaClient = tx || this.prisma;
+        // const prismaClient: PrismaClient = tx || this.prisma;
+        console.log("Pagination Payload: ", payload);
+        // return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+        //     const [doc, totalDoc] = await Promise.all([
+        //     this.prisma.country.findMany({
+        //       where: {  },
+        //       skip: offset,
+        //       take: limit,
+        //       // orderBy: sortOrder,
+        //       include: { ports: true, warehouses: true },
+        //     }),
+        //     prisma.country.count({ where: {  } }),
+        //   ]);
+        //   return { doc, totalDoc };
+        // });
         return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
             const [doc, totalDoc] = await Promise.all([
-                this.prisma.country.findMany({
-                    where: {},
-                    skip: offset,
-                    take: limit,
-                    // orderBy: sortOrder,
+                await this.prisma.country.findMany({
+                    skip: payload.offset,
+                    take: payload.limit,
+                    orderBy: { createdAt: sortOrder },
                     include: { ports: true, warehouses: true },
                 }),
-                prismadatabase_1.default.country.count({ where: {} }),
+                await this.prisma.country.count(),
             ]);
             return { doc, totalDoc };
         });

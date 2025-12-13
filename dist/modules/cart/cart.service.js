@@ -10,6 +10,7 @@ const cart_repository_1 = __importDefault(require("./cart.repository"));
 const client_1 = require("@prisma/client");
 // ProductService 
 const product_service_1 = __importDefault(require("../product/product.service"));
+const rate_repository_1 = __importDefault(require("../rate/rate.repository"));
 const prisma = new client_1.PrismaClient();
 class CartService extends base_service_1.BaseService {
     constructor(repository) {
@@ -122,12 +123,14 @@ class CartService extends base_service_1.BaseService {
                     return 0; // Default weight if nothing is found
                 })();
                 const cartProductPayload = {
+                    titleTrans: (product === null || product === void 0 ? void 0 : product.titleTrans) || (product === null || product === void 0 ? void 0 : product.title) || "Unknown Product",
                     product1688Id: it.product1688Id != null ? String(it.product1688Id) : undefined,
                     productLocalId: it.productLocalId != null ? Number(it.productLocalId) : undefined,
                     productAlibabaId: it.productAlibabaId != null ? String(it.productAlibabaId) : undefined,
                     cartId: cart.id,
                     quantity: productTotalQty,
                     totalPrice: (price != null && Number.isFinite(Number(price)) ? Number(price) * productTotalQty : 0),
+                    calculatedPrice: price,
                     totalWeight: (weight !== null && weight !== void 0 ? weight : 0) * productTotalQty,
                     mainSkuImageUrl: product.images && product.images.length > 0 ? product.images[0] : null,
                 };
@@ -139,6 +142,7 @@ class CartService extends base_service_1.BaseService {
                     skuId: it.skuId != null ? String(it.skuId) : undefined,
                     specId: it.specId != null ? String(it.specId) : undefined,
                     quantity: qty,
+                    amountOnSale: it.amountOnSale != null ? Number(it.amountOnSale) : 0,
                     attributeName: (() => {
                         var _a, _b;
                         try {
@@ -282,6 +286,56 @@ class CartService extends base_service_1.BaseService {
             return deletedVariant;
         };
         this.repository = repository;
+        this.rateRepository = rate_repository_1.default;
+    }
+    //  cartProductConfirm = async (payload: any, tx: any) => { 
+    async cartProductConfirm(payload, tx) {
+        var _a;
+        console.log("cartProductConfirm method called with payload:", payload);
+        const { userId, productId, rateId } = payload;
+        if (!userId) {
+            console.error("Error: Missing user id in cart product confirm payload");
+            throw new Error('Missing user id in cart product confirm payload');
+        }
+        const cartItem = await this.repository.findCartItemByUserAndProductForRate(userId, productId);
+        console.log("Cart item found for confirmation:", cartItem);
+        if (!cartItem) {
+            console.error("Error: Cart item not found for the given user and product");
+            throw new errors_1.NotFoundError('Cart item not found for the given user and product');
+        }
+        // find rate 
+        const rateInfo = await this.rateRepository.findRateByTId(rateId);
+        if (!rateInfo) {
+            console.error("Error: Rate not found for the given rateId:", rateId);
+            throw new errors_1.NotFoundError('Rate not found for the given rateId');
+        }
+        console.log("Rate info found:", rateInfo);
+        // Prepare payload for ProductShipping
+        const productShippingPayload = {
+            cartId: cartItem.id,
+            rateId: rateInfo.id,
+            cartProductId: cartItem.products[0].id,
+            userId: Number(userId),
+            fromCountryId: rateInfo.countryCombination.importCountryId,
+            toCountryId: rateInfo.countryCombination.exportCountryId,
+            totalQuantity: cartItem.products[0].quantity,
+            approxWeight: cartItem.products[0].totalWeight,
+            // weightRange: rateInfo.weightRange,
+            // shippingMethodId: rateInfo.shippingMethod.id,
+            totalCost: rateInfo.price * ((_a = cartItem === null || cartItem === void 0 ? void 0 : cartItem.products[0]) === null || _a === void 0 ? void 0 : _a.totalWeight),
+            // customDuty: rateInfo.customDuty,
+            // vat: rateInfo.vat,
+            // handlingFee: rateInfo.handlingFee,
+            // packagingFee: rateInfo.packagingFee,
+            // discount: rateInfo.discount,
+            // finalPayable: rateInfo.finalPayable,
+            // estDeliveryDays: rateInfo.estDeliveryDays,
+            shippingStatus: "pending",
+        };
+        await this.repository.createProductShipping(productShippingPayload, tx);
+        await this.repository.updateCartProductShippingConfirm(cartItem.products[0].id, tx);
+        console.log("Prepared ProductShipping payload:", productShippingPayload);
+        return productShippingPayload;
     }
     async getUserCartByProductId(userId, productId, tx) {
         console.log(`Fetching cart item for userId: ${userId}, productId: ${productId}`);
