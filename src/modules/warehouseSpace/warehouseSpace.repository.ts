@@ -1,82 +1,48 @@
-import { PrismaClient } from '@prisma/client';
-import {
-  WarehouseSpacePayload,
-  WarehouseSpaceUpdatePayload,
-  WarehouseSpaceFilter,
-  AirSpacePayload,
-  SeaSpacePayload,
-  ExpressSpacePayload,
-  InventoryPayload,
-  SubSpaceFilter
-} from './warehouseSpace.type';
+import prisma from '../../config/prismadatabase';
+import { PrismaClient, SpaceType, InventoryType, Prisma } from '@prisma/client';
+import { pagination } from '../../utils/pagination';
+import { WarehouseSpaceFilter, SpaceStats } from './warehouseSpace.type';
 
-const prisma = new PrismaClient();
+export class WarehouseSpaceRepository {
+  private prisma = prisma;
 
-export interface WarehouseSpaceRepository {
-  createWarehouseSpace(data: WarehouseSpacePayload): Promise<any>;
-  getAllWarehouseSpaces(filter: WarehouseSpaceFilter): Promise<any>;
-  getWarehouseSpaceById(id: string): Promise<any>;
-  getSpacesByWarehouse(warehouseId: string): Promise<any>;
-  getWarehouseSpacesWithPagination(filter: WarehouseSpaceFilter, tx?: any): Promise<any>;
-  updateWarehouseSpace(id: string, data: WarehouseSpaceUpdatePayload, tx?: any): Promise<any>;
-  deleteWarehouseSpace(id: string): Promise<any>;
-  getWarehouseById(id: string): Promise<any>;
-  getSpaceByNameAndWarehouse(name: string, warehouseId: string): Promise<any>;
-  hasSubSpaces(spaceId: string): Promise<boolean>;
-
-  // Air Space methods
-  createAirSpace(data: AirSpacePayload, tx?: any): Promise<any>;
-  getAirSpaceBySpaceId(spaceId: string, subSpaceId: string): Promise<any>;
-  getAirSpaceBySpaceNumber(spaceId: string, spaceNumber: number): Promise<any>;
-  getAirSpaces(spaceId: string, filter: SubSpaceFilter): Promise<any>;
-
-  // Sea Space methods
-  createSeaSpace(data: SeaSpacePayload, tx?: any): Promise<any>;
-  getSeaSpaceBySpaceId(spaceId: string, subSpaceId: string): Promise<any>;
-  getSeaSpaceBySpaceNumber(spaceId: string, spaceNumber: number): Promise<any>;
-  getSeaSpaces(spaceId: string, filter: SubSpaceFilter): Promise<any>;
-
-  // Express Space methods
-  createExpressSpace(data: ExpressSpacePayload, tx?: any): Promise<any>;
-  getExpressSpaceBySpaceId(spaceId: string, subSpaceId: string): Promise<any>;
-  getExpressSpaceBySpaceNumber(spaceId: string, spaceNumber: number): Promise<any>;
-  getExpressSpaces(spaceId: string, filter: SubSpaceFilter): Promise<any>;
-
-  // Inventory methods
-  createInventory(data: InventoryPayload, tx?: any): Promise<any>;
-  getInventoryBySpaceId(spaceId: string): Promise<any>;
-  getInventory(spaceId: string): Promise<any>;
-
-  // Utility methods
-  getAvailableSpacesByWarehouse(warehouseId: string, spaceType?: string): Promise<any>;
-  getSpaceStats(spaceId: string): Promise<any>;
-}
-
-class WarehouseSpaceRepositoryImpl implements WarehouseSpaceRepository {
-  private prisma: PrismaClient;
-
-  constructor() {
-    this.prisma = prisma;
-  }
-
-  async createWarehouseSpace(data: WarehouseSpacePayload): Promise<any> {
+  // WarehouseSpace methods
+  async createWarehouseSpace(payload: any): Promise<any> {
     return await this.prisma.warehouseSpace.create({
-        data,
-        include: {
-            warehouse: true,
-        },
+      data: payload,
+      include: {
+        warehouse: true,
+      }
     });
   }
 
-  async getAllWarehouseSpaces(filter: WarehouseSpaceFilter): Promise<any> {
+  async getWarehouseSpaceById(id: string): Promise<any> {
+    return await this.prisma.warehouseSpace.findUnique({
+      where: { id },
+      include: {
+        warehouse: true,
+        spaces: true,
+        inventories: true,
+      }
+    });
+  }
+
+  async getWarehouseSpaceByWarehouse(warehouseId: string): Promise<any> {
+    return await this.prisma.warehouseSpace.findFirst({
+      where: { warehouseId },
+      include: {
+        warehouse: true,
+      }
+    });
+  }
+
+  async getAllWarehouseSpaces(filter: WarehouseSpaceFilter = {}): Promise<any> {
     const { warehouseId, search } = filter;
     
-    const where: any = {};
-
-    if (warehouseId) {
-      where.warehouseId = warehouseId;
-    }
-
+    const where: Prisma.WarehouseSpaceWhereInput = {};
+    
+    if (warehouseId) where.warehouseId = warehouseId;
+    
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -89,75 +55,26 @@ class WarehouseSpaceRepositoryImpl implements WarehouseSpaceRepository {
       include: {
         warehouse: {
           select: {
+            id: true,
             name: true,
             code: true,
-            city: true,
-            state: true,
-          },
-        },
-        _count: {
-          select: {
-            airSpaces: true,
-            seaSpaces: true,
-            expressSpaces: true,
-            inventory: true,
-          },
+          }
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-  }
-
-  async getWarehouseSpaceById(id: string): Promise<any> {
-    return await this.prisma.warehouseSpace.findUnique({
-      where: { id },
-      include: {
-        warehouse: true,
-        airSpaces: true,
-        seaSpaces: true,
-        expressSpaces: true,
-        inventory: {
-          include: {
-            subInventoryX: true,
-            subInventoryY: true,
-            subInventoryZ: true,
-          },
-        },
-      },
-    });
-  }
-
-  async getSpacesByWarehouse(warehouseId: string): Promise<any> {
-    return await this.prisma.warehouseSpace.findMany({
-      where: { warehouseId },
-      include: {
-        _count: {
-          select: {
-            airSpaces: true,
-            seaSpaces: true,
-            expressSpaces: true,
-            inventory: true,
-          },
-        },
-      },
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy: { createdAt: 'desc' }
     });
   }
 
   async getWarehouseSpacesWithPagination(filter: WarehouseSpaceFilter, tx?: any): Promise<any> {
-    const prismaClient = tx || this.prisma;
     const { page = 1, limit = 10, warehouseId, search } = filter;
+    const offset = (page - 1) * limit;
     
-    const where: any = {};
-
-    if (warehouseId) {
-      where.warehouseId = warehouseId;
-    }
-
+    const prismaClient: PrismaClient = tx || this.prisma;
+    
+    const where: Prisma.WarehouseSpaceWhereInput = {};
+    
+    if (warehouseId) where.warehouseId = warehouseId;
+    
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -165,66 +82,461 @@ class WarehouseSpaceRepositoryImpl implements WarehouseSpaceRepository {
       ];
     }
 
-    const skip = (page - 1) * limit;
-
-    const [spaces, total] = await Promise.all([
-      prismaClient.warehouseSpace.findMany({
-        where,
-        include: {
-          warehouse: {
-            select: {
-              name: true,
-              code: true,
-              city: true,
-              state: true,
+    return await pagination(
+      { limit, offset },
+      async (limit: number, offset: number) => {
+        const [doc, totalDoc] = await Promise.all([
+          prismaClient.warehouseSpace.findMany({
+            where,
+            skip: offset,
+            take: limit,
+            include: {
+              warehouse: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                }
+              },
+              _count: {
+                select: {
+                  spaces: true,
+                  inventories: true,
+                }
+              }
             },
-          },
-          _count: {
-            select: {
-              airSpaces: true,
-              seaSpaces: true,
-              expressSpaces: true,
-              inventory: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      prismaClient.warehouseSpace.count({ where }),
-    ]);
-
-    return {
-      spaces,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    };
+            orderBy: { createdAt: 'desc' }
+          }),
+          prismaClient.warehouseSpace.count({ where }),
+        ]);
+        return { doc, totalDoc };
+      }
+    );
   }
 
-  async updateWarehouseSpace(id: string, data: WarehouseSpaceUpdatePayload, tx?: any): Promise<any> {
-    const prismaClient = tx || this.prisma;
+  async updateWarehouseSpace(id: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
     return await prismaClient.warehouseSpace.update({
       where: { id },
-      data: {
-        ...data,
-        updatedAt: new Date(),
-      },
+      data: payload,
       include: {
         warehouse: true,
-      },
+      }
     });
   }
 
-  async deleteWarehouseSpace(id: string): Promise<any> {
-    return await this.prisma.warehouseSpace.delete({
+  async deleteWarehouseSpace(id: string): Promise<void> {
+    await this.prisma.warehouseSpace.delete({ where: { id } });
+  }
+
+  // Space methods
+  async createSpace(warehouseSpaceId: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.space.create({
+      data: {
+        ...payload,
+        warehouseSpaceId,
+      },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async getSpaceById(id: string): Promise<any> {
+    return await this.prisma.space.findUnique({
       where: { id },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        },
+        activities: true,
+      }
+    });
+  }
+
+  async getSpaceBySpaceIdAndType(warehouseSpaceId: string, spaceId: string, type: SpaceType): Promise<any> {
+    return await this.prisma.space.findFirst({
+      where: {
+        warehouseSpaceId,
+        spaceId,
+        type,
+      }
+    });
+  }
+
+  async getSpaceByNumber(warehouseSpaceId: string, type: SpaceType, spaceNumber: number): Promise<any> {
+    return await this.prisma.space.findFirst({
+      where: {
+        warehouseSpaceId,
+        type,
+        spaceNumber,
+      }
+    });
+  }
+
+  async getAllSpaces(warehouseSpaceId: string, filter: any = {}): Promise<any> {
+    const { type, occupied, search } = filter;
+    
+    const where: Prisma.SpaceWhereInput = { warehouseSpaceId };
+    
+    if (type) where.type = type as SpaceType;
+    if (occupied !== undefined) where.occupied = occupied;
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { spaceId: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return await this.prisma.space.findMany({
+      where,
+      include: {
+        warehouseSpace: {
+          select: {
+            id: true,
+            name: true,
+            warehouse: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { type: 'asc' },
+        { spaceNumber: 'asc' }
+      ]
+    });
+  }
+
+  async updateSpace(id: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.space.update({
+      where: { id },
+      data: payload,
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async updateSpaceOccupancy(id: string, occupied: boolean, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.space.update({
+      where: { id },
+      data: { occupied },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async deleteSpace(id: string): Promise<void> {
+    await this.prisma.space.delete({ where: { id } });
+  }
+
+  // Inventory methods
+  async createInventory(warehouseSpaceId: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.inventory.create({
+      data: {
+        ...payload,
+        warehouseSpaceId,
+      },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async getInventoryById(id: string): Promise<any> {
+    return await this.prisma.inventory.findUnique({
+      where: { id },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        },
+        activities: true,
+      }
+    });
+  }
+
+  async getInventoryByType(warehouseSpaceId: string, type: InventoryType): Promise<any> {
+    return await this.prisma.inventory.findFirst({
+      where: {
+        warehouseSpaceId,
+        type,
+      }
+    });
+  }
+
+  async getAllInventories(warehouseSpaceId: string, filter: any = {}): Promise<any> {
+    const { type, occupied, search } = filter;
+    
+    const where: Prisma.InventoryWhereInput = { warehouseSpaceId };
+    
+    if (type) where.type = type as InventoryType;
+    if (occupied !== undefined) where.occupied = occupied;
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return await this.prisma.inventory.findMany({
+      where,
+      include: {
+        warehouseSpace: {
+          select: {
+            id: true,
+            name: true,
+            warehouse: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          }
+        }
+      },
+      orderBy: { type: 'asc' }
+    });
+  }
+
+  async updateInventory(id: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.inventory.update({
+      where: { id },
+      data: payload,
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async updateInventoryOccupancy(id: string, occupied: boolean, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.inventory.update({
+      where: { id },
+      data: { occupied },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async deleteInventory(id: string): Promise<void> {
+    await this.prisma.inventory.delete({ where: { id } });
+  }
+
+  // Additional methods
+  async getSpacesByWarehouse(warehouseId: string): Promise<any> {
+    const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+      where: { warehouseId },
+      include: {
+        spaces: {
+          include: {
+            activities: {
+              orderBy: { createdAt: 'desc' },
+              take: 10,
+            }
+          },
+          orderBy: [
+            { type: 'asc' },
+            { spaceNumber: 'asc' }
+          ]
+        },
+        inventories: {
+          include: {
+            activities: {
+              orderBy: { createdAt: 'desc' },
+              take: 10,
+            }
+          },
+          orderBy: { type: 'asc' }
+        }
+      }
+    });
+
+    return warehouseSpace || { spaces: [], inventories: [] };
+  }
+
+  async getWarehouseSpaceStats(warehouseId: string): Promise<SpaceStats> {
+    const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+      where: { warehouseId },
+      include: {
+        spaces: true,
+        inventories: true,
+      }
+    });
+
+    if (!warehouseSpace) {
+      return {
+        totalSpaces: 0,
+        occupiedSpaces: 0,
+        availableSpaces: 0,
+        totalInventories: 0,
+        occupiedInventories: 0,
+        availableInventories: 0,
+        totalCapacity: 0,
+        usedCapacity: 0,
+        availableCapacity: 0,
+      };
+    }
+
+    const totalSpaces = warehouseSpace.spaces.length;
+    const occupiedSpaces = warehouseSpace.spaces.filter((s: any) => s.occupied).length;
+    const availableSpaces = totalSpaces - occupiedSpaces;
+
+    const totalInventories = warehouseSpace.inventories.length;
+    const occupiedInventories = warehouseSpace.inventories.filter((i: any) => i.occupied).length;
+    const availableInventories = totalInventories - occupiedInventories;
+
+    // Calculate capacity usage
+    const spacesCapacity = warehouseSpace.spaces.reduce((sum: number, space: any) => sum + (space.capacity || 0), 0);
+    const inventoriesCapacity = warehouseSpace.inventories.reduce((sum: number, inv: any) => sum + (inv.capacity || 0), 0);
+    const usedCapacity = spacesCapacity + inventoriesCapacity;
+    const totalCapacity = warehouseSpace.totalCapacity;
+    const availableCapacity = totalCapacity - usedCapacity;
+
+    return {
+      totalSpaces,
+      occupiedSpaces,
+      availableSpaces,
+      totalInventories,
+      occupiedInventories,
+      availableInventories,
+      totalCapacity,
+      usedCapacity,
+      availableCapacity,
+    };
+  }
+
+  async getAvailableSpaces(warehouseId: string, type?: SpaceType | InventoryType): Promise<any> {
+    const whereCondition: Prisma.SpaceWhereInput = { occupied: false };
+    const inventoryWhereCondition: Prisma.InventoryWhereInput = { occupied: false };
+    
+    if (type) {
+      // Check if type is a SpaceType
+      if (Object.values(SpaceType).includes(type as SpaceType)) {
+        whereCondition.type = type as SpaceType;
+      } 
+      // Check if type is an InventoryType
+      else if (Object.values(InventoryType).includes(type as InventoryType)) {
+        inventoryWhereCondition.type = type as InventoryType;
+      }
+    }
+
+    const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+      where: { warehouseId },
+      include: {
+        spaces: {
+          where: whereCondition,
+          orderBy: [
+            { type: 'asc' },
+            { spaceNumber: 'asc' }
+          ]
+        },
+        inventories: {
+          where: inventoryWhereCondition,
+          orderBy: { type: 'asc' }
+        }
+      }
+    });
+
+    return warehouseSpace || { spaces: [], inventories: [] };
+  }
+
+  async searchSpaces(searchTerm: string, warehouseId?: string): Promise<any> {
+    const where: Prisma.SpaceWhereInput = {
+      OR: [
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { spaceId: { contains: searchTerm, mode: 'insensitive' } },
+        { notes: { contains: searchTerm, mode: 'insensitive' } },
+      ]
+    };
+
+    if (warehouseId) {
+      const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+        where: { warehouseId },
+        select: { id: true }
+      });
+      if (warehouseSpace) {
+        where.warehouseSpaceId = warehouseSpace.id;
+      }
+    }
+
+    return await this.prisma.space.findMany({
+      where,
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { type: 'asc' },
+        { spaceNumber: 'asc' }
+      ]
+    });
+  }
+
+  async getSpaceActivities(spaceId: string): Promise<any> {
+    return await this.prisma.spaceActivity.findMany({
+      where: { spaceId },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async getInventoryActivities(inventoryId: string): Promise<any> {
+    return await this.prisma.spaceActivity.findMany({
+      where: { spaceId: inventoryId },
+      orderBy: { createdAt: 'desc' }
     });
   }
 
@@ -233,336 +545,20 @@ class WarehouseSpaceRepositoryImpl implements WarehouseSpaceRepository {
       where: { id },
     });
   }
+}
 
-  async getSpaceByNameAndWarehouse(name: string, warehouseId: string): Promise<any> {
-    return await this.prisma.warehouseSpace.findFirst({
-      where: {
-        name,
-        warehouseId,
-      },
+// Space Activity Service
+export class SpaceActivityService {
+  private prisma = prisma;
+
+  async logSpaceActivity(payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.spaceActivity.create({
+      data: payload,
     });
-  }
-
-  async hasSubSpaces(spaceId: string): Promise<boolean> {
-    const [airSpaces, seaSpaces, expressSpaces, inventory] = await Promise.all([
-      this.prisma.airSpace.count({ where: { warehouseSpaceId: spaceId } }),
-      this.prisma.seaSpace.count({ where: { warehouseSpaceId: spaceId } }),
-      this.prisma.expressSpace.count({ where: { warehouseSpaceId: spaceId } }),
-      this.prisma.inventory.count({ where: { warehouseSpaceId: spaceId } }),
-    ]);
-
-    return airSpaces > 0 || seaSpaces > 0 || expressSpaces > 0 || inventory > 0;
-  }
-
-  // Air Space methods
-  async createAirSpace(data: AirSpacePayload, tx?: any): Promise<any> {
-    const prismaClient = tx || this.prisma;
-    return await prismaClient.airSpace.create({
-      data,
-    });
-  }
-
-  async getAirSpaceBySpaceId(spaceId: string, subSpaceId: string): Promise<any> {
-    return await this.prisma.airSpace.findFirst({
-      where: {
-        warehouseSpaceId: spaceId,
-        spaceId: subSpaceId,
-      },
-    });
-  }
-
-  async getAirSpaceBySpaceNumber(spaceId: string, spaceNumber: number): Promise<any> {
-    return await this.prisma.airSpace.findFirst({
-      where: {
-        warehouseSpaceId: spaceId,
-        spaceNumber,
-      },
-    });
-  }
-
-  async getAirSpaces(spaceId: string, filter: SubSpaceFilter): Promise<any> {
-    const where: any = {
-      warehouseSpaceId: spaceId,
-    };
-
-    if (filter.occupied !== undefined) {
-      where.occupied = filter.occupied;
-    }
-
-    return await this.prisma.airSpace.findMany({
-      where,
-      orderBy: [
-        { spaceNumber: 'asc' },
-        { createdAt: 'desc' },
-      ],
-    });
-  }
-
-  // Sea Space methods
-  async createSeaSpace(data: SeaSpacePayload, tx?: any): Promise<any> {
-    const prismaClient = tx || this.prisma;
-    return await prismaClient.seaSpace.create({
-      data,
-    });
-  }
-
-  async getSeaSpaceBySpaceId(spaceId: string, subSpaceId: string): Promise<any> {
-    return await this.prisma.seaSpace.findFirst({
-      where: {
-        warehouseSpaceId: spaceId,
-        spaceId: subSpaceId,
-      },
-    });
-  }
-
-  async getSeaSpaceBySpaceNumber(spaceId: string, spaceNumber: number): Promise<any> {
-    return await this.prisma.seaSpace.findFirst({
-      where: {
-        warehouseSpaceId: spaceId,
-        spaceNumber,
-      },
-    });
-  }
-
-  async getSeaSpaces(spaceId: string, filter: SubSpaceFilter): Promise<any> {
-    const where: any = {
-      warehouseSpaceId: spaceId,
-    };
-
-    if (filter.occupied !== undefined) {
-      where.occupied = filter.occupied;
-    }
-
-    return await this.prisma.seaSpace.findMany({
-      where,
-      orderBy: [
-        { spaceNumber: 'asc' },
-        { createdAt: 'desc' },
-      ],
-    });
-  }
-
-  // Express Space methods
-  async createExpressSpace(data: ExpressSpacePayload, tx?: any): Promise<any> {
-    const prismaClient = tx || this.prisma;
-    return await prismaClient.expressSpace.create({
-      data,
-    });
-  }
-
-  async getExpressSpaceBySpaceId(spaceId: string, subSpaceId: string): Promise<any> {
-    return await this.prisma.expressSpace.findFirst({
-      where: {
-        warehouseSpaceId: spaceId,
-        spaceId: subSpaceId,
-      },
-    });
-  }
-
-  async getExpressSpaceBySpaceNumber(spaceId: string, spaceNumber: number): Promise<any> {
-    return await this.prisma.expressSpace.findFirst({
-      where: {
-        warehouseSpaceId: spaceId,
-        spaceNumber,
-      },
-    });
-  }
-
-  async getExpressSpaces(spaceId: string, filter: SubSpaceFilter): Promise<any> {
-    const where: any = {
-      warehouseSpaceId: spaceId,
-    };
-
-    if (filter.occupied !== undefined) {
-      where.occupied = filter.occupied;
-    }
-
-    return await this.prisma.expressSpace.findMany({
-      where,
-      orderBy: [
-        { spaceNumber: 'asc' },
-        { createdAt: 'desc' },
-      ],
-    });
-  }
-
-  // Inventory methods
-  async createInventory(data: InventoryPayload, tx?: any): Promise<any> {
-    const prismaClient = tx || this.prisma;
-    return await prismaClient.inventory.create({
-      data,
-      include: {
-        subInventoryX: true,
-        subInventoryY: true,
-        subInventoryZ: true,
-      },
-    });
-  }
-
-  async getInventoryBySpaceId(spaceId: string): Promise<any> {
-    return await this.prisma.inventory.findFirst({
-      where: {
-        warehouseSpaceId: spaceId,
-      },
-    });
-  }
-
-  async getInventory(spaceId: string): Promise<any> {
-    return await this.prisma.inventory.findFirst({
-      where: {
-        warehouseSpaceId: spaceId,
-      },
-      include: {
-        subInventoryX: true,
-        subInventoryY: true,
-        subInventoryZ: true,
-      },
-    });
-  }
-
-  // Utility methods
-  async getAvailableSpacesByWarehouse(warehouseId: string, spaceType?: string): Promise<any> {
-    const spaces = await this.prisma.warehouseSpace.findMany({
-      where: { warehouseId },
-      include: {
-        airSpaces: {
-          where: { occupied: false },
-        },
-        seaSpaces: {
-          where: { occupied: false },
-        },
-        expressSpaces: {
-          where: { occupied: false },
-        },
-        inventory: {
-          include: {
-            subInventoryX: {
-              where: { occupied: false },
-            },
-            subInventoryY: {
-              where: { occupied: false },
-            },
-            subInventoryZ: {
-              where: { occupied: false },
-            },
-          },
-        },
-      },
-    });
-
-    // Filter based on spaceType if provided
-    if (spaceType) {
-      return spaces.map(space => {
-        const result: any = {
-          id: space.id,
-          name: space.name,
-          totalCapacity: space.totalCapacity,
-        };
-
-        switch (spaceType.toLowerCase()) {
-          case 'air':
-            result.availableSpaces = space.airSpaces;
-            break;
-          case 'sea':
-            result.availableSpaces = space.seaSpaces;
-            break;
-          case 'express':
-            result.availableSpaces = space.expressSpaces;
-            break;
-          case 'inventory':
-            result.availableSpaces = space.inventory;
-            break;
-          default:
-            result.availableSpaces = {
-              airSpaces: space.airSpaces,
-              seaSpaces: space.seaSpaces,
-              expressSpaces: space.expressSpaces,
-              inventory: space.inventory,
-            };
-        }
-
-        return result;
-      });
-    }
-
-    return spaces;
-  }
-
-  async getSpaceStats(spaceId: string): Promise<any> {
-    const [airSpaces, seaSpaces, expressSpaces, inventory] = await Promise.all([
-      this.prisma.airSpace.findMany({
-        where: { warehouseSpaceId: spaceId },
-      }),
-      this.prisma.seaSpace.findMany({
-        where: { warehouseSpaceId: spaceId },
-      }),
-      this.prisma.expressSpace.findMany({
-        where: { warehouseSpaceId: spaceId },
-      }),
-      this.prisma.inventory.findFirst({
-        where: { warehouseSpaceId: spaceId },
-        include: {
-          subInventoryX: true,
-          subInventoryY: true,
-          subInventoryZ: true,
-        },
-      }),
-    ]);
-
-    const totalAirSpaces = airSpaces.length;
-    const occupiedAirSpaces = airSpaces.filter(space => space.occupied).length;
-    const totalSeaSpaces = seaSpaces.length;
-    const occupiedSeaSpaces = seaSpaces.filter(space => space.occupied).length;
-    const totalExpressSpaces = expressSpaces.length;
-    const occupiedExpressSpaces = expressSpaces.filter(space => space.occupied).length;
-
-    let totalInventorySpaces = 0;
-    let occupiedInventorySpaces = 0;
-
-    if (inventory) {
-      totalInventorySpaces = 
-        inventory.subInventoryX.length +
-        inventory.subInventoryY.length +
-        inventory.subInventoryZ.length;
-
-      occupiedInventorySpaces =
-        inventory.subInventoryX.filter(space => space.occupied).length +
-        inventory.subInventoryY.filter(space => space.occupied).length +
-        inventory.subInventoryZ.filter(space => space.occupied).length;
-    }
-
-    return {
-      airSpaces: {
-        total: totalAirSpaces,
-        occupied: occupiedAirSpaces,
-        available: totalAirSpaces - occupiedAirSpaces,
-      },
-      seaSpaces: {
-        total: totalSeaSpaces,
-        occupied: occupiedSeaSpaces,
-        available: totalSeaSpaces - occupiedSeaSpaces,
-      },
-      expressSpaces: {
-        total: totalExpressSpaces,
-        occupied: occupiedExpressSpaces,
-        available: totalExpressSpaces - occupiedExpressSpaces,
-      },
-      inventory: {
-        total: totalInventorySpaces,
-        occupied: occupiedInventorySpaces,
-        available: totalInventorySpaces - occupiedInventorySpaces,
-      },
-      summary: {
-        totalSpaces: totalAirSpaces + totalSeaSpaces + totalExpressSpaces + totalInventorySpaces,
-        occupiedSpaces: occupiedAirSpaces + occupiedSeaSpaces + occupiedExpressSpaces + occupiedInventorySpaces,
-        availableSpaces: 
-          (totalAirSpaces - occupiedAirSpaces) +
-          (totalSeaSpaces - occupiedSeaSpaces) +
-          (totalExpressSpaces - occupiedExpressSpaces) +
-          (totalInventorySpaces - occupiedInventorySpaces),
-      },
-    };
   }
 }
 
-export default new WarehouseSpaceRepositoryImpl();
+// Export singleton instance
+const warehouseSpaceRepository = new WarehouseSpaceRepository();
+export default warehouseSpaceRepository;
