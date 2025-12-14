@@ -1048,3 +1048,123 @@ model Blog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
+// order management permissions
+// model Order {
+//   id Int @id @default(autoincrement())
+
+//   orderNumber String @unique
+
+//   userId Int
+//   user   User @relation(fields: [userId], references: [id])
+
+//   cartId Int?
+//   cart   Cart? @relation(fields: [cartId], references: [id])
+
+//   status OrderStatus @default(PENDING)
+//   paymentStatus PaymentStatus @default(UNPAID)
+
+//   currency String @default("Dollar")
+
+//   totalPrice  Decimal @db.Decimal(12, 2)
+//   totalWeight Decimal @db.Decimal(10, 3)
+
+//   remarks String?
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   items    OrderItem[]
+//   shipping OrderShipping[]
+// }
+
+
+// model OrderItem {
+//   id Int @id @default(autoincrement())
+
+//   orderId Int
+//   order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+//   // Product identity snapshot
+//   titleTrans String?
+//   productFor ProductFor
+
+//   product1688Id  String?
+//   productLocalId Int?
+//   productAlibabaId String?
+//   vendorId Int?
+
+//   // Pricing snapshot
+//   quantity     Int
+//   unitPrice   Decimal @db.Decimal(12, 2)
+//   totalPrice  Decimal @db.Decimal(12, 2)
+//   totalWeight Decimal @db.Decimal(10, 3)
+
+//   // FULL VARIANT SNAPSHOT
+//   variants Json
+
+//   createdAt DateTime @default(now())
+// }
+
+
+// model OrderShipping {
+//   id Int @id @default(autoincrement())
+
+//   orderId Int
+//   order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+//   shippingMethodId Int?
+//   shippingMethod   RateShippingMethod? @relation(fields: [shippingMethodId], references: [id])
+
+//   fromCountryId Int?
+//   fromCountry   Country? @relation("OrderFromCountry", fields: [fromCountryId], references: [id])
+
+//   toCountryId Int?
+//   toCountry   Country? @relation("OrderToCountry", fields: [toCountryId], references: [id])
+
+//   totalQuantity Int
+//   approxWeight  Decimal @db.Decimal(10, 3)
+
+//   totalCost     Decimal @db.Decimal(12, 2)
+//   customDuty    Decimal @db.Decimal(12, 2)
+//   vat           Decimal @db.Decimal(6, 2)
+//   handlingFee   Decimal @db.Decimal(12, 2)
+//   packagingFee  Decimal @db.Decimal(12, 2)
+//   discount      Decimal @db.Decimal(12, 2)
+//   finalPayable  Decimal @db.Decimal(12, 2)
+
+//   estDeliveryDays Int?
+//   trackingNumber String?
+//   trackingURL    String?
+
+//   shippingStatus ShippingStatus @default(PENDING)
+
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+
+// enum OrderStatus {
+//   PENDING
+//   PAID
+//   PROCESSING
+//   SHIPPED
+//   DELIVERED
+//   CANCELLED
+// }
+
+// enum PaymentStatus {
+//   UNPAID
+//   PAID
+//   FAILED
+//   REFUNDED
+// }
+
+// enum ShippingStatus {
+//   PENDING
+//   CONFIRMED
+//   IN_TRANSIT
+//   DELIVERED
+//   RETURNED
+// }

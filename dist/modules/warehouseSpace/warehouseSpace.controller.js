@@ -3,13 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const warehouseSpace_service_1 = require("./warehouseSpace.service");
-const warehouseSpace_repository_1 = __importDefault(require("./warehouseSpace.repository"));
 const responseHandler_1 = require("../../utils/responseHandler");
 const withTransaction_1 = __importDefault(require("../../middleware/transactions/withTransaction"));
+const warehouseSpace_service_1 = require("./warehouseSpace.service");
+const warehouseSpace_repository_1 = __importDefault(require("./warehouseSpace.repository"));
 const warehouseSpaceService = new warehouseSpace_service_1.WarehouseSpaceService(warehouseSpace_repository_1.default);
 class WarehouseSpaceController {
     constructor() {
+        // WarehouseSpace CRUD
         this.createWarehouseSpace = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
                 const payload = req.body;
@@ -46,17 +47,6 @@ class WarehouseSpaceController {
                 next(error);
             }
         };
-        this.getSpacesByWarehouse = async (req, res, next) => {
-            try {
-                const { warehouseId } = req.params;
-                const spaces = await warehouseSpaceService.getSpacesByWarehouse(warehouseId);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse spaces retrieved successfully', spaces);
-                res.status(resDoc.statusCode).json(resDoc);
-            }
-            catch (error) {
-                next(error);
-            }
-        };
         this.getWarehouseSpacesWithPagination = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
                 const page = parseInt(req.query.page, 10) || 1;
@@ -67,8 +57,8 @@ class WarehouseSpaceController {
                     warehouseId: req.query.warehouseId,
                     search: req.query.search,
                 };
-                const warehouseSpaces = await warehouseSpaceService.getWarehouseSpacesWithPagination(filter, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse spaces retrieved successfully with pagination', warehouseSpaces);
+                const result = await warehouseSpaceService.getWarehouseSpacesWithPagination(filter, tx);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse spaces retrieved successfully', result);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -80,7 +70,7 @@ class WarehouseSpaceController {
                 const { id } = req.params;
                 const payload = req.body;
                 const updatedWarehouseSpace = await warehouseSpaceService.updateWarehouseSpace(id, payload, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, `Warehouse space with id ${id} updated successfully`, updatedWarehouseSpace);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse space updated successfully', updatedWarehouseSpace);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -91,55 +81,82 @@ class WarehouseSpaceController {
             try {
                 const { id } = req.params;
                 await warehouseSpaceService.deleteWarehouseSpace(id);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, `Warehouse space with id ${id} deleted successfully`, null);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse space deleted successfully', null);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
                 next(error);
             }
         };
-        // Sub-space methods
-        this.createAirSpace = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+        // Space CRUD
+        this.createSpace = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
-                const { spaceId } = req.params;
+                const { warehouseSpaceId } = req.params;
                 const payload = req.body;
-                const airSpace = await warehouseSpaceService.createAirSpace(spaceId, payload, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(201, 'Air space created successfully', airSpace);
+                const space = await warehouseSpaceService.createSpace(warehouseSpaceId, payload, tx);
+                const resDoc = (0, responseHandler_1.responseHandler)(201, 'Space created successfully', space);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
                 next(error);
             }
         });
-        this.createSeaSpace = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+        this.getAllSpaces = async (req, res, next) => {
+            try {
+                const { warehouseSpaceId } = req.params;
+                const filter = {
+                    type: req.query.type,
+                    occupied: req.query.occupied ? req.query.occupied === 'true' : undefined,
+                    search: req.query.search,
+                };
+                const spaces = await warehouseSpaceService.getAllSpaces(warehouseSpaceId, filter);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Spaces retrieved successfully', spaces);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.getSpaceById = async (req, res, next) => {
+            try {
+                const { spaceId } = req.params;
+                const space = await warehouseSpaceService.getSpaceById(spaceId);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Space retrieved successfully', space);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.updateSpace = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
                 const { spaceId } = req.params;
                 const payload = req.body;
-                const seaSpace = await warehouseSpaceService.createSeaSpace(spaceId, payload, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(201, 'Sea space created successfully', seaSpace);
+                const updatedSpace = await warehouseSpaceService.updateSpace(spaceId, payload, tx);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Space updated successfully', updatedSpace);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
                 next(error);
             }
         });
-        this.createExpressSpace = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+        this.deleteSpace = async (req, res, next) => {
             try {
                 const { spaceId } = req.params;
-                const payload = req.body;
-                const expressSpace = await warehouseSpaceService.createExpressSpace(spaceId, payload, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(201, 'Express space created successfully', expressSpace);
+                await warehouseSpaceService.deleteSpace(spaceId);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Space deleted successfully', null);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
                 next(error);
             }
-        });
+        };
+        // Inventory CRUD
         this.createInventory = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
-                const { spaceId } = req.params;
+                const { warehouseSpaceId } = req.params;
                 const payload = req.body;
-                const inventory = await warehouseSpaceService.createInventory(spaceId, payload, tx);
+                const inventory = await warehouseSpaceService.createInventory(warehouseSpaceId, payload, tx);
                 const resDoc = (0, responseHandler_1.responseHandler)(201, 'Inventory created successfully', inventory);
                 res.status(resDoc.statusCode).json(resDoc);
             }
@@ -147,52 +164,26 @@ class WarehouseSpaceController {
                 next(error);
             }
         });
-        this.getAirSpaces = async (req, res, next) => {
+        this.getAllInventories = async (req, res, next) => {
             try {
-                const { spaceId } = req.params;
+                const { warehouseSpaceId } = req.params;
                 const filter = {
+                    type: req.query.type,
                     occupied: req.query.occupied ? req.query.occupied === 'true' : undefined,
+                    search: req.query.search,
                 };
-                const airSpaces = await warehouseSpaceService.getAirSpaces(spaceId, filter);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Air spaces retrieved successfully', airSpaces);
+                const inventories = await warehouseSpaceService.getAllInventories(warehouseSpaceId, filter);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Inventories retrieved successfully', inventories);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
                 next(error);
             }
         };
-        this.getSeaSpaces = async (req, res, next) => {
+        this.getInventoryById = async (req, res, next) => {
             try {
-                const { spaceId } = req.params;
-                const filter = {
-                    occupied: req.query.occupied ? req.query.occupied === 'true' : undefined,
-                };
-                const seaSpaces = await warehouseSpaceService.getSeaSpaces(spaceId, filter);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Sea spaces retrieved successfully', seaSpaces);
-                res.status(resDoc.statusCode).json(resDoc);
-            }
-            catch (error) {
-                next(error);
-            }
-        };
-        this.getExpressSpaces = async (req, res, next) => {
-            try {
-                const { spaceId } = req.params;
-                const filter = {
-                    occupied: req.query.occupied ? req.query.occupied === 'true' : undefined,
-                };
-                const expressSpaces = await warehouseSpaceService.getExpressSpaces(spaceId, filter);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Express spaces retrieved successfully', expressSpaces);
-                res.status(resDoc.statusCode).json(resDoc);
-            }
-            catch (error) {
-                next(error);
-            }
-        };
-        this.getInventory = async (req, res, next) => {
-            try {
-                const { spaceId } = req.params;
-                const inventory = await warehouseSpaceService.getInventory(spaceId);
+                const { inventoryId } = req.params;
+                const inventory = await warehouseSpaceService.getInventoryById(inventoryId);
                 const resDoc = (0, responseHandler_1.responseHandler)(200, 'Inventory retrieved successfully', inventory);
                 res.status(resDoc.statusCode).json(resDoc);
             }
@@ -200,40 +191,130 @@ class WarehouseSpaceController {
                 next(error);
             }
         };
-        this.updateSpaceCapacity = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+        this.updateInventory = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
-                const { spaceId } = req.params;
-                const { totalCapacity } = req.body;
-                if (!totalCapacity) {
-                    const error = new Error('totalCapacity is required');
-                    error.statusCode = 400;
-                    throw error;
-                }
-                const space = await warehouseSpaceService.updateSpaceCapacity(spaceId, totalCapacity, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Space capacity updated successfully', space);
+                const { inventoryId } = req.params;
+                const payload = req.body;
+                const updatedInventory = await warehouseSpaceService.updateInventory(inventoryId, payload, tx);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Inventory updated successfully', updatedInventory);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
                 next(error);
             }
         });
-        this.getAvailableSpacesByWarehouse = async (req, res, next) => {
+        this.deleteInventory = async (req, res, next) => {
             try {
-                const { warehouseId } = req.params;
-                const { spaceType } = req.query;
-                const availableSpaces = await warehouseSpaceService.getAvailableSpacesByWarehouse(warehouseId, spaceType);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Available spaces retrieved successfully', availableSpaces);
+                const { inventoryId } = req.params;
+                await warehouseSpaceService.deleteInventory(inventoryId);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Inventory deleted successfully', null);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
                 next(error);
             }
         };
-        this.getSpaceStats = async (req, res, next) => {
+        // Additional operations
+        this.updateSpaceOccupancy = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
                 const { spaceId } = req.params;
-                const stats = await warehouseSpaceService.getSpaceStats(spaceId);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Space statistics retrieved successfully', stats);
+                const { occupied } = req.body;
+                if (typeof occupied !== 'boolean') {
+                    const error = new Error('Occupied must be a boolean value');
+                    error.statusCode = 400;
+                    throw error;
+                }
+                const space = await warehouseSpaceService.updateSpaceOccupancy(spaceId, occupied, tx);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Space occupancy updated successfully', space);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.updateInventoryOccupancy = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+            try {
+                const { inventoryId } = req.params;
+                const { occupied } = req.body;
+                if (typeof occupied !== 'boolean') {
+                    const error = new Error('Occupied must be a boolean value');
+                    error.statusCode = 400;
+                    throw error;
+                }
+                const inventory = await warehouseSpaceService.updateInventoryOccupancy(inventoryId, occupied, tx);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Inventory occupancy updated successfully', inventory);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.getSpacesByWarehouse = async (req, res, next) => {
+            try {
+                const { warehouseId } = req.params;
+                const spaces = await warehouseSpaceService.getSpacesByWarehouse(warehouseId);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Spaces retrieved successfully', spaces);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.getWarehouseSpaceStats = async (req, res, next) => {
+            try {
+                const { warehouseId } = req.params;
+                const stats = await warehouseSpaceService.getWarehouseSpaceStats(warehouseId);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse space statistics retrieved successfully', stats);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.getAvailableSpaces = async (req, res, next) => {
+            try {
+                const { warehouseId } = req.params;
+                const type = req.query.type;
+                const spaces = await warehouseSpaceService.getAvailableSpaces(warehouseId, type);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Available spaces retrieved successfully', spaces);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.searchSpaces = async (req, res, next) => {
+            try {
+                const { search, warehouseId } = req.query;
+                if (!search) {
+                    const error = new Error('Search term is required');
+                    error.statusCode = 400;
+                    throw error;
+                }
+                const spaces = await warehouseSpaceService.searchSpaces(search, warehouseId);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Spaces retrieved successfully', spaces);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.getSpaceActivities = async (req, res, next) => {
+            try {
+                const { spaceId } = req.params;
+                const activities = await warehouseSpaceService.getSpaceActivities(spaceId);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Space activities retrieved successfully', activities);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.getInventoryActivities = async (req, res, next) => {
+            try {
+                const { inventoryId } = req.params;
+                const activities = await warehouseSpaceService.getInventoryActivities(inventoryId);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Inventory activities retrieved successfully', activities);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
