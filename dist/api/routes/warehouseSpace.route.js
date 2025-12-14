@@ -4,28 +4,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const warehouseSpace_controller_1 = __importDefault(require("../../modules/warehouseSpace/warehouseSpace.controller"));
 const upload_1 = require("../../middleware/upload/upload");
+const warehouseSpace_controller_1 = __importDefault(require("../../modules/warehouseSpace/warehouseSpace.controller"));
 const warehouseSpaceRoute = (0, express_1.Router)();
 warehouseSpaceRoute.route("/")
     .post(warehouseSpace_controller_1.default.createWarehouseSpace)
     .get(warehouseSpace_controller_1.default.getAllWarehouseSpaces);
-warehouseSpaceRoute.get("/warehouse/:warehouseId", warehouseSpace_controller_1.default.getSpacesByWarehouse);
 warehouseSpaceRoute.get("/pagination", warehouseSpace_controller_1.default.getWarehouseSpacesWithPagination);
-warehouseSpaceRoute.get("/available/:warehouseId", warehouseSpace_controller_1.default.getAvailableSpacesByWarehouse);
+warehouseSpaceRoute.get("/warehouse/:warehouseId", warehouseSpace_controller_1.default.getSpacesByWarehouse);
+warehouseSpaceRoute.get("/stats/:warehouseId", warehouseSpace_controller_1.default.getWarehouseSpaceStats);
+warehouseSpaceRoute.get("/available/:warehouseId", warehouseSpace_controller_1.default.getAvailableSpaces);
+warehouseSpaceRoute.get("/search", warehouseSpace_controller_1.default.searchSpaces);
 warehouseSpaceRoute.route("/:id")
     .get(warehouseSpace_controller_1.default.getWarehouseSpaceById)
     .patch(upload_1.upload.any(), warehouseSpace_controller_1.default.updateWarehouseSpace)
     .delete(warehouseSpace_controller_1.default.deleteWarehouseSpace);
-// Sub-space management routes
-warehouseSpaceRoute.post("/:spaceId/air-spaces", warehouseSpace_controller_1.default.createAirSpace);
-warehouseSpaceRoute.post("/:spaceId/sea-spaces", warehouseSpace_controller_1.default.createSeaSpace);
-warehouseSpaceRoute.post("/:spaceId/express-spaces", warehouseSpace_controller_1.default.createExpressSpace);
-warehouseSpaceRoute.post("/:spaceId/inventory", warehouseSpace_controller_1.default.createInventory);
-warehouseSpaceRoute.get("/:spaceId/air-spaces", warehouseSpace_controller_1.default.getAirSpaces);
-warehouseSpaceRoute.get("/:spaceId/sea-spaces", warehouseSpace_controller_1.default.getSeaSpaces);
-warehouseSpaceRoute.get("/:spaceId/express-spaces", warehouseSpace_controller_1.default.getExpressSpaces);
-warehouseSpaceRoute.get("/:spaceId/inventory", warehouseSpace_controller_1.default.getInventory);
-warehouseSpaceRoute.patch("/:spaceId/capacity", warehouseSpace_controller_1.default.updateSpaceCapacity);
-warehouseSpaceRoute.get("/:spaceId/stats", warehouseSpace_controller_1.default.getSpaceStats);
+warehouseSpaceRoute.post("/spaces/:warehouseSpaceId", warehouseSpace_controller_1.default.createSpace);
+warehouseSpaceRoute.post("/inventories/:warehouseSpaceId", warehouseSpace_controller_1.default.createInventory);
+warehouseSpaceRoute.get("/spaces/:warehouseSpaceId", warehouseSpace_controller_1.default.getAllSpaces);
+warehouseSpaceRoute.get("/inventories/:warehouseSpaceId", warehouseSpace_controller_1.default.getAllInventories);
+warehouseSpaceRoute.route("/spaces/:spaceId")
+    .get(warehouseSpace_controller_1.default.getSpaceById)
+    .patch(warehouseSpace_controller_1.default.updateSpace)
+    .delete(warehouseSpace_controller_1.default.deleteSpace);
+warehouseSpaceRoute.route("/inventories/:inventoryId")
+    .get(warehouseSpace_controller_1.default.getInventoryById)
+    .patch(warehouseSpace_controller_1.default.updateInventory)
+    .delete(warehouseSpace_controller_1.default.deleteInventory);
+warehouseSpaceRoute.patch("/spaces/:spaceId/occupancy", warehouseSpace_controller_1.default.updateSpaceOccupancy);
+warehouseSpaceRoute.patch("/inventories/:inventoryId/occupancy", warehouseSpace_controller_1.default.updateInventoryOccupancy);
+warehouseSpaceRoute.get("/spaces/:spaceId/activities", warehouseSpace_controller_1.default.getSpaceActivities);
+warehouseSpaceRoute.get("/inventories/:inventoryId/activities", warehouseSpace_controller_1.default.getInventoryActivities);
 exports.default = warehouseSpaceRoute;

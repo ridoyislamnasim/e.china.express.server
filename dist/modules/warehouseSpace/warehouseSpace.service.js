@@ -1,43 +1,32 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WarehouseSpaceService = void 0;
-const warehouseSpace_repository_1 = __importDefault(require("./warehouseSpace.repository"));
+const warehouseSpace_repository_1 = require("./warehouseSpace.repository");
 class WarehouseSpaceService {
-    constructor(repository = warehouseSpace_repository_1.default) {
+    constructor(repository) {
         this.repository = repository;
+        this.spaceActivityService = new warehouseSpace_repository_1.SpaceActivityService();
     }
     async createWarehouseSpace(payload) {
-        const { name, warehouseId, totalCapacity, description, } = payload;
-        // Validate required fields
-        if (!name || !warehouseId || !totalCapacity) {
-            const error = new Error('Required fields: name, warehouseId, totalCapacity are missing');
+        const { warehouseId, totalCapacity, name } = payload;
+        if (!warehouseId || !totalCapacity || !name) {
+            const error = new Error('Required fields are missing');
             error.statusCode = 400;
             throw error;
         }
-        // Check if warehouse exists
         const warehouse = await this.repository.getWarehouseById(warehouseId);
         if (!warehouse) {
             const error = new Error('Warehouse not found');
             error.statusCode = 404;
             throw error;
         }
-        // Check if space name already exists in this warehouse
-        const existingSpace = await this.repository.getSpaceByNameAndWarehouse(name, warehouseId);
-        if (existingSpace) {
-            const error = new Error('Space name already exists in this warehouse');
+        const existingWarehouseSpace = await this.repository.getWarehouseSpaceByWarehouse(warehouseId);
+        if (existingWarehouseSpace) {
+            const error = new Error('Warehouse space already exists for this warehouse');
             error.statusCode = 409;
             throw error;
         }
-        const warehouseSpaceData = {
-            name,
-            warehouseId,
-            totalCapacity,
-            description,
-        };
-        return await this.repository.createWarehouseSpace(warehouseSpaceData);
+        return await this.repository.createWarehouseSpace(payload);
     }
     async getAllWarehouseSpaces(filter = {}) {
         return await this.repository.getAllWarehouseSpaces(filter);
@@ -51,220 +40,250 @@ class WarehouseSpaceService {
         }
         return warehouseSpace;
     }
-    async getSpacesByWarehouse(warehouseId) {
-        return await this.repository.getSpacesByWarehouse(warehouseId);
-    }
     async getWarehouseSpacesWithPagination(filter, tx) {
         return await this.repository.getWarehouseSpacesWithPagination(filter, tx);
     }
     async updateWarehouseSpace(id, payload, tx) {
-        // Check if warehouse space exists
-        const existingSpace = await this.repository.getWarehouseSpaceById(id);
-        if (!existingSpace) {
+        const existingWarehouseSpace = await this.repository.getWarehouseSpaceById(id);
+        if (!existingWarehouseSpace) {
             const error = new Error('Warehouse space not found');
             error.statusCode = 404;
             throw error;
-        }
-        // Check if name is being changed and if it already exists in the warehouse
-        if (payload.name && payload.name !== existingSpace.name) {
-            const spaceWithName = await this.repository.getSpaceByNameAndWarehouse(payload.name, existingSpace.warehouseId);
-            if (spaceWithName) {
-                const error = new Error('Space name already exists in this warehouse');
-                error.statusCode = 409;
-                throw error;
-            }
         }
         return await this.repository.updateWarehouseSpace(id, payload, tx);
     }
     async deleteWarehouseSpace(id) {
-        // Check if warehouse space exists
-        const space = await this.repository.getWarehouseSpaceById(id);
-        if (!space) {
+        const warehouseSpace = await this.repository.getWarehouseSpaceById(id);
+        if (!warehouseSpace) {
             const error = new Error('Warehouse space not found');
             error.statusCode = 404;
             throw error;
         }
-        // Check if space has any inventory or subspaces
-        const hasSubSpaces = await this.repository.hasSubSpaces(id);
-        if (hasSubSpaces) {
-            const error = new Error('Cannot delete space with existing subspaces or inventory');
+        if (warehouseSpace.spaces.length > 0 || warehouseSpace.inventories.length > 0) {
+            const error = new Error('Cannot delete warehouse space with existing spaces or inventories');
             error.statusCode = 400;
             throw error;
         }
         await this.repository.deleteWarehouseSpace(id);
     }
-    // Sub-space methods
-    async createAirSpace(spaceId, payload, tx) {
-        const { spaceId: subSpaceId, name, price, duration, capacity, notes, spaceNumber, } = payload;
-        if (!subSpaceId || !name || !capacity) {
-            const error = new Error('Required fields: spaceId, name, capacity are missing');
+    async createSpace(warehouseSpaceId, payload, tx) {
+        const { spaceId, type, name, capacity, spaceNumber } = payload;
+        if (!spaceId || !type || !name || !capacity) {
+            const error = new Error('Required fields are missing');
             error.statusCode = 400;
             throw error;
         }
-        // Check if warehouse space exists
-        const warehouseSpace = await this.repository.getWarehouseSpaceById(spaceId);
+        const warehouseSpace = await this.repository.getWarehouseSpaceById(warehouseSpaceId);
         if (!warehouseSpace) {
             const error = new Error('Warehouse space not found');
             error.statusCode = 404;
             throw error;
         }
-        // Check if spaceId already exists
-        const existingAirSpace = await this.repository.getAirSpaceBySpaceId(spaceId, subSpaceId);
-        if (existingAirSpace) {
-            const error = new Error('Air space ID already exists in this warehouse space');
+        const existingSpace = await this.repository.getSpaceBySpaceIdAndType(warehouseSpaceId, spaceId, type);
+        if (existingSpace) {
+            const error = new Error('Space with this ID and type already exists');
             error.statusCode = 409;
             throw error;
         }
-        // Check if spaceNumber already exists
         if (spaceNumber) {
-            const existingSpaceNumber = await this.repository.getAirSpaceBySpaceNumber(spaceId, spaceNumber);
-            if (existingSpaceNumber) {
-                const error = new Error('Space number already exists in this warehouse space');
+            const spaceWithNumber = await this.repository.getSpaceByNumber(warehouseSpaceId, type, spaceNumber);
+            if (spaceWithNumber) {
+                const error = new Error('Space number already exists for this type');
                 error.statusCode = 409;
                 throw error;
             }
         }
-        const airSpaceData = {
-            spaceId: subSpaceId,
-            name,
-            price,
-            duration,
-            capacity,
-            notes,
-            spaceNumber,
-            warehouseSpaceId: spaceId,
-        };
-        return await this.repository.createAirSpace(airSpaceData, tx);
+        const space = await this.repository.createSpace(warehouseSpaceId, payload, tx);
+        await this.spaceActivityService.logSpaceActivity({
+            warehouseId: warehouseSpace.warehouseId,
+            spaceType: 'SPACE',
+            spaceId: space.id,
+            action: 'CREATE',
+            details: { ...payload, warehouseSpaceId },
+            userId: payload.userId
+        }, tx);
+        return space;
     }
-    async createSeaSpace(spaceId, payload, tx) {
-        const { spaceId: subSpaceId, name, price, duration, capacity, notes, spaceNumber, } = payload;
-        if (!subSpaceId || !name || !capacity) {
-            const error = new Error('Required fields: spaceId, name, capacity are missing');
-            error.statusCode = 400;
-            throw error;
-        }
-        // Check if warehouse space exists
-        const warehouseSpace = await this.repository.getWarehouseSpaceById(spaceId);
-        if (!warehouseSpace) {
-            const error = new Error('Warehouse space not found');
+    async getAllSpaces(warehouseSpaceId, filter = {}) {
+        return await this.repository.getAllSpaces(warehouseSpaceId, filter);
+    }
+    async getSpaceById(id) {
+        const space = await this.repository.getSpaceById(id);
+        if (!space) {
+            const error = new Error('Space not found');
             error.statusCode = 404;
             throw error;
         }
-        // Check if spaceId already exists
-        const existingSeaSpace = await this.repository.getSeaSpaceBySpaceId(spaceId, subSpaceId);
-        if (existingSeaSpace) {
-            const error = new Error('Sea space ID already exists in this warehouse space');
-            error.statusCode = 409;
+        return space;
+    }
+    async updateSpace(id, payload, tx) {
+        const existingSpace = await this.repository.getSpaceById(id);
+        if (!existingSpace) {
+            const error = new Error('Space not found');
+            error.statusCode = 404;
             throw error;
         }
-        // Check if spaceNumber already exists
-        if (spaceNumber) {
-            const existingSpaceNumber = await this.repository.getSeaSpaceBySpaceNumber(spaceId, spaceNumber);
-            if (existingSpaceNumber) {
-                const error = new Error('Space number already exists in this warehouse space');
+        if (payload.spaceNumber && payload.spaceNumber !== existingSpace.spaceNumber) {
+            const spaceWithNumber = await this.repository.getSpaceByNumber(existingSpace.warehouseSpaceId, existingSpace.type, payload.spaceNumber);
+            if (spaceWithNumber && spaceWithNumber.id !== id) {
+                const error = new Error('Space number already exists for this type');
                 error.statusCode = 409;
                 throw error;
             }
         }
-        const seaSpaceData = {
-            spaceId: subSpaceId,
-            name,
-            price,
-            duration,
-            capacity,
-            notes,
-            spaceNumber,
-            warehouseSpaceId: spaceId,
-        };
-        return await this.repository.createSeaSpace(seaSpaceData, tx);
+        const updatedSpace = await this.repository.updateSpace(id, payload, tx);
+        await this.spaceActivityService.logSpaceActivity({
+            warehouseId: existingSpace.warehouseSpace.warehouseId,
+            spaceType: 'SPACE',
+            spaceId: id,
+            action: 'UPDATE',
+            details: payload,
+            userId: payload.userId
+        }, tx);
+        return updatedSpace;
     }
-    async createExpressSpace(spaceId, payload, tx) {
-        const { spaceId: subSpaceId, name, price, duration, capacity, notes, spaceNumber, } = payload;
-        if (!subSpaceId || !name || !capacity) {
-            const error = new Error('Required fields: spaceId, name, capacity are missing');
+    async deleteSpace(id) {
+        const space = await this.repository.getSpaceById(id);
+        if (!space) {
+            const error = new Error('Space not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        // Check if space has activities
+        if (space.activities && space.activities.length > 0) {
+            const error = new Error('Cannot delete space with existing activities');
             error.statusCode = 400;
             throw error;
         }
-        // Check if warehouse space exists
-        const warehouseSpace = await this.repository.getWarehouseSpaceById(spaceId);
-        if (!warehouseSpace) {
-            const error = new Error('Warehouse space not found');
-            error.statusCode = 404;
-            throw error;
-        }
-        // Check if spaceId already exists
-        const existingExpressSpace = await this.repository.getExpressSpaceBySpaceId(spaceId, subSpaceId);
-        if (existingExpressSpace) {
-            const error = new Error('Express space ID already exists in this warehouse space');
-            error.statusCode = 409;
-            throw error;
-        }
-        // Check if spaceNumber already exists
-        if (spaceNumber) {
-            const existingSpaceNumber = await this.repository.getExpressSpaceBySpaceNumber(spaceId, spaceNumber);
-            if (existingSpaceNumber) {
-                const error = new Error('Space number already exists in this warehouse space');
-                error.statusCode = 409;
-                throw error;
-            }
-        }
-        const expressSpaceData = {
-            spaceId: subSpaceId,
-            name,
-            price,
-            duration,
-            capacity,
-            notes,
-            spaceNumber,
-            warehouseSpaceId: spaceId,
-        };
-        return await this.repository.createExpressSpace(expressSpaceData, tx);
+        await this.repository.deleteSpace(id);
     }
-    async createInventory(spaceId, payload, tx) {
-        const { name = 'Inventory', description, price, duration, } = payload;
-        // Check if warehouse space exists
-        const warehouseSpace = await this.repository.getWarehouseSpaceById(spaceId);
+    async createInventory(warehouseSpaceId, payload, tx) {
+        const { type, capacity } = payload;
+        if (!type || !capacity) {
+            const error = new Error('Required fields are missing');
+            error.statusCode = 400;
+            throw error;
+        }
+        const warehouseSpace = await this.repository.getWarehouseSpaceById(warehouseSpaceId);
         if (!warehouseSpace) {
             const error = new Error('Warehouse space not found');
             error.statusCode = 404;
             throw error;
         }
-        // Check if inventory already exists for this space
-        const existingInventory = await this.repository.getInventoryBySpaceId(spaceId);
+        const existingInventory = await this.repository.getInventoryByType(warehouseSpaceId, type);
         if (existingInventory) {
-            const error = new Error('Inventory already exists for this warehouse space');
+            const error = new Error('Inventory with this type already exists');
             error.statusCode = 409;
             throw error;
         }
-        const inventoryData = {
-            name,
-            description,
-            price,
-            duration,
-            warehouseSpaceId: spaceId,
-        };
-        return await this.repository.createInventory(inventoryData, tx);
+        const inventory = await this.repository.createInventory(warehouseSpaceId, payload, tx);
+        await this.spaceActivityService.logSpaceActivity({
+            warehouseId: warehouseSpace.warehouseId,
+            spaceType: 'INVENTORY',
+            spaceId: inventory.id,
+            action: 'CREATE',
+            details: { ...payload, warehouseSpaceId },
+            userId: payload.userId
+        }, tx);
+        return inventory;
     }
-    async getAirSpaces(spaceId, filter = {}) {
-        return await this.repository.getAirSpaces(spaceId, filter);
+    async getAllInventories(warehouseSpaceId, filter = {}) {
+        return await this.repository.getAllInventories(warehouseSpaceId, filter);
     }
-    async getSeaSpaces(spaceId, filter = {}) {
-        return await this.repository.getSeaSpaces(spaceId, filter);
+    async getInventoryById(id) {
+        const inventory = await this.repository.getInventoryById(id);
+        if (!inventory) {
+            const error = new Error('Inventory not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        return inventory;
     }
-    async getExpressSpaces(spaceId, filter = {}) {
-        return await this.repository.getExpressSpaces(spaceId, filter);
+    async updateInventory(id, payload, tx) {
+        const existingInventory = await this.repository.getInventoryById(id);
+        if (!existingInventory) {
+            const error = new Error('Inventory not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        const updatedInventory = await this.repository.updateInventory(id, payload, tx);
+        await this.spaceActivityService.logSpaceActivity({
+            warehouseId: existingInventory.warehouseSpace.warehouseId,
+            spaceType: 'INVENTORY',
+            spaceId: id,
+            action: 'UPDATE',
+            details: payload,
+            userId: payload.userId
+        }, tx);
+        return updatedInventory;
     }
-    async getInventory(spaceId) {
-        return await this.repository.getInventory(spaceId);
+    async deleteInventory(id) {
+        const inventory = await this.repository.getInventoryById(id);
+        if (!inventory) {
+            const error = new Error('Inventory not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        if (inventory.activities && inventory.activities.length > 0) {
+            const error = new Error('Cannot delete inventory with existing activities');
+            error.statusCode = 400;
+            throw error;
+        }
+        await this.repository.deleteInventory(id);
     }
-    async updateSpaceCapacity(spaceId, totalCapacity, tx) {
-        return await this.repository.updateWarehouseSpace(spaceId, { totalCapacity }, tx);
+    async updateSpaceOccupancy(id, occupied, tx) {
+        const space = await this.repository.getSpaceById(id);
+        if (!space) {
+            const error = new Error('Space not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        const updatedSpace = await this.repository.updateSpaceOccupancy(id, occupied, tx);
+        await this.spaceActivityService.logSpaceActivity({
+            warehouseId: space.warehouseSpace.warehouseId,
+            spaceType: 'SPACE',
+            spaceId: id,
+            action: 'UPDATE_OCCUPANCY',
+            details: { occupied },
+            userId: space.userId
+        }, tx);
+        return updatedSpace;
     }
-    async getAvailableSpacesByWarehouse(warehouseId, spaceType) {
-        return await this.repository.getAvailableSpacesByWarehouse(warehouseId, spaceType);
+    async updateInventoryOccupancy(id, occupied, tx) {
+        const inventory = await this.repository.getInventoryById(id);
+        if (!inventory) {
+            const error = new Error('Inventory not found');
+            error.statusCode = 404;
+            throw error;
+        }
+        const updatedInventory = await this.repository.updateInventoryOccupancy(id, occupied, tx);
+        await this.spaceActivityService.logSpaceActivity({
+            warehouseId: inventory.warehouseSpace.warehouseId,
+            spaceType: 'INVENTORY',
+            spaceId: id,
+            action: 'UPDATE_OCCUPANCY',
+            details: { occupied },
+            userId: inventory.userId
+        }, tx);
+        return updatedInventory;
     }
-    async getSpaceStats(spaceId) {
-        return await this.repository.getSpaceStats(spaceId);
+    async getSpacesByWarehouse(warehouseId) {
+        return await this.repository.getSpacesByWarehouse(warehouseId);
+    }
+    async getWarehouseSpaceStats(warehouseId) {
+        return await this.repository.getWarehouseSpaceStats(warehouseId);
+    }
+    async getAvailableSpaces(warehouseId, type) {
+        return await this.repository.getAvailableSpaces(warehouseId);
+    }
+    async searchSpaces(searchTerm, warehouseId) {
+        return await this.repository.searchSpaces(searchTerm, warehouseId);
+    }
+    async getSpaceActivities(spaceId) {
+        return await this.repository.getSpaceActivities(spaceId);
+    }
+    async getInventoryActivities(inventoryId) {
+        return await this.repository.getInventoryActivities(inventoryId);
     }
 }
 exports.WarehouseSpaceService = WarehouseSpaceService;

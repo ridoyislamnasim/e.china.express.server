@@ -30,8 +30,8 @@ app.use("/public", express_1.default.static(path_1.default.join(__dirname, "..",
 const allowedOrigins = [
     'http://localhost:3010',
     'http://localhost:3012',
-    'https://e-china-express-customer.vercel.app',
-    'https://e-china-express.vercel.app',
+    'https://echinaexpress.com',
+    'https://admin.echinaexpress.com',
 ];
 app.use((0, cors_1.default)({
     origin: allowedOrigins,

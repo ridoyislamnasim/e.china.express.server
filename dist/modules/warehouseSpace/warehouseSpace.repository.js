@@ -1,25 +1,48 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SpaceActivityService = exports.WarehouseSpaceRepository = void 0;
+const prismadatabase_1 = __importDefault(require("../../config/prismadatabase"));
 const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
-class WarehouseSpaceRepositoryImpl {
+const pagination_1 = require("../../utils/pagination");
+class WarehouseSpaceRepository {
     constructor() {
-        this.prisma = prisma;
+        this.prisma = prismadatabase_1.default;
     }
-    async createWarehouseSpace(data) {
+    // WarehouseSpace methods
+    async createWarehouseSpace(payload) {
         return await this.prisma.warehouseSpace.create({
-            data,
+            data: payload,
             include: {
                 warehouse: true,
-            },
+            }
         });
     }
-    async getAllWarehouseSpaces(filter) {
+    async getWarehouseSpaceById(id) {
+        return await this.prisma.warehouseSpace.findUnique({
+            where: { id },
+            include: {
+                warehouse: true,
+                spaces: true,
+                inventories: true,
+            }
+        });
+    }
+    async getWarehouseSpaceByWarehouse(warehouseId) {
+        return await this.prisma.warehouseSpace.findFirst({
+            where: { warehouseId },
+            include: {
+                warehouse: true,
+            }
+        });
+    }
+    async getAllWarehouseSpaces(filter = {}) {
         const { warehouseId, search } = filter;
         const where = {};
-        if (warehouseId) {
+        if (warehouseId)
             where.warehouseId = warehouseId;
-        }
         if (search) {
             where.OR = [
                 { name: { contains: search, mode: 'insensitive' } },
@@ -31,131 +54,442 @@ class WarehouseSpaceRepositoryImpl {
             include: {
                 warehouse: {
                     select: {
+                        id: true,
                         name: true,
                         code: true,
-                        city: true,
-                        state: true,
-                    },
-                },
-                _count: {
-                    select: {
-                        airSpaces: true,
-                        seaSpaces: true,
-                        expressSpaces: true,
-                        inventory: true,
-                    },
+                    }
                 },
             },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
-    }
-    async getWarehouseSpaceById(id) {
-        return await this.prisma.warehouseSpace.findUnique({
-            where: { id },
-            include: {
-                warehouse: true,
-                airSpaces: true,
-                seaSpaces: true,
-                expressSpaces: true,
-                inventory: {
-                    include: {
-                        subInventoryX: true,
-                        subInventoryY: true,
-                        subInventoryZ: true,
-                    },
-                },
-            },
-        });
-    }
-    async getSpacesByWarehouse(warehouseId) {
-        return await this.prisma.warehouseSpace.findMany({
-            where: { warehouseId },
-            include: {
-                _count: {
-                    select: {
-                        airSpaces: true,
-                        seaSpaces: true,
-                        expressSpaces: true,
-                        inventory: true,
-                    },
-                },
-            },
-            orderBy: {
-                name: 'asc',
-            },
+            orderBy: { createdAt: 'desc' }
         });
     }
     async getWarehouseSpacesWithPagination(filter, tx) {
-        const prismaClient = tx || this.prisma;
         const { page = 1, limit = 10, warehouseId, search } = filter;
+        const offset = (page - 1) * limit;
+        const prismaClient = tx || this.prisma;
         const where = {};
-        if (warehouseId) {
+        if (warehouseId)
             where.warehouseId = warehouseId;
-        }
         if (search) {
             where.OR = [
                 { name: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
             ];
         }
-        const skip = (page - 1) * limit;
-        const [spaces, total] = await Promise.all([
-            prismaClient.warehouseSpace.findMany({
-                where,
-                include: {
-                    warehouse: {
-                        select: {
-                            name: true,
-                            code: true,
-                            city: true,
-                            state: true,
+        return await (0, pagination_1.pagination)({ limit, offset }, async (limit, offset) => {
+            const [doc, totalDoc] = await Promise.all([
+                prismaClient.warehouseSpace.findMany({
+                    where,
+                    skip: offset,
+                    take: limit,
+                    include: {
+                        warehouse: {
+                            select: {
+                                id: true,
+                                name: true,
+                                code: true,
+                            }
                         },
+                        _count: {
+                            select: {
+                                spaces: true,
+                                inventories: true,
+                            }
+                        }
                     },
-                    _count: {
-                        select: {
-                            airSpaces: true,
-                            seaSpaces: true,
-                            expressSpaces: true,
-                            inventory: true,
-                        },
-                    },
-                },
-                orderBy: {
-                    createdAt: 'desc',
-                },
-                skip,
-                take: limit,
-            }),
-            prismaClient.warehouseSpace.count({ where }),
-        ]);
-        return {
-            spaces,
-            pagination: {
-                page,
-                limit,
-                total,
-                pages: Math.ceil(total / limit),
-            },
-        };
+                    orderBy: { createdAt: 'desc' }
+                }),
+                prismaClient.warehouseSpace.count({ where }),
+            ]);
+            return { doc, totalDoc };
+        });
     }
-    async updateWarehouseSpace(id, data, tx) {
+    async updateWarehouseSpace(id, payload, tx) {
         const prismaClient = tx || this.prisma;
         return await prismaClient.warehouseSpace.update({
             where: { id },
-            data: {
-                ...data,
-                updatedAt: new Date(),
-            },
+            data: payload,
             include: {
                 warehouse: true,
-            },
+            }
         });
     }
     async deleteWarehouseSpace(id) {
-        return await this.prisma.warehouseSpace.delete({
+        await this.prisma.warehouseSpace.delete({ where: { id } });
+    }
+    // Space methods
+    async createSpace(warehouseSpaceId, payload, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.space.create({
+            data: {
+                ...payload,
+                warehouseSpaceId,
+            },
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                }
+            }
+        });
+    }
+    async getSpaceById(id) {
+        return await this.prisma.space.findUnique({
             where: { id },
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                },
+                activities: true,
+            }
+        });
+    }
+    async getSpaceBySpaceIdAndType(warehouseSpaceId, spaceId, type) {
+        return await this.prisma.space.findFirst({
+            where: {
+                warehouseSpaceId,
+                spaceId,
+                type,
+            }
+        });
+    }
+    async getSpaceByNumber(warehouseSpaceId, type, spaceNumber) {
+        return await this.prisma.space.findFirst({
+            where: {
+                warehouseSpaceId,
+                type,
+                spaceNumber,
+            }
+        });
+    }
+    async getAllSpaces(warehouseSpaceId, filter = {}) {
+        const { type, occupied, search } = filter;
+        const where = { warehouseSpaceId };
+        if (type)
+            where.type = type;
+        if (occupied !== undefined)
+            where.occupied = occupied;
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { spaceId: { contains: search, mode: 'insensitive' } },
+                { notes: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+        return await this.prisma.space.findMany({
+            where,
+            include: {
+                warehouseSpace: {
+                    select: {
+                        id: true,
+                        name: true,
+                        warehouse: {
+                            select: {
+                                id: true,
+                                name: true,
+                                code: true,
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: [
+                { type: 'asc' },
+                { spaceNumber: 'asc' }
+            ]
+        });
+    }
+    async updateSpace(id, payload, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.space.update({
+            where: { id },
+            data: payload,
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                }
+            }
+        });
+    }
+    async updateSpaceOccupancy(id, occupied, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.space.update({
+            where: { id },
+            data: { occupied },
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                }
+            }
+        });
+    }
+    async deleteSpace(id) {
+        await this.prisma.space.delete({ where: { id } });
+    }
+    // Inventory methods
+    async createInventory(warehouseSpaceId, payload, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.inventory.create({
+            data: {
+                ...payload,
+                warehouseSpaceId,
+            },
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                }
+            }
+        });
+    }
+    async getInventoryById(id) {
+        return await this.prisma.inventory.findUnique({
+            where: { id },
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                },
+                activities: true,
+            }
+        });
+    }
+    async getInventoryByType(warehouseSpaceId, type) {
+        return await this.prisma.inventory.findFirst({
+            where: {
+                warehouseSpaceId,
+                type,
+            }
+        });
+    }
+    async getAllInventories(warehouseSpaceId, filter = {}) {
+        const { type, occupied, search } = filter;
+        const where = { warehouseSpaceId };
+        if (type)
+            where.type = type;
+        if (occupied !== undefined)
+            where.occupied = occupied;
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { notes: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+        return await this.prisma.inventory.findMany({
+            where,
+            include: {
+                warehouseSpace: {
+                    select: {
+                        id: true,
+                        name: true,
+                        warehouse: {
+                            select: {
+                                id: true,
+                                name: true,
+                                code: true,
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { type: 'asc' }
+        });
+    }
+    async updateInventory(id, payload, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.inventory.update({
+            where: { id },
+            data: payload,
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                }
+            }
+        });
+    }
+    async updateInventoryOccupancy(id, occupied, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.inventory.update({
+            where: { id },
+            data: { occupied },
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                }
+            }
+        });
+    }
+    async deleteInventory(id) {
+        await this.prisma.inventory.delete({ where: { id } });
+    }
+    // Additional methods
+    async getSpacesByWarehouse(warehouseId) {
+        const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+            where: { warehouseId },
+            include: {
+                spaces: {
+                    include: {
+                        activities: {
+                            orderBy: { createdAt: 'desc' },
+                            take: 10,
+                        }
+                    },
+                    orderBy: [
+                        { type: 'asc' },
+                        { spaceNumber: 'asc' }
+                    ]
+                },
+                inventories: {
+                    include: {
+                        activities: {
+                            orderBy: { createdAt: 'desc' },
+                            take: 10,
+                        }
+                    },
+                    orderBy: { type: 'asc' }
+                }
+            }
+        });
+        return warehouseSpace || { spaces: [], inventories: [] };
+    }
+    async getWarehouseSpaceStats(warehouseId) {
+        const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+            where: { warehouseId },
+            include: {
+                spaces: true,
+                inventories: true,
+            }
+        });
+        if (!warehouseSpace) {
+            return {
+                totalSpaces: 0,
+                occupiedSpaces: 0,
+                availableSpaces: 0,
+                totalInventories: 0,
+                occupiedInventories: 0,
+                availableInventories: 0,
+                totalCapacity: 0,
+                usedCapacity: 0,
+                availableCapacity: 0,
+            };
+        }
+        const totalSpaces = warehouseSpace.spaces.length;
+        const occupiedSpaces = warehouseSpace.spaces.filter((s) => s.occupied).length;
+        const availableSpaces = totalSpaces - occupiedSpaces;
+        const totalInventories = warehouseSpace.inventories.length;
+        const occupiedInventories = warehouseSpace.inventories.filter((i) => i.occupied).length;
+        const availableInventories = totalInventories - occupiedInventories;
+        // Calculate capacity usage
+        const spacesCapacity = warehouseSpace.spaces.reduce((sum, space) => sum + (space.capacity || 0), 0);
+        const inventoriesCapacity = warehouseSpace.inventories.reduce((sum, inv) => sum + (inv.capacity || 0), 0);
+        const usedCapacity = spacesCapacity + inventoriesCapacity;
+        const totalCapacity = warehouseSpace.totalCapacity;
+        const availableCapacity = totalCapacity - usedCapacity;
+        return {
+            totalSpaces,
+            occupiedSpaces,
+            availableSpaces,
+            totalInventories,
+            occupiedInventories,
+            availableInventories,
+            totalCapacity,
+            usedCapacity,
+            availableCapacity,
+        };
+    }
+    async getAvailableSpaces(warehouseId, type) {
+        const whereCondition = { occupied: false };
+        const inventoryWhereCondition = { occupied: false };
+        if (type) {
+            // Check if type is a SpaceType
+            if (Object.values(client_1.SpaceType).includes(type)) {
+                whereCondition.type = type;
+            }
+            // Check if type is an InventoryType
+            else if (Object.values(client_1.InventoryType).includes(type)) {
+                inventoryWhereCondition.type = type;
+            }
+        }
+        const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+            where: { warehouseId },
+            include: {
+                spaces: {
+                    where: whereCondition,
+                    orderBy: [
+                        { type: 'asc' },
+                        { spaceNumber: 'asc' }
+                    ]
+                },
+                inventories: {
+                    where: inventoryWhereCondition,
+                    orderBy: { type: 'asc' }
+                }
+            }
+        });
+        return warehouseSpace || { spaces: [], inventories: [] };
+    }
+    async searchSpaces(searchTerm, warehouseId) {
+        const where = {
+            OR: [
+                { name: { contains: searchTerm, mode: 'insensitive' } },
+                { spaceId: { contains: searchTerm, mode: 'insensitive' } },
+                { notes: { contains: searchTerm, mode: 'insensitive' } },
+            ]
+        };
+        if (warehouseId) {
+            const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+                where: { warehouseId },
+                select: { id: true }
+            });
+            if (warehouseSpace) {
+                where.warehouseSpaceId = warehouseSpace.id;
+            }
+        }
+        return await this.prisma.space.findMany({
+            where,
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: {
+                            select: {
+                                id: true,
+                                name: true,
+                                code: true,
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: [
+                { type: 'asc' },
+                { spaceNumber: 'asc' }
+            ]
+        });
+    }
+    async getSpaceActivities(spaceId) {
+        return await this.prisma.spaceActivity.findMany({
+            where: { spaceId },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+    async getInventoryActivities(inventoryId) {
+        return await this.prisma.spaceActivity.findMany({
+            where: { spaceId: inventoryId },
+            orderBy: { createdAt: 'desc' }
         });
     }
     async getWarehouseById(id) {
@@ -163,299 +497,21 @@ class WarehouseSpaceRepositoryImpl {
             where: { id },
         });
     }
-    async getSpaceByNameAndWarehouse(name, warehouseId) {
-        return await this.prisma.warehouseSpace.findFirst({
-            where: {
-                name,
-                warehouseId,
-            },
-        });
+}
+exports.WarehouseSpaceRepository = WarehouseSpaceRepository;
+// Space Activity Service
+class SpaceActivityService {
+    constructor() {
+        this.prisma = prismadatabase_1.default;
     }
-    async hasSubSpaces(spaceId) {
-        const [airSpaces, seaSpaces, expressSpaces, inventory] = await Promise.all([
-            this.prisma.airSpace.count({ where: { warehouseSpaceId: spaceId } }),
-            this.prisma.seaSpace.count({ where: { warehouseSpaceId: spaceId } }),
-            this.prisma.expressSpace.count({ where: { warehouseSpaceId: spaceId } }),
-            this.prisma.inventory.count({ where: { warehouseSpaceId: spaceId } }),
-        ]);
-        return airSpaces > 0 || seaSpaces > 0 || expressSpaces > 0 || inventory > 0;
-    }
-    // Air Space methods
-    async createAirSpace(data, tx) {
+    async logSpaceActivity(payload, tx) {
         const prismaClient = tx || this.prisma;
-        return await prismaClient.airSpace.create({
-            data,
+        return await prismaClient.spaceActivity.create({
+            data: payload,
         });
-    }
-    async getAirSpaceBySpaceId(spaceId, subSpaceId) {
-        return await this.prisma.airSpace.findFirst({
-            where: {
-                warehouseSpaceId: spaceId,
-                spaceId: subSpaceId,
-            },
-        });
-    }
-    async getAirSpaceBySpaceNumber(spaceId, spaceNumber) {
-        return await this.prisma.airSpace.findFirst({
-            where: {
-                warehouseSpaceId: spaceId,
-                spaceNumber,
-            },
-        });
-    }
-    async getAirSpaces(spaceId, filter) {
-        const where = {
-            warehouseSpaceId: spaceId,
-        };
-        if (filter.occupied !== undefined) {
-            where.occupied = filter.occupied;
-        }
-        return await this.prisma.airSpace.findMany({
-            where,
-            orderBy: [
-                { spaceNumber: 'asc' },
-                { createdAt: 'desc' },
-            ],
-        });
-    }
-    // Sea Space methods
-    async createSeaSpace(data, tx) {
-        const prismaClient = tx || this.prisma;
-        return await prismaClient.seaSpace.create({
-            data,
-        });
-    }
-    async getSeaSpaceBySpaceId(spaceId, subSpaceId) {
-        return await this.prisma.seaSpace.findFirst({
-            where: {
-                warehouseSpaceId: spaceId,
-                spaceId: subSpaceId,
-            },
-        });
-    }
-    async getSeaSpaceBySpaceNumber(spaceId, spaceNumber) {
-        return await this.prisma.seaSpace.findFirst({
-            where: {
-                warehouseSpaceId: spaceId,
-                spaceNumber,
-            },
-        });
-    }
-    async getSeaSpaces(spaceId, filter) {
-        const where = {
-            warehouseSpaceId: spaceId,
-        };
-        if (filter.occupied !== undefined) {
-            where.occupied = filter.occupied;
-        }
-        return await this.prisma.seaSpace.findMany({
-            where,
-            orderBy: [
-                { spaceNumber: 'asc' },
-                { createdAt: 'desc' },
-            ],
-        });
-    }
-    // Express Space methods
-    async createExpressSpace(data, tx) {
-        const prismaClient = tx || this.prisma;
-        return await prismaClient.expressSpace.create({
-            data,
-        });
-    }
-    async getExpressSpaceBySpaceId(spaceId, subSpaceId) {
-        return await this.prisma.expressSpace.findFirst({
-            where: {
-                warehouseSpaceId: spaceId,
-                spaceId: subSpaceId,
-            },
-        });
-    }
-    async getExpressSpaceBySpaceNumber(spaceId, spaceNumber) {
-        return await this.prisma.expressSpace.findFirst({
-            where: {
-                warehouseSpaceId: spaceId,
-                spaceNumber,
-            },
-        });
-    }
-    async getExpressSpaces(spaceId, filter) {
-        const where = {
-            warehouseSpaceId: spaceId,
-        };
-        if (filter.occupied !== undefined) {
-            where.occupied = filter.occupied;
-        }
-        return await this.prisma.expressSpace.findMany({
-            where,
-            orderBy: [
-                { spaceNumber: 'asc' },
-                { createdAt: 'desc' },
-            ],
-        });
-    }
-    // Inventory methods
-    async createInventory(data, tx) {
-        const prismaClient = tx || this.prisma;
-        return await prismaClient.inventory.create({
-            data,
-            include: {
-                subInventoryX: true,
-                subInventoryY: true,
-                subInventoryZ: true,
-            },
-        });
-    }
-    async getInventoryBySpaceId(spaceId) {
-        return await this.prisma.inventory.findFirst({
-            where: {
-                warehouseSpaceId: spaceId,
-            },
-        });
-    }
-    async getInventory(spaceId) {
-        return await this.prisma.inventory.findFirst({
-            where: {
-                warehouseSpaceId: spaceId,
-            },
-            include: {
-                subInventoryX: true,
-                subInventoryY: true,
-                subInventoryZ: true,
-            },
-        });
-    }
-    // Utility methods
-    async getAvailableSpacesByWarehouse(warehouseId, spaceType) {
-        const spaces = await this.prisma.warehouseSpace.findMany({
-            where: { warehouseId },
-            include: {
-                airSpaces: {
-                    where: { occupied: false },
-                },
-                seaSpaces: {
-                    where: { occupied: false },
-                },
-                expressSpaces: {
-                    where: { occupied: false },
-                },
-                inventory: {
-                    include: {
-                        subInventoryX: {
-                            where: { occupied: false },
-                        },
-                        subInventoryY: {
-                            where: { occupied: false },
-                        },
-                        subInventoryZ: {
-                            where: { occupied: false },
-                        },
-                    },
-                },
-            },
-        });
-        // Filter based on spaceType if provided
-        if (spaceType) {
-            return spaces.map(space => {
-                const result = {
-                    id: space.id,
-                    name: space.name,
-                    totalCapacity: space.totalCapacity,
-                };
-                switch (spaceType.toLowerCase()) {
-                    case 'air':
-                        result.availableSpaces = space.airSpaces;
-                        break;
-                    case 'sea':
-                        result.availableSpaces = space.seaSpaces;
-                        break;
-                    case 'express':
-                        result.availableSpaces = space.expressSpaces;
-                        break;
-                    case 'inventory':
-                        result.availableSpaces = space.inventory;
-                        break;
-                    default:
-                        result.availableSpaces = {
-                            airSpaces: space.airSpaces,
-                            seaSpaces: space.seaSpaces,
-                            expressSpaces: space.expressSpaces,
-                            inventory: space.inventory,
-                        };
-                }
-                return result;
-            });
-        }
-        return spaces;
-    }
-    async getSpaceStats(spaceId) {
-        const [airSpaces, seaSpaces, expressSpaces, inventory] = await Promise.all([
-            this.prisma.airSpace.findMany({
-                where: { warehouseSpaceId: spaceId },
-            }),
-            this.prisma.seaSpace.findMany({
-                where: { warehouseSpaceId: spaceId },
-            }),
-            this.prisma.expressSpace.findMany({
-                where: { warehouseSpaceId: spaceId },
-            }),
-            this.prisma.inventory.findFirst({
-                where: { warehouseSpaceId: spaceId },
-                include: {
-                    subInventoryX: true,
-                    subInventoryY: true,
-                    subInventoryZ: true,
-                },
-            }),
-        ]);
-        const totalAirSpaces = airSpaces.length;
-        const occupiedAirSpaces = airSpaces.filter(space => space.occupied).length;
-        const totalSeaSpaces = seaSpaces.length;
-        const occupiedSeaSpaces = seaSpaces.filter(space => space.occupied).length;
-        const totalExpressSpaces = expressSpaces.length;
-        const occupiedExpressSpaces = expressSpaces.filter(space => space.occupied).length;
-        let totalInventorySpaces = 0;
-        let occupiedInventorySpaces = 0;
-        if (inventory) {
-            totalInventorySpaces =
-                inventory.subInventoryX.length +
-                    inventory.subInventoryY.length +
-                    inventory.subInventoryZ.length;
-            occupiedInventorySpaces =
-                inventory.subInventoryX.filter(space => space.occupied).length +
-                    inventory.subInventoryY.filter(space => space.occupied).length +
-                    inventory.subInventoryZ.filter(space => space.occupied).length;
-        }
-        return {
-            airSpaces: {
-                total: totalAirSpaces,
-                occupied: occupiedAirSpaces,
-                available: totalAirSpaces - occupiedAirSpaces,
-            },
-            seaSpaces: {
-                total: totalSeaSpaces,
-                occupied: occupiedSeaSpaces,
-                available: totalSeaSpaces - occupiedSeaSpaces,
-            },
-            expressSpaces: {
-                total: totalExpressSpaces,
-                occupied: occupiedExpressSpaces,
-                available: totalExpressSpaces - occupiedExpressSpaces,
-            },
-            inventory: {
-                total: totalInventorySpaces,
-                occupied: occupiedInventorySpaces,
-                available: totalInventorySpaces - occupiedInventorySpaces,
-            },
-            summary: {
-                totalSpaces: totalAirSpaces + totalSeaSpaces + totalExpressSpaces + totalInventorySpaces,
-                occupiedSpaces: occupiedAirSpaces + occupiedSeaSpaces + occupiedExpressSpaces + occupiedInventorySpaces,
-                availableSpaces: (totalAirSpaces - occupiedAirSpaces) +
-                    (totalSeaSpaces - occupiedSeaSpaces) +
-                    (totalExpressSpaces - occupiedExpressSpaces) +
-                    (totalInventorySpaces - occupiedInventorySpaces),
-            },
-        };
     }
 }
-exports.default = new WarehouseSpaceRepositoryImpl();
+exports.SpaceActivityService = SpaceActivityService;
+// Export singleton instance
+const warehouseSpaceRepository = new WarehouseSpaceRepository();
+exports.default = warehouseSpaceRepository;
