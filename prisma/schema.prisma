@@ -200,7 +200,6 @@ model Warehouse {
   countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
   warehouseSpaces        WarehouseSpace[]
-  spaceActivity          SpaceActivity[]
   fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
   toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
 
@@ -243,8 +242,6 @@ model Space {
   warehouseSpaceId  String
   warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
-  activities        SpaceActivity[]
-
   @@unique([warehouseSpaceId, type, spaceId])
   @@unique([warehouseSpaceId, type, spaceNumber])
   @@index([warehouseSpaceId])
@@ -270,7 +267,6 @@ model Inventory {
   warehouseSpaceId  String
   warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
-  activities        SpaceActivity[]
 
   @@unique([warehouseSpaceId, type])
   @@index([warehouseSpaceId])
@@ -278,25 +274,6 @@ model Inventory {
   @@map("inventories")
 }
 
-model SpaceActivity {
-  id                String   @id @default(cuid())
-  spaceType         String   
-  spaceId           String
-  action            String   // CREATE, UPDATE, DELETE, etc.
-  details           Json?
-  userId            String?
-  createdAt         DateTime @default(now())
-
-  warehouseId       String
-  warehouse         Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-
-  space             Space?   @relation(fields: [spaceId], references: [id], map: "space_activities_space_fkey")
-  inventory         Inventory? @relation(fields: [spaceId], references: [id], map: "space_activities_inventory_fkey")
-
-  @@index([warehouseId, spaceType, spaceId])
-  @@index([createdAt])
-  @@map("space_activities")
-}
 
 enum SpaceType {
   AIR

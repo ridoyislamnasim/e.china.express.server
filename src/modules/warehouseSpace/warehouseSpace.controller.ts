@@ -2,8 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 
 import { responseHandler } from '../../utils/responseHandler';
 import withTransaction from '../../middleware/transactions/withTransaction';
-import { WarehouseSpaceService } from './warehouseSpace.service';
-import warehouseSpaceRepository from './warehouseSpace.repository';
+import { WarehouseSpaceService } from './warehouseSpace.repository';
+import warehouseSpaceRepository from './warehouseSpace.service';
+
 
 const warehouseSpaceService = new WarehouseSpaceService(warehouseSpaceRepository);
 
@@ -301,27 +302,7 @@ class WarehouseSpaceController {
     }
   };
 
-  getSpaceActivities = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { spaceId } = req.params;
-      const activities = await warehouseSpaceService.getSpaceActivities(spaceId);
-      const resDoc = responseHandler(200, 'Space activities retrieved successfully', activities);
-      res.status(resDoc.statusCode).json(resDoc);
-    } catch (error) {
-      next(error);
-    }
-  };
 
-  getInventoryActivities = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { inventoryId } = req.params;
-      const activities = await warehouseSpaceService.getInventoryActivities(inventoryId);
-      const resDoc = responseHandler(200, 'Inventory activities retrieved successfully', activities);
-      res.status(resDoc.statusCode).json(resDoc);
-    } catch (error) {
-      next(error);
-    }
-  };
 }
 
 export default new WarehouseSpaceController();

@@ -36,7 +36,6 @@ warehouseSpaceRoute.route("/inventories/:inventoryId")
 
 warehouseSpaceRoute.patch("/spaces/:spaceId/occupancy", controller.updateSpaceOccupancy);
 warehouseSpaceRoute.patch("/inventories/:inventoryId/occupancy", controller.updateInventoryOccupancy);
-warehouseSpaceRoute.get("/spaces/:spaceId/activities", controller.getSpaceActivities);
-warehouseSpaceRoute.get("/inventories/:inventoryId/activities", controller.getInventoryActivities);
+
 
 export default warehouseSpaceRoute;

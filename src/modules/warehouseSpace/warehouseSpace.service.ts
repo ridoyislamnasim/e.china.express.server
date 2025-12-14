@@ -1,362 +1,524 @@
+import prisma from '../../config/prismadatabase';
+import { PrismaClient, SpaceType, InventoryType, Prisma } from '@prisma/client';
+import { pagination } from '../../utils/pagination';
+import { WarehouseSpaceFilter, SpaceStats } from './warehouseSpace.type';
 
-import { SpaceActivityService, WarehouseSpaceRepository } from './warehouseSpace.repository';
-import { 
-  WarehouseSpacePayload, 
-  SpacePayload, 
-  InventoryPayload, 
-  WarehouseSpaceFilter,
-  SpaceStats
-} from './warehouseSpace.type';
+export class WarehouseSpaceRepository {
+  private prisma = prisma;
 
-export class WarehouseSpaceService {
-  private repository: WarehouseSpaceRepository;
-  private spaceActivityService: SpaceActivityService;
-
-  constructor(repository: WarehouseSpaceRepository) {
-    this.repository = repository;
-    this.spaceActivityService = new SpaceActivityService();
-  }
-
-  async createWarehouseSpace(payload: WarehouseSpacePayload): Promise<any> {
-    const { warehouseId, totalCapacity, name } = payload;
-
-    if (!warehouseId || !totalCapacity || !name) {
-      const error = new Error('Required fields are missing');
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    const warehouse = await this.repository.getWarehouseById(warehouseId);
-    if (!warehouse) {
-      const error = new Error('Warehouse not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    const existingWarehouseSpace = await this.repository.getWarehouseSpaceByWarehouse(warehouseId);
-    if (existingWarehouseSpace) {
-      const error = new Error('Warehouse space already exists for this warehouse');
-      (error as any).statusCode = 409;
-      throw error;
-    }
-
-    return await this.repository.createWarehouseSpace(payload);
-  }
-
-  async getAllWarehouseSpaces(filter: WarehouseSpaceFilter = {}): Promise<any> {
-    return await this.repository.getAllWarehouseSpaces(filter);
+  // WarehouseSpace methods
+  async createWarehouseSpace(payload: any): Promise<any> {
+    return await this.prisma.warehouseSpace.create({
+      data: payload,
+      include: {
+        warehouse: true,
+      }
+    });
   }
 
   async getWarehouseSpaceById(id: string): Promise<any> {
-    const warehouseSpace = await this.repository.getWarehouseSpaceById(id);
-    if (!warehouseSpace) {
-      const error = new Error('Warehouse space not found');
-      (error as any).statusCode = 404;
-      throw error;
+    return await this.prisma.warehouseSpace.findUnique({
+      where: { id },
+      include: {
+        warehouse: true,
+        spaces: true,
+        inventories: true,
+      }
+    });
+  }
+
+  async getWarehouseSpaceByWarehouse(warehouseId: string): Promise<any> {
+    return await this.prisma.warehouseSpace.findFirst({
+      where: { warehouseId },
+      include: {
+        warehouse: true,
+      }
+    });
+  }
+
+  async getAllWarehouseSpaces(filter: WarehouseSpaceFilter = {}): Promise<any> {
+    const { warehouseId, search } = filter;
+    
+    const where: Prisma.WarehouseSpaceWhereInput = {};
+    
+    if (warehouseId) where.warehouseId = warehouseId;
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
-    return warehouseSpace;
+
+    return await this.prisma.warehouseSpace.findMany({
+      where,
+      include: {
+        warehouse: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          }
+        },
+      },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   async getWarehouseSpacesWithPagination(filter: WarehouseSpaceFilter, tx?: any): Promise<any> {
-    return await this.repository.getWarehouseSpacesWithPagination(filter, tx);
+    const { page = 1, limit = 10, warehouseId, search } = filter;
+    const offset = (page - 1) * limit;
+    
+    const prismaClient: PrismaClient = tx || this.prisma;
+    
+    const where: Prisma.WarehouseSpaceWhereInput = {};
+    
+    if (warehouseId) where.warehouseId = warehouseId;
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return await pagination(
+      { limit, offset },
+      async (limit: number, offset: number) => {
+        const [doc, totalDoc] = await Promise.all([
+          prismaClient.warehouseSpace.findMany({
+            where,
+            skip: offset,
+            take: limit,
+            include: {
+              warehouse: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true,
+                }
+              },
+              _count: {
+                select: {
+                  spaces: true,
+                  inventories: true,
+                }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          }),
+          prismaClient.warehouseSpace.count({ where }),
+        ]);
+        return { doc, totalDoc };
+      }
+    );
   }
 
   async updateWarehouseSpace(id: string, payload: any, tx?: any): Promise<any> {
-    const existingWarehouseSpace = await this.repository.getWarehouseSpaceById(id);
-    if (!existingWarehouseSpace) {
-      const error = new Error('Warehouse space not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    return await this.repository.updateWarehouseSpace(id, payload, tx);
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.warehouseSpace.update({
+      where: { id },
+      data: payload,
+      include: {
+        warehouse: true,
+      }
+    });
   }
 
   async deleteWarehouseSpace(id: string): Promise<void> {
-    const warehouseSpace = await this.repository.getWarehouseSpaceById(id);
-    if (!warehouseSpace) {
-      const error = new Error('Warehouse space not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    if (warehouseSpace.spaces.length > 0 || warehouseSpace.inventories.length > 0) {
-      const error = new Error('Cannot delete warehouse space with existing spaces or inventories');
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    await this.repository.deleteWarehouseSpace(id);
+    await this.prisma.warehouseSpace.delete({ where: { id } });
   }
 
-  async createSpace(warehouseSpaceId: string, payload: SpacePayload, tx?: any): Promise<any> {
-    const { spaceId, type, name, capacity, spaceNumber } = payload;
-
-    if (!spaceId || !type || !name || !capacity) {
-      const error = new Error('Required fields are missing');
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    const warehouseSpace = await this.repository.getWarehouseSpaceById(warehouseSpaceId);
-    if (!warehouseSpace) {
-      const error = new Error('Warehouse space not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    const existingSpace = await this.repository.getSpaceBySpaceIdAndType(warehouseSpaceId, spaceId, type);
-    if (existingSpace) {
-      const error = new Error('Space with this ID and type already exists');
-      (error as any).statusCode = 409;
-      throw error;
-    }
-
-    if (spaceNumber) {
-      const spaceWithNumber = await this.repository.getSpaceByNumber(warehouseSpaceId, type, spaceNumber);
-      if (spaceWithNumber) {
-        const error = new Error('Space number already exists for this type');
-        (error as any).statusCode = 409;
-        throw error;
+  // Space methods
+  async createSpace(warehouseSpaceId: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.space.create({
+      data: {
+        ...payload,
+        warehouseSpaceId,
+      },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
       }
-    }
-
-    const space = await this.repository.createSpace(warehouseSpaceId, payload, tx);
-    
-    await this.spaceActivityService.logSpaceActivity({
-      warehouseId: warehouseSpace.warehouseId,
-      spaceType: 'SPACE',
-      spaceId: space.id,
-      action: 'CREATE',
-      details: { ...payload, warehouseSpaceId },
-      userId: payload.userId
-    }, tx);
-
-    return space;
-  }
-
-  async getAllSpaces(warehouseSpaceId: string, filter: any = {}): Promise<any> {
-    return await this.repository.getAllSpaces(warehouseSpaceId, filter);
+    });
   }
 
   async getSpaceById(id: string): Promise<any> {
-    const space = await this.repository.getSpaceById(id);
-    if (!space) {
-      const error = new Error('Space not found');
-      (error as any).statusCode = 404;
-      throw error;
+    return await this.prisma.space.findUnique({
+      where: { id },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async getSpaceBySpaceIdAndType(warehouseSpaceId: string, spaceId: string, type: SpaceType): Promise<any> {
+    return await this.prisma.space.findFirst({
+      where: {
+        warehouseSpaceId,
+        spaceId,
+        type,
+      }
+    });
+  }
+
+  async getSpaceByNumber(warehouseSpaceId: string, type: SpaceType, spaceNumber: number): Promise<any> {
+    return await this.prisma.space.findFirst({
+      where: {
+        warehouseSpaceId,
+        type,
+        spaceNumber,
+      }
+    });
+  }
+
+  async getAllSpaces(warehouseSpaceId: string, filter: any = {}): Promise<any> {
+    const { type, occupied, search } = filter;
+    
+    const where: Prisma.SpaceWhereInput = { warehouseSpaceId };
+    
+    if (type) where.type = type as SpaceType;
+    if (occupied !== undefined) where.occupied = occupied;
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { spaceId: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } },
+      ];
     }
-    return space;
+
+    return await this.prisma.space.findMany({
+      where,
+      include: {
+        warehouseSpace: {
+          select: {
+            id: true,
+            name: true,
+            warehouse: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { type: 'asc' },
+        { spaceNumber: 'asc' }
+      ]
+    });
   }
 
   async updateSpace(id: string, payload: any, tx?: any): Promise<any> {
-    const existingSpace = await this.repository.getSpaceById(id);
-    if (!existingSpace) {
-      const error = new Error('Space not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    if (payload.spaceNumber && payload.spaceNumber !== existingSpace.spaceNumber) {
-      const spaceWithNumber = await this.repository.getSpaceByNumber(
-        existingSpace.warehouseSpaceId, 
-        existingSpace.type, 
-        payload.spaceNumber
-      );
-      if (spaceWithNumber && spaceWithNumber.id !== id) {
-        const error = new Error('Space number already exists for this type');
-        (error as any).statusCode = 409;
-        throw error;
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.space.update({
+      where: { id },
+      data: payload,
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
       }
-    }
-
-    const updatedSpace = await this.repository.updateSpace(id, payload, tx);
-    
-    await this.spaceActivityService.logSpaceActivity({
-      warehouseId: existingSpace.warehouseSpace.warehouseId,
-      spaceType: 'SPACE',
-      spaceId: id,
-      action: 'UPDATE',
-      details: payload,
-      userId: payload.userId
-    }, tx);
-
-    return updatedSpace;
-  }
-
-  async deleteSpace(id: string): Promise<void> {
-    const space = await this.repository.getSpaceById(id);
-    if (!space) {
-      const error = new Error('Space not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    // Check if space has activities
-    if (space.activities && space.activities.length > 0) {
-      const error = new Error('Cannot delete space with existing activities');
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    await this.repository.deleteSpace(id);
-  }
-
-  async createInventory(warehouseSpaceId: string, payload: InventoryPayload, tx?: any): Promise<any> {
-    const { type, capacity } = payload;
-
-    if (!type || !capacity) {
-      const error = new Error('Required fields are missing');
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    const warehouseSpace = await this.repository.getWarehouseSpaceById(warehouseSpaceId);
-    if (!warehouseSpace) {
-      const error = new Error('Warehouse space not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    const existingInventory = await this.repository.getInventoryByType(warehouseSpaceId, type);
-    if (existingInventory) {
-      const error = new Error('Inventory with this type already exists');
-      (error as any).statusCode = 409;
-      throw error;
-    }
-
-    const inventory = await this.repository.createInventory(warehouseSpaceId, payload, tx);
-    
-    await this.spaceActivityService.logSpaceActivity({
-      warehouseId: warehouseSpace.warehouseId,
-      spaceType: 'INVENTORY',
-      spaceId: inventory.id,
-      action: 'CREATE',
-      details: { ...payload, warehouseSpaceId },
-      userId: payload.userId
-    }, tx);
-
-    return inventory;
-  }
-
-  async getAllInventories(warehouseSpaceId: string, filter: any = {}): Promise<any> {
-    return await this.repository.getAllInventories(warehouseSpaceId, filter);
-  }
-
-  async getInventoryById(id: string): Promise<any> {
-    const inventory = await this.repository.getInventoryById(id);
-    if (!inventory) {
-      const error = new Error('Inventory not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-    return inventory;
-  }
-
-  async updateInventory(id: string, payload: any, tx?: any): Promise<any> {
-    const existingInventory = await this.repository.getInventoryById(id);
-    if (!existingInventory) {
-      const error = new Error('Inventory not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    const updatedInventory = await this.repository.updateInventory(id, payload, tx);
-    
-    await this.spaceActivityService.logSpaceActivity({
-      warehouseId: existingInventory.warehouseSpace.warehouseId,
-      spaceType: 'INVENTORY',
-      spaceId: id,
-      action: 'UPDATE',
-      details: payload,
-      userId: payload.userId
-    }, tx);
-
-    return updatedInventory;
-  }
-
-  async deleteInventory(id: string): Promise<void> {
-    const inventory = await this.repository.getInventoryById(id);
-    if (!inventory) {
-      const error = new Error('Inventory not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    if (inventory.activities && inventory.activities.length > 0) {
-      const error = new Error('Cannot delete inventory with existing activities');
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    await this.repository.deleteInventory(id);
+    });
   }
 
   async updateSpaceOccupancy(id: string, occupied: boolean, tx?: any): Promise<any> {
-    const space = await this.repository.getSpaceById(id);
-    if (!space) {
-      const error = new Error('Space not found');
-      (error as any).statusCode = 404;
-      throw error;
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.space.update({
+      where: { id },
+      data: { occupied },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async deleteSpace(id: string): Promise<void> {
+    await this.prisma.space.delete({ where: { id } });
+  }
+
+  // Inventory methods
+  async createInventory(warehouseSpaceId: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.inventory.create({
+      data: {
+        ...payload,
+        warehouseSpaceId,
+      },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async getInventoryById(id: string): Promise<any> {
+    return await this.prisma.inventory.findUnique({
+      where: { id },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
+  async getInventoryByType(warehouseSpaceId: string, type: InventoryType): Promise<any> {
+    return await this.prisma.inventory.findFirst({
+      where: {
+        warehouseSpaceId,
+        type,
+      }
+    });
+  }
+
+  async getAllInventories(warehouseSpaceId: string, filter: any = {}): Promise<any> {
+    const { type, occupied, search } = filter;
+    
+    const where: Prisma.InventoryWhereInput = { warehouseSpaceId };
+    
+    if (type) where.type = type as InventoryType;
+    if (occupied !== undefined) where.occupied = occupied;
+    
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
-    const updatedSpace = await this.repository.updateSpaceOccupancy(id, occupied, tx);
-    
-    await this.spaceActivityService.logSpaceActivity({
-      warehouseId: space.warehouseSpace.warehouseId,
-      spaceType: 'SPACE',
-      spaceId: id,
-      action: 'UPDATE_OCCUPANCY',
-      details: { occupied },
-      userId: space.userId
-    }, tx);
+    return await this.prisma.inventory.findMany({
+      where,
+      include: {
+        warehouseSpace: {
+          select: {
+            id: true,
+            name: true,
+            warehouse: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          }
+        }
+      },
+      orderBy: { type: 'asc' }
+    });
+  }
 
-    return updatedSpace;
+  async updateInventory(id: string, payload: any, tx?: any): Promise<any> {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.inventory.update({
+      where: { id },
+      data: payload,
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
   }
 
   async updateInventoryOccupancy(id: string, occupied: boolean, tx?: any): Promise<any> {
-    const inventory = await this.repository.getInventoryById(id);
-    if (!inventory) {
-      const error = new Error('Inventory not found');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-
-    const updatedInventory = await this.repository.updateInventoryOccupancy(id, occupied, tx);
-    
-    await this.spaceActivityService.logSpaceActivity({
-      warehouseId: inventory.warehouseSpace.warehouseId,
-      spaceType: 'INVENTORY',
-      spaceId: id,
-      action: 'UPDATE_OCCUPANCY',
-      details: { occupied },
-      userId: inventory.userId
-    }, tx);
-
-    return updatedInventory;
+    const prismaClient: PrismaClient = tx || this.prisma;
+    return await prismaClient.inventory.update({
+      where: { id },
+      data: { occupied },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
   }
 
+  async deleteInventory(id: string): Promise<void> {
+    await this.prisma.inventory.delete({ where: { id } });
+  }
+
+  // Additional methods
   async getSpacesByWarehouse(warehouseId: string): Promise<any> {
-    return await this.repository.getSpacesByWarehouse(warehouseId);
+    const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+      where: { warehouseId },
+      include: {
+        spaces: {
+          orderBy: [
+            { type: 'asc' },
+            { spaceNumber: 'asc' }
+          ]
+        },
+        inventories: {
+          orderBy: { type: 'asc' }
+        }
+      }
+    });
+
+    return warehouseSpace || { spaces: [], inventories: [] };
   }
 
   async getWarehouseSpaceStats(warehouseId: string): Promise<SpaceStats> {
-    return await this.repository.getWarehouseSpaceStats(warehouseId);
+    const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+      where: { warehouseId },
+      include: {
+        spaces: true,
+        inventories: true,
+      }
+    });
+
+    if (!warehouseSpace) {
+      return {
+        totalSpaces: 0,
+        occupiedSpaces: 0,
+        availableSpaces: 0,
+        totalInventories: 0,
+        occupiedInventories: 0,
+        availableInventories: 0,
+        totalCapacity: 0,
+        usedCapacity: 0,
+        availableCapacity: 0,
+      };
+    }
+
+    const totalSpaces = warehouseSpace.spaces.length;
+    const occupiedSpaces = warehouseSpace.spaces.filter((s: any) => s.occupied).length;
+    const availableSpaces = totalSpaces - occupiedSpaces;
+
+    const totalInventories = warehouseSpace.inventories.length;
+    const occupiedInventories = warehouseSpace.inventories.filter((i: any) => i.occupied).length;
+    const availableInventories = totalInventories - occupiedInventories;
+
+    // Calculate capacity usage
+    const spacesCapacity = warehouseSpace.spaces.reduce((sum: number, space: any) => sum + (space.capacity || 0), 0);
+    const inventoriesCapacity = warehouseSpace.inventories.reduce((sum: number, inv: any) => sum + (inv.capacity || 0), 0);
+    const usedCapacity = spacesCapacity + inventoriesCapacity;
+    const totalCapacity = warehouseSpace.totalCapacity;
+    const availableCapacity = totalCapacity - usedCapacity;
+
+    return {
+      totalSpaces,
+      occupiedSpaces,
+      availableSpaces,
+      totalInventories,
+      occupiedInventories,
+      availableInventories,
+      totalCapacity,
+      usedCapacity,
+      availableCapacity,
+    };
   }
 
   async getAvailableSpaces(warehouseId: string, type?: string): Promise<any> {
-    return await this.repository.getAvailableSpaces(warehouseId,);
+    const whereCondition: Prisma.SpaceWhereInput = { occupied: false };
+    const inventoryWhereCondition: Prisma.InventoryWhereInput = { occupied: false };
+    
+    if (type) {
+      // Check if type is a SpaceType
+      if (Object.values(SpaceType).includes(type as SpaceType)) {
+        whereCondition.type = type as SpaceType;
+      } 
+      // Check if type is an InventoryType
+      else if (Object.values(InventoryType).includes(type as InventoryType)) {
+        inventoryWhereCondition.type = type as InventoryType;
+      }
+    }
+
+    const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+      where: { warehouseId },
+      include: {
+        spaces: {
+          where: whereCondition,
+          orderBy: [
+            { type: 'asc' },
+            { spaceNumber: 'asc' }
+          ]
+        },
+        inventories: {
+          where: inventoryWhereCondition,
+          orderBy: { type: 'asc' }
+        }
+      }
+    });
+
+    return warehouseSpace || { spaces: [], inventories: [] };
   }
 
   async searchSpaces(searchTerm: string, warehouseId?: string): Promise<any> {
-    return await this.repository.searchSpaces(searchTerm, warehouseId);
+    const where: Prisma.SpaceWhereInput = {
+      OR: [
+        { name: { contains: searchTerm, mode: 'insensitive' } },
+        { spaceId: { contains: searchTerm, mode: 'insensitive' } },
+        { notes: { contains: searchTerm, mode: 'insensitive' } },
+      ]
+    };
+
+    if (warehouseId) {
+      const warehouseSpace = await this.prisma.warehouseSpace.findFirst({
+        where: { warehouseId },
+        select: { id: true }
+      });
+      if (warehouseSpace) {
+        where.warehouseSpaceId = warehouseSpace.id;
+      }
+    }
+
+    return await this.prisma.space.findMany({
+      where,
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { type: 'asc' },
+        { spaceNumber: 'asc' }
+      ]
+    });
   }
 
-  async getSpaceActivities(spaceId: string): Promise<any> {
-    return await this.repository.getSpaceActivities(spaceId);
-  }
-
-  async getInventoryActivities(inventoryId: string): Promise<any> {
-    return await this.repository.getInventoryActivities(inventoryId);
+  async getWarehouseById(id: string): Promise<any> {
+    return await this.prisma.warehouse.findUnique({
+      where: { id },
+    });
   }
 }
+
+// Export singleton instance
+const warehouseSpaceRepository = new WarehouseSpaceRepository();
+export default warehouseSpaceRepository;
