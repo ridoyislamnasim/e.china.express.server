@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const responseHandler_1 = require("../../utils/responseHandler");
 const withTransaction_1 = __importDefault(require("../../middleware/transactions/withTransaction"));
-const warehouseSpace_service_1 = require("./warehouseSpace.service");
-const warehouseSpace_repository_1 = __importDefault(require("./warehouseSpace.repository"));
-const warehouseSpaceService = new warehouseSpace_service_1.WarehouseSpaceService(warehouseSpace_repository_1.default);
+const warehouseSpace_repository_1 = require("./warehouseSpace.repository");
+const warehouseSpace_service_1 = __importDefault(require("./warehouseSpace.service"));
+const warehouseSpaceService = new warehouseSpace_repository_1.WarehouseSpaceService(warehouseSpace_service_1.default);
 class WarehouseSpaceController {
     constructor() {
         // WarehouseSpace CRUD
@@ -293,28 +293,6 @@ class WarehouseSpaceController {
                 }
                 const spaces = await warehouseSpaceService.searchSpaces(search, warehouseId);
                 const resDoc = (0, responseHandler_1.responseHandler)(200, 'Spaces retrieved successfully', spaces);
-                res.status(resDoc.statusCode).json(resDoc);
-            }
-            catch (error) {
-                next(error);
-            }
-        };
-        this.getSpaceActivities = async (req, res, next) => {
-            try {
-                const { spaceId } = req.params;
-                const activities = await warehouseSpaceService.getSpaceActivities(spaceId);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Space activities retrieved successfully', activities);
-                res.status(resDoc.statusCode).json(resDoc);
-            }
-            catch (error) {
-                next(error);
-            }
-        };
-        this.getInventoryActivities = async (req, res, next) => {
-            try {
-                const { inventoryId } = req.params;
-                const activities = await warehouseSpaceService.getInventoryActivities(inventoryId);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Inventory activities retrieved successfully', activities);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {

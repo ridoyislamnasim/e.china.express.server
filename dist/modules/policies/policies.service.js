@@ -4,9 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("../../utils/errors");
+const responseHandler_1 = require("../../utils/responseHandler");
 const slugGenerate_1 = require("../../utils/slugGenerate");
 const policies_repository_1 = __importDefault(require("./policies.repository"));
-exports.default = new class PoliciesService {
+exports.default = new (class PoliciesService {
     constructor() {
         this.getAllPolicyTitles = async () => {
             try {
@@ -33,6 +34,17 @@ exports.default = new class PoliciesService {
             }
             catch (error) {
                 console.error("Error getting policy titles:", error);
+                throw error;
+            }
+        };
+        this.getAllPoliciesCount = async () => {
+            try {
+                return await policies_repository_1.default.getAllPoliciesCount();
+            }
+            catch (e) {
+                console.error(e);
+                const error = new Error("Failed to fetch policies count");
+                error.statusCode = 500;
                 throw error;
             }
         };
@@ -114,7 +126,7 @@ exports.default = new class PoliciesService {
                 if (policyType) {
                     try {
                         const { id } = policyType;
-                        const policy = await policies_repository_1.default.getPolicyByIdRepository(id);
+                        const policy = await policies_repository_1.default.getPolicyByPolicyTypeIdRepository(id);
                         return policy;
                     }
                     catch (error) {
@@ -149,7 +161,7 @@ exports.default = new class PoliciesService {
                     error.statusCode = 404;
                     throw error;
                 }
-                const policy = await policies_repository_1.default.getPolicyByIdRepository(policyType.id);
+                const policy = await policies_repository_1.default.getPolicyByPolicyTypeIdRepository(policyType.id);
                 if (!policy) {
                     const error = new Error("Policy not found for this policy type");
                     error.statusCode = 404;
@@ -174,7 +186,7 @@ exports.default = new class PoliciesService {
                     error.statusCode = 400;
                     throw error;
                 }
-                const policy = await policies_repository_1.default.getPolicyByIdRepository(id);
+                const policy = await policies_repository_1.default.getPolicyByPolicyTypeIdRepository(id);
                 if (!policy) {
                     const error = new Error("Policy not found");
                     error.statusCode = 404;
@@ -187,11 +199,80 @@ exports.default = new class PoliciesService {
                 throw error;
             }
         };
+        this.addHelpfulCount = async (id) => {
+            try {
+                if (!id) {
+                    const error = new Error("Missing required field: id");
+                    error.statusCode = 400;
+                    throw error;
+                }
+                const policy = await policies_repository_1.default.getPolicyByIdRepository(id);
+                if (!policy) {
+                    const error = new Error(`Policy not found for id ${id}`);
+                    error.statusCode = 404;
+                    throw error;
+                }
+                const { id: policyId, title, description, policyTypeId, helpfulCount: helpfulCounter, notHelpfulCount, createdAt, updatedAt } = policy;
+                const payload = { id: policyId, title, description, policyTypeId, helpfulCount: helpfulCounter, notHelpfulCount, createdAt, updatedAt };
+                if ((payload === null || payload === void 0 ? void 0 : payload.helpfulCount) == null) {
+                    const error = new Error("Missing required field: helpfulCount");
+                    error.statusCode = 400;
+                    throw error;
+                }
+                payload.helpfulCount = payload.helpfulCount + 1;
+                const { helpfulCount } = payload;
+                const updated = await policies_repository_1.default.addHelpfulCount(id, helpfulCount);
+                return (0, responseHandler_1.responseHandler)(200, "Helpful count updated successfully", updated);
+            }
+            catch (error) {
+                console.error("Error updating helpful count:", error);
+                throw error;
+            }
+        };
+        this.addUnhelpfulCount = async (id) => {
+            try {
+                if (!id) {
+                    const error = new Error("Missing required field: id");
+                    error.statusCode = 400;
+                    throw error;
+                }
+                const policy = await policies_repository_1.default.getPolicyByIdRepository(id);
+                if (!policy) {
+                    const error = new Error(`Policy not found for id ${id}`);
+                    error.statusCode = 404;
+                    throw error;
+                }
+                const { id: policyId, title, description, policyTypeId, helpfulCount, notHelpfulCount: unhelpfulCounter, createdAt, updatedAt } = policy;
+                const payload = {
+                    id: policyId,
+                    title,
+                    description,
+                    policyTypeId,
+                    helpfulCount,
+                    notHelpfulCount: unhelpfulCounter,
+                    createdAt,
+                    updatedAt
+                };
+                if ((payload === null || payload === void 0 ? void 0 : payload.notHelpfulCount) == null) {
+                    const error = new Error("Missing required field: notHelpfulCount");
+                    error.statusCode = 400;
+                    throw error;
+                }
+                payload.notHelpfulCount = payload.notHelpfulCount + 1;
+                const { notHelpfulCount } = payload;
+                const updated = await policies_repository_1.default.addUnhelpfulCount(id, notHelpfulCount);
+                return (0, responseHandler_1.responseHandler)(200, "Unhelpful count updated successfully", updated);
+            }
+            catch (error) {
+                console.error("Error updating unhelpful count:", error);
+                throw error;
+            }
+        };
     }
     async getPolicesWithPagination(payload, tx) {
         const { page, limit } = payload;
         const offset = (page - 1) * limit;
-        const countries = await policies_repository_1.default.getPolicesWithPagination({ limit, offset }, tx);
-        return countries;
+        const policyTypes = await policies_repository_1.default.getPolicesWithPagination({ limit, offset }, tx);
+        return policyTypes;
     }
-};
+})();

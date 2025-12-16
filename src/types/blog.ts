@@ -73,3 +73,31 @@ export interface BlogTagI {
   createdAt: Date;
   updatedAt: Date;
 }
+
+
+
+
+
+
+
+
+export interface TopicI {
+  id?: number;
+  title: string;
+  slug?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// ==============================
+// DTOs
+// ==============================
+export interface CreateTopicRequestDto {
+  title: string;
+}
+
+export interface UpdateTopicRequestDto {
+  title?: string;
+  slug?: string;
+}
+

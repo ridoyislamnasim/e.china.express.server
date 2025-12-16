@@ -7,7 +7,12 @@ npm-debug.log*
 dump.rdb
 .env
 .backups
+<<<<<<< HEAD
 .dist
+=======
+dist
+
+>>>>>>> origin/rafi-dev-v3
 # Packages #
 ############
 # it’s better to unpack these files and commit the raw source

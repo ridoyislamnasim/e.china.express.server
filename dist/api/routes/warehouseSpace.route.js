@@ -33,6 +33,4 @@ warehouseSpaceRoute.route("/inventories/:inventoryId")
     .delete(warehouseSpace_controller_1.default.deleteInventory);
 warehouseSpaceRoute.patch("/spaces/:spaceId/occupancy", warehouseSpace_controller_1.default.updateSpaceOccupancy);
 warehouseSpaceRoute.patch("/inventories/:inventoryId/occupancy", warehouseSpace_controller_1.default.updateInventoryOccupancy);
-warehouseSpaceRoute.get("/spaces/:spaceId/activities", warehouseSpace_controller_1.default.getSpaceActivities);
-warehouseSpaceRoute.get("/inventories/:inventoryId/activities", warehouseSpace_controller_1.default.getInventoryActivities);
 exports.default = warehouseSpaceRoute;

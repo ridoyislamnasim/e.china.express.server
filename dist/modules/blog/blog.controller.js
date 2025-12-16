@@ -28,7 +28,6 @@ class BlogController {
                 updatedAt,
                 files,
             };
-            console.log("blog playload", payload);
             const blogResult = await blog_service_1.default.createBlog(payloadFiles, payload, tx);
             const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Created successfully", blogResult);
             res.status(resDoc.statusCode).json(resDoc);
@@ -73,6 +72,17 @@ class BlogController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Blog deleted successfully", result);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.getBlogsByTags = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+            const { tags } = req.body; // expect array of strings from checkboxes
+            if (!tags || !Array.isArray(tags) || tags.length === 0) {
+                return res.status(400).json((0, responseHandler_1.responseHandler)(400, "Tags array is required"));
+            }
+            console.log("Filtering blogs by tags:", tags);
+            // call service with tx (optional, in case you want transaction for complex logic)
+            const blogs = await blog_service_1.default.getBlogsByTags(tags, tx);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Blogs fetched successfully", blogs);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         //todo
         this.getSingleBlogWithSlug = (0, catchError_1.default)(async (req, res, next) => {
             const slug = req.params.slug;
@@ -113,6 +123,53 @@ class BlogController {
             const slug = req.params.slug;
             const blogResult = await blog_service_1.default.deleteBlog(slug);
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Blog Deleted successfully");
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.createTopic = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+            const { title } = req.body;
+            const payload = {
+                title,
+            };
+            const result = await blog_service_1.default.createTopic(payload, tx);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Topic created successfully", result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.getAllTopics = (0, catchError_1.default)(async (req, res, next) => {
+            const result = await blog_service_1.default.getAllTopics();
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Topics fetched successfully", result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.getSingleTopic = (0, catchError_1.default)(async (req, res, next) => {
+            const topicId = Number(req.params.id);
+            const result = await blog_service_1.default.getSingleTopic(topicId);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Topic fetched successfully", result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.updateTopic = (0, catchError_1.default)(async (req, res, next) => {
+            const topicId = Number(req.params.id);
+            const { title } = req.body;
+            const payload = {
+                title
+            };
+            const result = await blog_service_1.default.updateTopic(topicId, payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Topic updated successfully", result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.deleteTopic = (0, catchError_1.default)(async (req, res, next) => {
+            const topicId = Number(req.params.id);
+            const result = await blog_service_1.default.deleteTopic(topicId);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Topic deleted successfully", result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.getAllTopicByPagination = (0, catchError_1.default)(async (req, res, next) => {
+            const payload = {
+                page: req.query.page || 1,
+                limit: req.query.limit || 10,
+                order: req.query.order || "asc",
+            };
+            console.log("🚀 ~ blog.controller.ts:272 ~ BlogController ~ payload:", payload);
+            const result = await blog_service_1.default.getAllTopicByPagination(payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Topics fetched successfully", result);
             res.status(resDoc.statusCode).json(resDoc);
         });
     }

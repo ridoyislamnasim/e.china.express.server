@@ -827,6 +827,28 @@ CREATE TABLE "GuideVideo" (
 );
 
 -- CreateTable
+CREATE TABLE "Industry" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Industry_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Topic" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Topic_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "BlogTag" (
     "id" SERIAL NOT NULL,
     "title" TEXT,
@@ -844,6 +866,9 @@ CREATE TABLE "Blog" (
     "title" TEXT,
     "slug" TEXT,
     "author" TEXT,
+    "tagId" INTEGER NOT NULL,
+    "topicId" INTEGER NOT NULL,
+    "industryId" INTEGER NOT NULL,
     "details" TEXT,
     "tags" TEXT[],
     "status" BOOLEAN NOT NULL DEFAULT true,
@@ -997,6 +1022,12 @@ CREATE UNIQUE INDEX "PolicyType_title_key" ON "PolicyType"("title");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PolicyType_slug_key" ON "PolicyType"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Industry_slug_key" ON "Industry"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Topic_slug_key" ON "Topic"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Blog_slug_key" ON "Blog"("slug");
@@ -1186,6 +1217,15 @@ ALTER TABLE "Policies" ADD CONSTRAINT "Policies_policyTypeId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "GuideVideo" ADD CONSTRAINT "GuideVideo_guideId_fkey" FOREIGN KEY ("guideId") REFERENCES "Guide"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Blog" ADD CONSTRAINT "Blog_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "BlogTag"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Blog" ADD CONSTRAINT "Blog_topicId_fkey" FOREIGN KEY ("topicId") REFERENCES "Topic"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Blog" ADD CONSTRAINT "Blog_industryId_fkey" FOREIGN KEY ("industryId") REFERENCES "Industry"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

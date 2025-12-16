@@ -981,10 +981,37 @@ model GuideVideo {
   guide     Guide    @relation("GuideToVideos", fields: [guideId], references: [id], onDelete: Cascade)
 }
 
+model Industry {
+  id        Int     @id @default(autoincrement())
+  title     String
+  slug      String @unique
+
+  blogs     Blog[]  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Topic {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+
+
+  blogs       Blog[]
+
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+
 model BlogTag {
   id        Int      @id @default(autoincrement())
   title     String?
   slug      String?
+  blogs     Blog[]   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -995,6 +1022,18 @@ model Blog {
   title     String?
   slug      String?  @unique
   author    String?
+
+  tagId     Int      
+  tag       BlogTag  @relation(fields: [tagId], references: [id])
+
+
+  topicId   Int
+  topic     Topic    @relation(fields: [topicId], references: [id])
+
+
+  industryId Int
+  industry   Industry @relation(fields: [industryId], references: [id])
+
   details   String?
   tags      String[]
   status    Boolean  @default(true)
@@ -1097,7 +1136,6 @@ model OrderShipping {
   updatedAt DateTime @updatedAt
 }
 
-
 enum OrderStatus {
   PENDING
   PAID
@@ -1168,3 +1206,5 @@ enum ShippingStatus {
 //   REFUNDED
 //   PARTIAL
 // }
+
+
