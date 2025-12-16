@@ -297,10 +297,12 @@ enum WarehouseStatus {
 }
 
 enum WarehouseType {
-  DISTRIBUTION
-  STORAGE
-  FULFILLMENT
-  OTHERS
+  DISTRIBUTION_CENTER
+  COLD_STORAGE
+  FULFILLMENT_CENTER
+  BONDED
+  MANUFACTURING
+  CROSS_DOCK
 }
 
 model SubChildCategory {
