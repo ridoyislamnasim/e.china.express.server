@@ -78,14 +78,6 @@ export class WarehouseRepository {
         country: true,
         phone: true,
         email: true,
-        managerRef: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          }
-        },
         warehouseSpaces: {
           include:{
             spaces: true, inventories: true
@@ -96,6 +88,14 @@ export class WarehouseRepository {
             id: true,
             name: true,
             isoCode: true,
+          }
+        },
+         managerRef: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
           }
         },
       },
