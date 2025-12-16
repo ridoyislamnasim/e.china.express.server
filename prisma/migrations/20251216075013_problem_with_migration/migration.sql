@@ -16,6 +16,15 @@ CREATE TYPE "PortType" AS ENUM ('Sea', 'Air', 'Land');
 -- CreateEnum
 CREATE TYPE "ProductFor" AS ENUM ('FROM1688', 'LOCAL', 'ALIBABA');
 
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED');
+
+-- CreateEnum
+CREATE TYPE "PaymentStatus" AS ENUM ('UNPAID', 'PAID', 'FAILED', 'REFUNDED');
+
+-- CreateEnum
+CREATE TYPE "ShippingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'IN_TRANSIT', 'DELIVERED', 'RETURNED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
@@ -345,38 +354,6 @@ CREATE TABLE "PaymentServiceConfig" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "PaymentServiceConfig_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Order" (
-    "id" SERIAL NOT NULL,
-    "orderId" TEXT NOT NULL,
-    "subTotalPrice" DOUBLE PRECISION,
-    "totalPrice" DOUBLE PRECISION,
-    "shippingCost" DOUBLE PRECISION DEFAULT 0,
-    "couponRefId" INTEGER,
-    "userRefId" INTEGER,
-    "correlationId" TEXT,
-    "customerName" TEXT,
-    "customerPhone" TEXT,
-    "customerEmail" TEXT,
-    "customerCity" TEXT,
-    "customerAddress" TEXT,
-    "customerHouse" TEXT,
-    "customerRoad" TEXT,
-    "customerThana" TEXT,
-    "customerAltPhone" TEXT,
-    "paymentMethod" TEXT DEFAULT 'CashOnDelivery',
-    "couponDiscount" DOUBLE PRECISION DEFAULT 0,
-    "status" TEXT DEFAULT 'OrderPlaced',
-    "isGuestUser" BOOLEAN NOT NULL DEFAULT false,
-    "guestUserRef" TEXT,
-    "note" TEXT,
-    "isCourierSend" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -876,6 +853,70 @@ CREATE TABLE "Blog" (
     CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Order" (
+    "id" SERIAL NOT NULL,
+    "orderNumber" TEXT NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "cartId" INTEGER,
+    "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'UNPAID',
+    "currency" TEXT NOT NULL DEFAULT 'Dollar',
+    "totalPrice" DECIMAL(12,2) NOT NULL,
+    "totalWeight" DECIMAL(10,3) NOT NULL,
+    "remarks" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OrderItem" (
+    "id" SERIAL NOT NULL,
+    "orderId" INTEGER NOT NULL,
+    "titleTrans" TEXT,
+    "productFor" "ProductFor" NOT NULL,
+    "product1688Id" TEXT,
+    "productLocalId" INTEGER,
+    "productAlibabaId" TEXT,
+    "vendorId" INTEGER,
+    "quantity" INTEGER NOT NULL,
+    "unitPrice" DECIMAL(12,2) NOT NULL,
+    "totalPrice" DECIMAL(12,2) NOT NULL,
+    "totalWeight" DECIMAL(10,3) NOT NULL,
+    "variants" JSONB NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OrderShipping" (
+    "id" SERIAL NOT NULL,
+    "orderId" INTEGER NOT NULL,
+    "shippingMethodId" INTEGER,
+    "fromCountryId" INTEGER,
+    "toCountryId" INTEGER,
+    "totalQuantity" INTEGER NOT NULL,
+    "approxWeight" DECIMAL(10,3) NOT NULL,
+    "totalCost" DECIMAL(12,2) NOT NULL,
+    "customDuty" DECIMAL(12,2) NOT NULL,
+    "vat" DECIMAL(6,2) NOT NULL,
+    "handlingFee" DECIMAL(12,2) NOT NULL,
+    "packagingFee" DECIMAL(12,2) NOT NULL,
+    "discount" DECIMAL(12,2) NOT NULL,
+    "finalPayable" DECIMAL(12,2) NOT NULL,
+    "estDeliveryDays" INTEGER,
+    "trackingNumber" TEXT,
+    "trackingURL" TEXT,
+    "shippingStatus" "ShippingStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "OrderShipping_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -931,9 +972,6 @@ CREATE UNIQUE INDEX "Product_SKU_key" ON "Product"("SKU");
 CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Order_orderId_key" ON "Order"("orderId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Coupon_code_key" ON "Coupon"("code");
 
 -- CreateIndex
@@ -962,6 +1000,9 @@ CREATE UNIQUE INDEX "PolicyType_slug_key" ON "PolicyType"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Blog_slug_key" ON "Blog"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Order_orderNumber_key" ON "Order"("orderNumber");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1034,12 +1075,6 @@ ALTER TABLE "Product" ADD CONSTRAINT "Product_childCategoryRefId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_subChildCategoryRefId_fkey" FOREIGN KEY ("subChildCategoryRefId") REFERENCES "SubChildCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_couponRefId_fkey" FOREIGN KEY ("couponRefId") REFERENCES "Coupon"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_userRefId_fkey" FOREIGN KEY ("userRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_brandRefId_fkey" FOREIGN KEY ("brandRefId") REFERENCES "Brand"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1151,3 +1186,24 @@ ALTER TABLE "Policies" ADD CONSTRAINT "Policies_policyTypeId_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "GuideVideo" ADD CONSTRAINT "GuideVideo_guideId_fkey" FOREIGN KEY ("guideId") REFERENCES "Guide"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderShipping" ADD CONSTRAINT "OrderShipping_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderShipping" ADD CONSTRAINT "OrderShipping_shippingMethodId_fkey" FOREIGN KEY ("shippingMethodId") REFERENCES "RateShippingMethod"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderShipping" ADD CONSTRAINT "OrderShipping_fromCountryId_fkey" FOREIGN KEY ("fromCountryId") REFERENCES "countries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderShipping" ADD CONSTRAINT "OrderShipping_toCountryId_fkey" FOREIGN KEY ("toCountryId") REFERENCES "countries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
