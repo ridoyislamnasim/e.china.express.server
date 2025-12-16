@@ -186,12 +186,12 @@ export class WarehouseSpaceService {
       throw error;
     }
 
-    const existingInventory = await this.repository.getInventoryByType(warehouseSpaceId, type);
-    if (existingInventory) {
-      const error = new Error('Inventory with this type already exists');
-      (error as any).statusCode = 409;
-      throw error;
-    }
+    // const existingInventory = await this.repository.getInventoryByType(warehouseSpaceId, type);
+    // if (existingInventory) {
+    //   const error = new Error('Inventory with this type already exists');
+    //   (error as any).statusCode = 409;
+    //   throw error;
+    // }
 
     return await this.repository.createInventory(warehouseSpaceId, payload, tx);
   }
