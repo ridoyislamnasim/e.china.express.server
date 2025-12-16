@@ -1,8 +1,14 @@
 -- CreateEnum
+CREATE TYPE "SpaceType" AS ENUM ('AIR', 'SEA', 'EXPRESS');
+
+-- CreateEnum
+CREATE TYPE "InventoryType" AS ENUM ('TYPE_X', 'TYPE_Y', 'TYPE_Z');
+
+-- CreateEnum
 CREATE TYPE "WarehouseStatus" AS ENUM ('OPERATIONAL', 'MAINTENANCE', 'CLOSED', 'CONSTRUCTION', 'ARCHIVE', 'OVERLOADED');
 
 -- CreateEnum
-CREATE TYPE "WarehouseType" AS ENUM ('DISTRIBUTION', 'STORAGE', 'FULFILLMENT', 'OTHERS');
+CREATE TYPE "WarehouseType" AS ENUM ('DISTRIBUTION_CENTER', 'COLD_STORAGE', 'FULFILLMENT_CENTER', 'BONDED', 'MANUFACTURING', 'CROSS_DOCK');
 
 -- CreateEnum
 CREATE TYPE "PortType" AS ENUM ('Sea', 'Air', 'Land');
@@ -31,6 +37,8 @@ CREATE TABLE "Role" (
     "id" SERIAL NOT NULL,
     "role" TEXT NOT NULL,
     "permissionId" INTEGER,
+    "text" TEXT,
+    "text2" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -173,17 +181,55 @@ CREATE TABLE "warehouses" (
 
 -- CreateTable
 CREATE TABLE "warehouse_spaces" (
-    "id" SERIAL NOT NULL,
-    "sectionId" INTEGER NOT NULL,
-    "spaceCode" VARCHAR(50) NOT NULL,
-    "spaceName" VARCHAR(255) NOT NULL,
-    "spaceNumber" INTEGER NOT NULL,
-    "capacity" DECIMAL(10,2) NOT NULL,
-    "totalCapacity" DECIMAL(10,2) NOT NULL,
-    "currentUsage" DECIMAL(10,2) NOT NULL,
-    "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "totalCapacity" INTEGER NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "warehouseId" TEXT NOT NULL,
 
     CONSTRAINT "warehouse_spaces_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "spaces" (
+    "id" TEXT NOT NULL,
+    "spaceId" TEXT NOT NULL,
+    "type" "SpaceType" NOT NULL,
+    "name" TEXT NOT NULL,
+    "price" TEXT,
+    "duration" TEXT,
+    "occupied" BOOLEAN DEFAULT false,
+    "spaceNumber" INTEGER,
+    "capacity" INTEGER NOT NULL,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "warehouseSpaceId" TEXT NOT NULL,
+
+    CONSTRAINT "spaces_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "inventories" (
+    "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL DEFAULT 'Inventory',
+    "type" "InventoryType" NOT NULL,
+    "description" TEXT,
+    "price" TEXT,
+    "duration" TEXT,
+    "occupied" BOOLEAN DEFAULT false,
+    "spaceNumber" INTEGER,
+    "capacity" INTEGER,
+    "fixedCbm" BOOLEAN NOT NULL DEFAULT true,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "warehouseSpaceId" TEXT NOT NULL,
+
+    CONSTRAINT "inventories_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -381,32 +427,6 @@ CREATE TABLE "Newsletter" (
 );
 
 -- CreateTable
-CREATE TABLE "Inventory" (
-    "id" SERIAL NOT NULL,
-    "productRefId" INTEGER,
-    "quantity" INTEGER,
-    "mrpPrice" DOUBLE PRECISION,
-    "price" DOUBLE PRECISION,
-    "costPrice" DOUBLE PRECISION,
-    "discountType" TEXT,
-    "discount" DOUBLE PRECISION,
-    "discountAmount" DOUBLE PRECISION,
-    "barcode" TEXT,
-    "availableQuantity" INTEGER,
-    "soldQuantity" INTEGER DEFAULT 0,
-    "holdQuantity" INTEGER DEFAULT 0,
-    "inventoryType" TEXT,
-    "color" TEXT,
-    "name" TEXT,
-    "level" TEXT,
-    "inventoryID" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Inventory_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "ContactInfo" (
     "id" SERIAL NOT NULL,
     "name" TEXT,
@@ -444,7 +464,6 @@ CREATE TABLE "BuyNowCart" (
     "correlationId" TEXT,
     "userRefId" INTEGER,
     "productRefId" INTEGER,
-    "inventoryRefId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -705,6 +724,7 @@ CREATE TABLE "Cart" (
 -- CreateTable
 CREATE TABLE "CartProduct" (
     "id" SERIAL NOT NULL,
+    "titleTrans" TEXT,
     "productFor" "ProductFor" NOT NULL DEFAULT 'FROM1688',
     "product1688Id" TEXT,
     "productLocalId" INTEGER,
@@ -712,8 +732,10 @@ CREATE TABLE "CartProduct" (
     "mainSkuImageUrl" TEXT,
     "vendorId" INTEGER,
     "cartId" INTEGER NOT NULL,
+    "confirm" BOOLEAN NOT NULL DEFAULT false,
     "quantity" INTEGER NOT NULL DEFAULT 1,
     "totalPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "calculatedPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "totalWeight" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
 
@@ -727,6 +749,7 @@ CREATE TABLE "CartProductVariant" (
     "skuId" TEXT,
     "specId" TEXT,
     "quantity" INTEGER NOT NULL DEFAULT 1,
+    "amountOnSale" INTEGER,
     "attributeName" TEXT,
     "attributeNameSecond" TEXT,
     "weight" DOUBLE PRECISION,
@@ -737,6 +760,40 @@ CREATE TABLE "CartProductVariant" (
     "rate" INTEGER,
 
     CONSTRAINT "CartProductVariant_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProductShipping" (
+    "id" SERIAL NOT NULL,
+    "cartId" INTEGER NOT NULL,
+    "cartProductId" INTEGER NOT NULL,
+    "rateId" INTEGER,
+    "userId" INTEGER,
+    "fromCountryId" INTEGER,
+    "toCountryId" INTEGER,
+    "totalQuantity" INTEGER NOT NULL DEFAULT 0,
+    "approxWeight" DECIMAL(10,3) NOT NULL DEFAULT 0,
+    "weightRange" DECIMAL(10,3) NOT NULL DEFAULT 0,
+    "shippingMethodId" INTEGER,
+    "totalCost" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "orderEnabled" BOOLEAN NOT NULL DEFAULT false,
+    "customDuty" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "vat" DECIMAL(6,2) NOT NULL DEFAULT 0,
+    "handlingFee" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "packagingFee" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "discount" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "finalPayable" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "estDeliveryDays" INTEGER,
+    "actualDeliveryDate" TIMESTAMP(3),
+    "trackingNumber" TEXT,
+    "trackingURL" TEXT,
+    "warehouseLocation" TEXT,
+    "shippingStatus" TEXT NOT NULL DEFAULT 'pending',
+    "remarks" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ProductShipping_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -762,6 +819,34 @@ CREATE TABLE "Policies" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Policies_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Guide" (
+    "id" SERIAL NOT NULL,
+    "serial" INTEGER NOT NULL,
+    "title" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Guide_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "GuideVideo" (
+    "id" SERIAL NOT NULL,
+    "guideId" INTEGER NOT NULL,
+    "index" INTEGER NOT NULL,
+    "url" VARCHAR(500) NOT NULL,
+    "imgSrc" TEXT,
+    "videoLength" TEXT,
+    "title" TEXT,
+    "shortDes" TEXT,
+    "videoSerial" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "GuideVideo_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -791,33 +876,6 @@ CREATE TABLE "Blog" (
     CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Guide" (
-    "id" SERIAL NOT NULL,
-    "serial" INTEGER NOT NULL,
-    "title" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Guide_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "GuideVideo" (
-    "id" SERIAL NOT NULL,
-    "guideId" INTEGER NOT NULL,
-    "url" VARCHAR(500) NOT NULL,
-    "imgSrc" TEXT,
-    "videoLength" TEXT,
-    "title" TEXT,
-    "shortDes" TEXT,
-    "videoSerial" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "GuideVideo_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -835,6 +893,36 @@ CREATE UNIQUE INDEX "warehouses_name_key" ON "warehouses"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "warehouses_code_key" ON "warehouses"("code");
+
+-- CreateIndex
+CREATE INDEX "warehouse_spaces_warehouseId_idx" ON "warehouse_spaces"("warehouseId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "warehouse_spaces_warehouseId_key" ON "warehouse_spaces"("warehouseId");
+
+-- CreateIndex
+CREATE INDEX "spaces_warehouseSpaceId_idx" ON "spaces"("warehouseSpaceId");
+
+-- CreateIndex
+CREATE INDEX "spaces_type_idx" ON "spaces"("type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "spaces_warehouseSpaceId_type_spaceId_key" ON "spaces"("warehouseSpaceId", "type", "spaceId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "spaces_warehouseSpaceId_type_spaceNumber_key" ON "spaces"("warehouseSpaceId", "type", "spaceNumber");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "inventories_code_key" ON "inventories"("code");
+
+-- CreateIndex
+CREATE INDEX "inventories_warehouseSpaceId_idx" ON "inventories"("warehouseSpaceId");
+
+-- CreateIndex
+CREATE INDEX "inventories_type_idx" ON "inventories"("type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "inventories_warehouseSpaceId_type_code_key" ON "inventories"("warehouseSpaceId", "type", "code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_SKU_key" ON "Product"("SKU");
@@ -912,6 +1000,15 @@ ALTER TABLE "warehouses" ADD CONSTRAINT "warehouses_managerRefId_fkey" FOREIGN K
 ALTER TABLE "warehouses" ADD CONSTRAINT "warehouses_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "countries"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "warehouse_spaces" ADD CONSTRAINT "warehouse_spaces_warehouseId_fkey" FOREIGN KEY ("warehouseId") REFERENCES "warehouses"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "spaces" ADD CONSTRAINT "spaces_warehouseSpaceId_fkey" FOREIGN KEY ("warehouseSpaceId") REFERENCES "warehouse_spaces"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "inventories" ADD CONSTRAINT "inventories_warehouseSpaceId_fkey" FOREIGN KEY ("warehouseSpaceId") REFERENCES "warehouse_spaces"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "SubChildCategory" ADD CONSTRAINT "SubChildCategory_childCategoryRefId_fkey" FOREIGN KEY ("childCategoryRefId") REFERENCES "ChildCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -954,16 +1051,10 @@ ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_categoryRefId_fkey" FOREIGN KEY ("ca
 ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_subCategoryRefId_fkey" FOREIGN KEY ("subCategoryRefId") REFERENCES "SubCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Inventory" ADD CONSTRAINT "Inventory_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_userRefId_fkey" FOREIGN KEY ("userRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_productRefId_fkey" FOREIGN KEY ("productRefId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "BuyNowCart" ADD CONSTRAINT "BuyNowCart_inventoryRefId_fkey" FOREIGN KEY ("inventoryRefId") REFERENCES "Inventory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OTP" ADD CONSTRAINT "OTP_userRefId_fkey" FOREIGN KEY ("userRefId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1026,16 +1117,37 @@ ALTER TABLE "Cart" ADD CONSTRAINT "Cart_userId_fkey" FOREIGN KEY ("userId") REFE
 ALTER TABLE "CartProduct" ADD CONSTRAINT "CartProduct_productLocalId_fkey" FOREIGN KEY ("productLocalId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CartProduct" ADD CONSTRAINT "CartProduct_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CartProduct" ADD CONSTRAINT "CartProduct_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CartProductVariant" ADD CONSTRAINT "CartProductVariant_cartProductId_fkey" FOREIGN KEY ("cartProductId") REFERENCES "CartProduct"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CartProductVariant" ADD CONSTRAINT "CartProductVariant_cartProductId_fkey" FOREIGN KEY ("cartProductId") REFERENCES "CartProduct"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "CartProductVariant" ADD CONSTRAINT "CartProductVariant_shippingRateId_fkey" FOREIGN KEY ("shippingRateId") REFERENCES "Rate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ProductShipping" ADD CONSTRAINT "ProductShipping_cartId_fkey" FOREIGN KEY ("cartId") REFERENCES "Cart"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductShipping" ADD CONSTRAINT "ProductShipping_cartProductId_fkey" FOREIGN KEY ("cartProductId") REFERENCES "CartProduct"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductShipping" ADD CONSTRAINT "ProductShipping_rateId_fkey" FOREIGN KEY ("rateId") REFERENCES "Rate"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductShipping" ADD CONSTRAINT "ProductShipping_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductShipping" ADD CONSTRAINT "ProductShipping_fromCountryId_fkey" FOREIGN KEY ("fromCountryId") REFERENCES "countries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductShipping" ADD CONSTRAINT "ProductShipping_toCountryId_fkey" FOREIGN KEY ("toCountryId") REFERENCES "countries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductShipping" ADD CONSTRAINT "ProductShipping_shippingMethodId_fkey" FOREIGN KEY ("shippingMethodId") REFERENCES "RateShippingMethod"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Policies" ADD CONSTRAINT "Policies_policyTypeId_fkey" FOREIGN KEY ("policyTypeId") REFERENCES "PolicyType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "GuideVideo" ADD CONSTRAINT "GuideVideo_guideId_fkey" FOREIGN KEY ("guideId") REFERENCES "Guide"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "GuideVideo" ADD CONSTRAINT "GuideVideo_guideId_fkey" FOREIGN KEY ("guideId") REFERENCES "Guide"("id") ON DELETE CASCADE ON UPDATE CASCADE;

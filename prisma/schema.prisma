@@ -251,6 +251,7 @@ model Space {
 
 model Inventory {
   id                String        @id @default(cuid())
+  code             String         @unique
   name              String        @default("Inventory")
   type              InventoryType             // TYPE_X, TYPE_Y, or TYPE_Z
   description       String?
@@ -268,7 +269,7 @@ model Inventory {
   warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
 
-  @@unique([warehouseSpaceId, type])
+  @@unique([warehouseSpaceId, type, code])
   @@index([warehouseSpaceId])
   @@index([type])
   @@map("inventories")
@@ -297,10 +298,12 @@ enum WarehouseStatus {
 }
 
 enum WarehouseType {
-  DISTRIBUTION
-  STORAGE
-  FULFILLMENT
-  OTHERS
+  DISTRIBUTION_CENTER
+  COLD_STORAGE
+  FULFILLMENT_CENTER
+  BONDED
+  MANUFACTURING
+  CROSS_DOCK
 }
 
 model SubChildCategory {
