@@ -10,8 +10,8 @@ export default new class PoliciesController {
 
   getAllPolicyTitles = catchError(async (req: Request, res: Response) => {
     const getAllPolicies = await policiesService.getAllPolicyTitles();
-    // res.send(getAllPolicies);
-    const resDoc = responseHandler(201, 'All policies fetched successfully.', getAllPolicies);
+    const getAllPoliciesCount = await policiesService.getAllPoliciesCount();
+    const resDoc = responseHandler(201, 'All policies fetched successfully.', {data: getAllPolicies, count : getAllPoliciesCount});
     res.status(resDoc.statusCode).json(resDoc);
   });
 

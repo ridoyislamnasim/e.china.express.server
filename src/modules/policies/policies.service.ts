@@ -9,7 +9,7 @@ export default new (class PoliciesService {
     try {
       const { allPolicies, allPolicyTypes } = await policiesRepository.getAllPolicyTitlesRepository();
 
-      if (!allPolicies || !allPolicyTypes) {
+      if (!allPolicies || !allPolicyTypes ) {
         const error = new Error(`Something went wrong. Policies not Found.`);
         (error as any).statusCode = 400;
         throw error;
@@ -34,6 +34,21 @@ export default new (class PoliciesService {
       throw error;
     }
   };
+
+
+
+    getAllPoliciesCount = async () => {
+      try {
+        return await policiesRepository.getAllPoliciesCount();
+      } catch (e) {
+        console.error(e);
+        const error = new Error("Failed to fetch policies count");
+        (error as any).statusCode = 500;
+        throw error;
+      }
+    };
+
+
 
   createPolicy = async (payload: CreatePolicyRequestDTO): Promise<any> => {
     const { title, description, policyTypeId } = payload;
@@ -203,8 +218,8 @@ export default new (class PoliciesService {
   async getPolicesWithPagination(payload: { page: number; limit: number }, tx: any): Promise<any> {
     const { page, limit } = payload;
     const offset = (page - 1) * limit;
-    const countries = await policiesRepository.getPolicesWithPagination({ limit, offset }, tx);
-    return countries;
+    const policyTypes = await policiesRepository.getPolicesWithPagination({ limit, offset }, tx);
+    return policyTypes;
   }
 
   addHelpfulCount = async (id: number): Promise<any> => {

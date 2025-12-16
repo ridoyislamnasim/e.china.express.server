@@ -11,9 +11,13 @@ export default new (class PoliciesRepository {
   getAllPolicyTitlesRepository = async () => {
     const allPolicyTypes = await this.prisma.policyType.findMany();
     const allPolicies = await this.prisma.policies.findMany();
-
     return { allPolicies, allPolicyTypes };
   };
+
+  getAllPoliciesCount = async () => {
+    const policiesCount = await this.prisma.policies.count();
+    return policiesCount
+  }
 
   getPolicyTypeBySlugRepository = async (slug: string) => {
     const policyType = await this.prisma.policyType.findFirst({

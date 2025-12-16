@@ -3,7 +3,7 @@ import catchError from "../../middleware/errors/catchError";
 import { responseHandler } from "../../utils/responseHandler";
 import withTransaction from "../../middleware/transactions/withTransaction";
 import BlogService from "./blog.service";
-import { BlogI, CreateBlogRequestDto, UpdateBlogRequestDto, UpdateBlogTagRequestDto } from "../../types/blog";
+import { BlogI, CreateBlogRequestDto, TopicI, UpdateBlogRequestDto, UpdateBlogTagRequestDto } from "../../types/blog";
 
 export class BlogController {
   //done
@@ -51,7 +51,6 @@ export class BlogController {
       files,
     };
 
-    console.log("blog playload", payload);
     const blogResult = await BlogService.createBlog(payloadFiles, payload, tx);
     const resDoc = responseHandler(201, "Blog Created successfully", blogResult);
     res.status(resDoc.statusCode).json(resDoc);
@@ -108,7 +107,6 @@ export class BlogController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-
   getBlogsByTags = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     const { tags } = req.body; // expect array of strings from checkboxes
 
@@ -124,10 +122,6 @@ export class BlogController {
     const resDoc = responseHandler(200, "Blogs fetched successfully", blogs);
     res.status(resDoc.statusCode).json(resDoc);
   });
-
-
-  
-
 
   //todo
 
@@ -176,6 +170,118 @@ export class BlogController {
     const resDoc = responseHandler(200, "Blog Deleted successfully");
     res.status(resDoc.statusCode).json(resDoc);
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  createTopic = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+
+    const { title }:TopicI = req.body;
+
+    const payload = {
+      title,
+    };
+
+    const result = await BlogService.createTopic(payload,tx);
+
+    const resDoc = responseHandler(201, "Topic created successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
+  getAllTopics = catchError(async (req: Request, res: Response, next: NextFunction) => {
+
+
+    const result = await BlogService.getAllTopics();
+
+    const resDoc = responseHandler(200, "Topics fetched successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getSingleTopic = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const topicId = Number(req.params.id);
+
+    const result = await BlogService.getSingleTopic(topicId);
+
+    const resDoc = responseHandler(200, "Topic fetched successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  updateTopic = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const topicId = Number(req.params.id);
+
+    const {  title } :TopicI = req.body;
+
+    const payload = {
+      
+      title
+   
+    };
+
+    const result = await BlogService.updateTopic(topicId, payload);
+
+    const resDoc = responseHandler(200, "Topic updated successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+  
+  deleteTopic = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const topicId = Number(req.params.id);
+
+    const result = await BlogService.deleteTopic(topicId);
+
+    const resDoc = responseHandler(200, "Topic deleted successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+  
+  getAllTopicByPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const payload = {
+      page: req.query.page || 1,
+      limit: req.query.limit || 10,
+      order: req.query.order || "asc",
+    };
+    console.log("🚀 ~ blog.controller.ts:272 ~ BlogController ~ payload:", payload)
+
+
+    const result = await BlogService.getAllTopicByPagination(payload);
+
+    const resDoc = responseHandler(200, "Topics fetched successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 export default new BlogController();
