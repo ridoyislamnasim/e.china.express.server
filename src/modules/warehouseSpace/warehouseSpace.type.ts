@@ -24,6 +24,7 @@ export interface InventoryPayload {
   type: 'TYPE_X' | 'TYPE_Y' | 'TYPE_Z';
   name?: string;
   description?: string;
+  code: string;
   price?: string;
   duration?: string;
   occupied?: boolean;

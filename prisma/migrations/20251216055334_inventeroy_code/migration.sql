@@ -8,7 +8,7 @@ CREATE TYPE "InventoryType" AS ENUM ('TYPE_X', 'TYPE_Y', 'TYPE_Z');
 CREATE TYPE "WarehouseStatus" AS ENUM ('OPERATIONAL', 'MAINTENANCE', 'CLOSED', 'CONSTRUCTION', 'ARCHIVE', 'OVERLOADED');
 
 -- CreateEnum
-CREATE TYPE "WarehouseType" AS ENUM ('DISTRIBUTION', 'STORAGE', 'FULFILLMENT', 'OTHERS');
+CREATE TYPE "WarehouseType" AS ENUM ('DISTRIBUTION_CENTER', 'COLD_STORAGE', 'FULFILLMENT_CENTER', 'BONDED', 'MANUFACTURING', 'CROSS_DOCK');
 
 -- CreateEnum
 CREATE TYPE "PortType" AS ENUM ('Sea', 'Air', 'Land');
@@ -214,6 +214,7 @@ CREATE TABLE "spaces" (
 -- CreateTable
 CREATE TABLE "inventories" (
     "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
     "name" TEXT NOT NULL DEFAULT 'Inventory',
     "type" "InventoryType" NOT NULL,
     "description" TEXT,
@@ -912,13 +913,16 @@ CREATE UNIQUE INDEX "spaces_warehouseSpaceId_type_spaceId_key" ON "spaces"("ware
 CREATE UNIQUE INDEX "spaces_warehouseSpaceId_type_spaceNumber_key" ON "spaces"("warehouseSpaceId", "type", "spaceNumber");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "inventories_code_key" ON "inventories"("code");
+
+-- CreateIndex
 CREATE INDEX "inventories_warehouseSpaceId_idx" ON "inventories"("warehouseSpaceId");
 
 -- CreateIndex
 CREATE INDEX "inventories_type_idx" ON "inventories"("type");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "inventories_warehouseSpaceId_type_key" ON "inventories"("warehouseSpaceId", "type");
+CREATE UNIQUE INDEX "inventories_warehouseSpaceId_type_code_key" ON "inventories"("warehouseSpaceId", "type", "code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_SKU_key" ON "Product"("SKU");

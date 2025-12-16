@@ -171,9 +171,9 @@ export class WarehouseSpaceService {
   }
 
   async createInventory(warehouseSpaceId: string, payload: InventoryPayload, tx?: any): Promise<any> {
-    const { type, capacity } = payload;
+    const { type, capacity, code } = payload;
 
-    if (!type || !capacity) {
+    if (!type || !capacity || !code) {
       const error = new Error('Required fields are missing');
       (error as any).statusCode = 400;
       throw error;
