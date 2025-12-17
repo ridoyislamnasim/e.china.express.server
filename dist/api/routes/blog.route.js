@@ -5,17 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const blog_controller_1 = __importDefault(require("../../modules/blog/blog.controller"));
-// import { upload } from "../../middleware/upload/upload";
+const upload_1 = require("../../middleware/upload/upload");
 // import jwtAuth from "../../middleware/auth/jwtAuth";
 const BlogRoute = (0, express_1.Router)();
-// BlogRoute.use(jwtAuth());
-// ==============================
-// Blog CRUD
-// ==============================
-// BlogRoute
-//   .route("/")
-//   .post(upload.any(), controller.createBlog)
-//   .get(controller.getAllBlogs);
 // ==============================
 // topic  CRUD
 // ==============================
@@ -29,32 +21,47 @@ BlogRoute
     .get(blog_controller_1.default.getSingleTopic)
     .patch(blog_controller_1.default.updateTopic)
     .delete(blog_controller_1.default.deleteTopic);
+// ==============================
+// Blog Industrie CRUD
+// ==============================
 BlogRoute
-    .route("/:slug")
-    .get(blog_controller_1.default.getSingleBlog)
-    .patch(blog_controller_1.default.updateBlogBySlug)
-    .put(upload.any(), blog_controller_1.default.updateBlog)
-    .delete(blog_controller_1.default.deleteBlogBySlug);
+    .route("/industrie")
+    .post(blog_controller_1.default.createIndustries)
+    .get(blog_controller_1.default.getAllIndustriess);
+BlogRoute.get("/industries/pagination", blog_controller_1.default.getAllIndustriesByPagination);
+BlogRoute
+    .route("/industrie/:id")
+    .get(blog_controller_1.default.getSingleIndustries)
+    .patch(blog_controller_1.default.updateIndustries)
+    .delete(blog_controller_1.default.deleteIndustries);
 // ==============================
 // Blog Tags
 // ==============================
 BlogRoute
-    .route("/blog-tags")
+    .route("/tag")
+    .post(blog_controller_1.default.createBlogTag)
     .get(blog_controller_1.default.getAllBlogTags);
+BlogRoute.get("/tags/pagination", blog_controller_1.default.getAllTagsByPagination);
 BlogRoute
-    .route("/blog-tags/:slug")
-    .patch(blog_controller_1.default.updateBlogTagBySlug)
-    .delete(blog_controller_1.default.deleteBlogTagBySlug);
+    .route("/tag/:id")
+    .get(blog_controller_1.default.getSingleBlogTag)
+    .patch(blog_controller_1.default.updateTag)
+    .delete(blog_controller_1.default.deleteTag);
+// ==============================
+// Blogs
+// ==============================
 BlogRoute
-    .route("/create-tag")
-    .post(blog_controller_1.default.createBlogTag);
-// ==============================
-// Filters & Queries
-// ==============================
+    .route("/")
+    .post(upload_1.upload.any(), blog_controller_1.default.createBlog)
+    .get(blog_controller_1.default.getAllBlogs);
+BlogRoute.get("/pagination", blog_controller_1.default.getAllBlogsByPagination);
+BlogRoute
+    .route("/:slug")
+    .get(blog_controller_1.default.getSingleBlog)
+    .patch(blog_controller_1.default.updateBlogBySlug)
+    .put(upload_1.upload.any(), blog_controller_1.default.updateBlog)
+    .delete(blog_controller_1.default.deleteBlogBySlug);
 BlogRoute
     .route("/get-blog-by-tag")
     .post(blog_controller_1.default.getBlogsByTags);
-BlogRoute
-    .route("/pagination")
-    .get(blog_controller_1.default.getBlogWithPagination);
 exports.default = BlogRoute;

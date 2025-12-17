@@ -14,6 +14,9 @@ class BlogService {
     constructor(repository) {
         this.repository = repository;
     }
+    // ==============================
+    // Blog
+    // ==============================
     //done
     async getAllBlogs(page = 1, limit = 10) {
         if (page <= 0 || limit <= 0) {
@@ -24,62 +27,64 @@ class BlogService {
         const offset = (page - 1) * limit;
         return await blog_repository_1.default.findAllBlogs(offset, limit);
     }
-    async getAllBlogTags(page = 1, limit = 10) {
-        if (page <= 0 || limit <= 0) {
-            const error = new Error("Oops! Page number and items per page should be at least 1.");
-            error.statusCode = 400;
-            throw error;
-        }
-        const offset = (page - 1) * limit;
-        return await blog_repository_1.default.findAllBlogTags(offset, limit);
+    async getAllBlogTags() {
+        return await blog_repository_1.default.findAllBlogTags();
     }
     async createBlog(payloadFiles, payload, tx) {
-        const { image, title, slug, author, details, tags, status, createdAt, updatedAt } = payload;
-        // both  are required
-        if (!title || !details)
-            throw new errors_1.NotFoundError("Title and Details are required.");
-        const { files } = payloadFiles || {};
-        if (files === null || files === void 0 ? void 0 : files.length) {
-            const images = await (0, ImgUploder_1.default)(files);
-            // console.log('Images uploaded is images ater upload:', images);
-            for (const key in images) {
-                payload[key] = images[key];
-            }
+        const { title, details, tagIds, industryId, topicId, status } = payload;
+        const { files } = payloadFiles;
+        if (!files)
+            throw new Error('image is required');
+        console.log('Creating blog with files:', files);
+        const images = await (0, ImgUploder_1.default)(files);
+        for (const key in images) {
+            payload[key] = images[key];
         }
+        // both  are required
+        if (!title || !details || !industryId || !topicId)
+            throw new errors_1.NotFoundError("Title, Details, Industry, and Topic are required.");
         payload.slug = (0, slugGenerate_1.slugGenerate)(payload.title);
-        //? Optional: Ensures the slug is unique. If the generated slug already exists in the DB,
-        //? appends a counter (e.g., "-1", "-2") until a unique slug is found. Can be removed if uniqueness is not a concern.
-        // let isAvailableSlug = await this.repository.findSlug(payload.slug)
-        // let counter = 0;
-        // while (isAvailableSlug !== null){
-        //   counter++
-        //   payload.slug =`${slugGenerate(payload.title)}-${counter}`;
-        //   isAvailableSlug = await this.repository.findSlug(payload.slug)
-        // }
-        return await this.repository.createBlog(payload, tx);
-    }
-    async createBlogTag(title) {
-        if (!title) {
-            const error = new Error("Missing required field: title");
+        const existing = await this.repository.findSlug(payload.slug);
+        if (existing) {
+            const error = new Error(`Blog with title "${payload.title}" already exists.`);
             error.statusCode = 400;
             throw error;
         }
-        try {
-            let slug = (0, slugGenerate_1.slugGenerate)(title);
-            const existingSlug = await this.repository.findBlogSlugTag(slug);
-            if (existingSlug) {
-                const error = new Error(`Blog tag with title "${title}" already exists.`);
-                error.statusCode = 400;
-                throw error;
+        let tagsArray = [];
+        if (typeof tagIds === "string") {
+            try {
+                tagsArray = JSON.parse(tagIds); // '[1,2,4]' → [1, 2, 4]
+                if (!Array.isArray(tagsArray)) {
+                    tagsArray = []; // safeguard
+                }
             }
-            const payload = { slug, title };
-            const newTag = await this.repository.createBlogTag(payload);
-            return newTag;
+            catch (error) {
+                console.error("Invalid tagIds format", error);
+                tagsArray = [];
+            }
         }
-        catch (error) {
-            console.error("Error creating blog tag:", error);
-            throw error;
+        else if (Array.isArray(tagIds)) {
+            tagsArray = tagIds;
         }
+        else if (typeof tagIds === "number") {
+            tagsArray = [tagIds];
+        }
+        for (const tagId of tagsArray) {
+            // check tagId exists
+            const tag = await this.repository.findBlogTag(tagId);
+            if (!tag) {
+                throw new Error(`Tag with ID ${tagId} does not exist.`);
+            }
+        }
+        payload.tagsArray = tagsArray;
+        console.log('Creating blog with payload:', payload);
+        // Create blog first
+        const createdBlog = await this.repository.createBlog(payload, tx);
+        // Then add tags if tagIds provided
+        if (tagsArray && tagsArray.length > 0 && createdBlog.id) {
+            await this.repository.addTagsToBlog(createdBlog.id, tagsArray, tx);
+        }
+        return createdBlog;
     }
     async getSingleBlog(slug) {
         const blogData = await this.repository.getBlogBySlug(slug);
@@ -109,65 +114,26 @@ class BlogService {
             }
         }
         const updatedBlog = await this.repository.updateBlog(slug, payload);
-        if (!updatedBlog) {
-            const error = new Error(`Blog with title "${payload.title}" is unable to update.`);
-            error.statusCode = 400;
-            throw error;
-        }
+        // if (!updatedBlog) {
+        //   const error = new Error(`Blog with title "${payload.title}" is unable to update.`);
+        //   (error as any).statusCode = 400;
+        //   throw error;
+        // }
         return updatedBlog;
-    }
-    async updateBlogTag(slug, payload) {
-        const existing = await this.repository.findBlogSlugTag(slug);
-        if (!existing) {
-            const error = new Error(`Blog tag "${payload.title}" does not exists.`);
-            error.statusCode = 400;
-            throw error;
-        }
-        const { id } = existing;
-        const updatedTag = await this.repository.updateBlogTag(id, payload);
-        return updatedTag;
-    }
-    async deleteBlogBySlug(slug) {
-        const existing = await this.repository.findSlug(slug);
-        if (!existing) {
-            const error = new Error(`Blog "${slug}" not found.`);
-            error.statusCode = 404;
-            throw error;
-        }
-        const deleted = await this.repository.deleteBlogById(existing.id);
-        return deleted;
-    }
-    async deleteBlogTagBySlug(slug) {
-        const existing = await this.repository.findBlogSlugTag(slug);
-        if (!existing) {
-            const error = new Error(`Blog tag "${slug}" not found.`);
-            error.statusCode = 404;
-            throw error;
-        }
-        const deleted = await this.repository.deleteBlogTagById(existing.id);
-        return deleted;
     }
     async getBlogsByTags(tags, tx) {
         const blogs = await blog_repository_1.default.getBlogsByTags(tags, tx);
         return blogs;
     }
     //todo
-    async getBlogWithPagination(payload) {
-        return await this.repository.getBlogWithPagination(payload);
+    async getAllBlogsByPagination(payload) {
+        return await this.repository.getAllBlogsByPagination(payload);
     }
     async getSingleBlogWithSlug(slug) {
         const blogData = await this.repository.getBlogBySlug(slug);
         if (!blogData)
             throw new errors_1.NotFoundError("Blog Not Found");
         return blogData;
-    }
-    async getNavBar() {
-        console.log("Fetching Navbar Data...");
-        const navbarData = await this.repository.getNavBar();
-        console.log("Navbar Data:", navbarData);
-        if (!navbarData)
-            throw new errors_1.NotFoundError("Navbar Not Found");
-        return navbarData;
     }
     // async updateBlog(slug: string, payloadFiles: any, payload: any) {
     //   const { files } = payloadFiles || {};
@@ -195,7 +161,74 @@ class BlogService {
         return await this.repository.deleteBlog(slug); // Or use a delete method
     }
     // ==============================
-    // Create Topic
+    // Tag
+    // ==============================
+    async updateBlogTag(id, payload) {
+        payload.slug = (0, slugGenerate_1.slugGenerate)(payload.title);
+        const doesNewTItleExist = await this.repository.findBlogSlugTag(payload.slug);
+        if (doesNewTItleExist) {
+            const error = new Error(`Blog tag "${payload.title}" already exists.`);
+            error.statusCode = 400;
+            throw error;
+        }
+        payload.slug = (0, slugGenerate_1.slugGenerate)(payload.title);
+        const updatedTag = await this.repository.updateBlogTag(id, payload);
+        return updatedTag;
+    }
+    async deleteBlogBySlug(slug) {
+        const existing = await this.repository.findSlug(slug);
+        if (!existing) {
+            const error = new Error(`Blog "${slug}" not found.`);
+            error.statusCode = 404;
+            throw error;
+        }
+        const deleted = await this.repository.deleteBlogById(existing.id);
+        return deleted;
+    }
+    async deleteTag(slug) {
+        const existing = await this.repository.findBlogSlugTag(slug);
+        if (!existing) {
+            const error = new Error(`Blog tag "${slug}" not found.`);
+            error.statusCode = 404;
+            throw error;
+        }
+        const deleted = await this.repository.deleteBlogTagById(existing.id);
+        return deleted;
+    }
+    async getAllTagsByPagination(payload) {
+        return await this.repository.getAllTagsByPagination(payload);
+    }
+    async createBlogTag(title) {
+        if (!title) {
+            const error = new Error("Missing required field: title");
+            error.statusCode = 400;
+            throw error;
+        }
+        try {
+            let slug = (0, slugGenerate_1.slugGenerate)(title);
+            const existingSlug = await this.repository.findBlogSlugTag(slug);
+            if (existingSlug) {
+                const error = new Error(`Blog tag with title "${title}" already exists.`);
+                error.statusCode = 400;
+                throw error;
+            }
+            const payload = { slug, title };
+            const newTag = await this.repository.createBlogTag(payload);
+            return newTag;
+        }
+        catch (error) {
+            console.error("Error creating blog tag:", error);
+            throw error;
+        }
+    }
+    async getSingleBlogTag(tagId) {
+        const SingleTag = await this.repository.getTagById(tagId);
+        if (!SingleTag)
+            throw new errors_1.NotFoundError("Blog Not Found");
+        return SingleTag;
+    }
+    // ==============================
+    //  Topic
     // ==============================
     async createTopic(payload, tx) {
         const { title, } = payload;
@@ -218,15 +251,9 @@ class BlogService {
         const topic = await this.repository.createTopic(data, tx);
         return topic;
     }
-    // ==============================
-    // Get All Topics
-    // ==============================
     async getAllTopics() {
         return await this.repository.getAllTopics();
     }
-    // ==============================
-    // Get Single Topic
-    // ==============================
     async getSingleTopic(id) {
         const existing = await this.repository.findTopicById(id);
         if (!existing) {
@@ -236,9 +263,6 @@ class BlogService {
         }
         return existing;
     }
-    // ==============================
-    // Update Topic
-    // ==============================
     async updateTopic(id, payload) {
         const existing = await this.repository.findTopicById(id);
         if (!existing) {
@@ -259,9 +283,6 @@ class BlogService {
         const updated = await this.repository.updateTopic(id, payload);
         return updated;
     }
-    // ==============================
-    // Delete Topic
-    // ==============================
     async deleteTopic(id) {
         const existing = await this.repository.findTopicById(id);
         if (!existing) {
@@ -271,11 +292,76 @@ class BlogService {
         }
         return await this.repository.deleteTopicById(id);
     }
-    // ==============================
-    // Pagination
-    // ==============================
     async getAllTopicByPagination(payload) {
         return await this.repository.getAllTopicByPagination(payload);
+    }
+    // ==============================
+    //  Industries
+    // ==============================
+    async createIndustries(payload, tx) {
+        const { title, } = payload;
+        if (!title) {
+            const error = new Error("Missing required field: title ");
+            error.statusCode = 400;
+            throw error;
+        }
+        let slug = (0, slugGenerate_1.slugGenerate)(title);
+        const existing = await this.repository.findIndustriesBySlug(slug);
+        if (existing) {
+            const error = new Error(`Industries with title "${title}" already exists.`);
+            error.statusCode = 400;
+            throw error;
+        }
+        const data = {
+            title,
+            slug,
+        };
+        const topic = await this.repository.createIndustries(data, tx);
+        return topic;
+    }
+    async getAllIndustriess() {
+        return await this.repository.getAllIndustriess();
+    }
+    async getSingleIndustries(id) {
+        const existing = await this.repository.findIndustriesById(id);
+        if (!existing) {
+            const error = new Error(`Industries with id "${id}" not found.`);
+            error.statusCode = 404;
+            throw error;
+        }
+        return existing;
+    }
+    async updateIndustries(id, payload) {
+        const existing = await this.repository.findIndustriesById(id);
+        if (!existing) {
+            const error = new Error(`Industries does not exist.`);
+            error.statusCode = 400;
+            throw error;
+        }
+        if (payload.title) {
+            const slug = (0, slugGenerate_1.slugGenerate)(payload.title);
+            const ifSlugExist = await this.repository.findIndustriesBySlug(slug);
+            if (ifSlugExist) {
+                const error = new Error(`Industries already exist.`);
+                error.statusCode = 400;
+                throw error;
+            }
+            payload.slug = slug;
+        }
+        const updated = await this.repository.updateIndustries(id, payload);
+        return updated;
+    }
+    async deleteIndustries(id) {
+        const existing = await this.repository.findIndustriesById(id);
+        if (!existing) {
+            const error = new Error(`Industries not found.`);
+            error.statusCode = 404;
+            throw error;
+        }
+        return await this.repository.deleteIndustriesById(id);
+    }
+    async getAllIndustriesByPagination(payload) {
+        return await this.repository.getAllIndustriesByPagination(payload);
     }
 }
 exports.BlogService = BlogService;

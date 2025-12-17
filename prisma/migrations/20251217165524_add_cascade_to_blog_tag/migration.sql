@@ -862,20 +862,26 @@ CREATE TABLE "BlogTag" (
 -- CreateTable
 CREATE TABLE "Blog" (
     "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "details" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "image" TEXT,
-    "title" TEXT,
-    "slug" TEXT,
-    "author" TEXT,
-    "tagId" INTEGER NOT NULL,
-    "topicId" INTEGER NOT NULL,
     "industryId" INTEGER NOT NULL,
-    "details" TEXT,
-    "tags" TEXT[],
-    "status" BOOLEAN NOT NULL DEFAULT true,
+    "topicId" INTEGER NOT NULL,
+    "status" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BlogTagOnBlog" (
+    "id" SERIAL NOT NULL,
+    "blogId" INTEGER NOT NULL,
+    "tagId" INTEGER NOT NULL,
+
+    CONSTRAINT "BlogTagOnBlog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -988,7 +994,7 @@ CREATE INDEX "inventories_warehouseSpaceId_idx" ON "inventories"("warehouseSpace
 CREATE INDEX "inventories_type_idx" ON "inventories"("type");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "inventories_warehouseSpaceId_type_code_key" ON "inventories"("warehouseSpaceId", "type", "code");
+CREATE UNIQUE INDEX "inventories_warehouseSpaceId_type_key" ON "inventories"("warehouseSpaceId", "type");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_SKU_key" ON "Product"("SKU");
@@ -1031,6 +1037,9 @@ CREATE UNIQUE INDEX "Topic_slug_key" ON "Topic"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Blog_slug_key" ON "Blog"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BlogTagOnBlog_blogId_tagId_key" ON "BlogTagOnBlog"("blogId", "tagId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Order_orderNumber_key" ON "Order"("orderNumber");
@@ -1219,13 +1228,16 @@ ALTER TABLE "Policies" ADD CONSTRAINT "Policies_policyTypeId_fkey" FOREIGN KEY (
 ALTER TABLE "GuideVideo" ADD CONSTRAINT "GuideVideo_guideId_fkey" FOREIGN KEY ("guideId") REFERENCES "Guide"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Blog" ADD CONSTRAINT "Blog_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "BlogTag"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Blog" ADD CONSTRAINT "Blog_industryId_fkey" FOREIGN KEY ("industryId") REFERENCES "Industry"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Blog" ADD CONSTRAINT "Blog_topicId_fkey" FOREIGN KEY ("topicId") REFERENCES "Topic"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Blog" ADD CONSTRAINT "Blog_industryId_fkey" FOREIGN KEY ("industryId") REFERENCES "Industry"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "BlogTagOnBlog" ADD CONSTRAINT "BlogTagOnBlog_blogId_fkey" FOREIGN KEY ("blogId") REFERENCES "Blog"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BlogTagOnBlog" ADD CONSTRAINT "BlogTagOnBlog_tagId_fkey" FOREIGN KEY ("tagId") REFERENCES "BlogTag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

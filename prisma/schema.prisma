@@ -30,7 +30,7 @@ model User {
   buyNowCarts       BuyNowCart[]
   otp               OTP[]
   productShipping   ProductShipping[]
-  order           Order[]
+  order             Order[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 }
@@ -207,18 +207,18 @@ model Warehouse {
 }
 
 model WarehouseSpace {
-  id              String   @id @default(cuid())
-  name            String
-  totalCapacity   Int
-  description     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  totalCapacity Int
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  warehouseId     String
-  warehouse       Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
 
-  spaces          Space[]
-  inventories     Inventory[]
+  spaces      Space[]
+  inventories Inventory[]
 
   @@unique([warehouseId])
   @@index([warehouseId])
@@ -226,21 +226,21 @@ model WarehouseSpace {
 }
 
 model Space {
-  id                String    @id @default(cuid())
-  spaceId           String
-  type              SpaceType             // AIR, SEA, or EXPRESS
-  name              String
-  price             String?
-  duration          String?
-  occupied          Boolean?  @default(false)
-  spaceNumber       Int?
-  capacity          Int
-  notes             String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  spaceId     String
+  type        SpaceType // AIR, SEA, or EXPRESS
+  name        String
+  price       String?
+  duration    String?
+  occupied    Boolean?  @default(false)
+  spaceNumber Int?
+  capacity    Int
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  warehouseSpaceId  String
-  warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+  warehouseSpaceId String
+  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
   @@unique([warehouseSpaceId, type, spaceId])
   @@unique([warehouseSpaceId, type, spaceNumber])
@@ -250,31 +250,29 @@ model Space {
 }
 
 model Inventory {
-  id                String        @id @default(cuid())
-  code             String         @unique
-  name              String        @default("Inventory")
-  type              InventoryType             // TYPE_X, TYPE_Y, or TYPE_Z
-  description       String?
-  price             String?
-  duration          String?
-  occupied          Boolean?      @default(false)
-  spaceNumber       Int?
-  capacity          Int?
-  fixedCbm          Boolean       @default(true)
-  notes             String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  code        String        @unique
+  name        String        @default("Inventory")
+  type        InventoryType // TYPE_X, TYPE_Y, or TYPE_Z
+  description String?
+  price       String?
+  duration    String?
+  occupied    Boolean?      @default(false)
+  spaceNumber Int?
+  capacity    Int?
+  fixedCbm    Boolean       @default(true)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  warehouseSpaceId  String
-  warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
-
+  warehouseSpaceId String
+  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
   @@unique([warehouseSpaceId, type])
   @@index([warehouseSpaceId])
   @@index([type])
   @@map("inventories")
 }
-
 
 enum SpaceType {
   AIR
@@ -437,8 +435,6 @@ model PaymentServiceConfig {
 //   createdAt      DateTime  @default(now())
 //   updatedAt      DateTime  @updatedAt
 // }
-
-
 
 model OrderBulk {
   id           Int       @id @default(autoincrement())
@@ -815,7 +811,7 @@ model Cart {
   user            User              @relation(fields: [userId], references: [id])
   products        CartProduct[]
   productShipping ProductShipping[]
-  oders          Order[]
+  oders           Order[]
 }
 
 model CartProduct {
@@ -860,7 +856,7 @@ model CartProductVariant {
   skuId  String?
   specId String?
 
-  quantity     Int @default(1)
+  quantity     Int  @default(1)
   amountOnSale Int?
 
   attributeName       String?
@@ -982,65 +978,62 @@ model GuideVideo {
 }
 
 model Industry {
-  id        Int     @id @default(autoincrement())
-  title     String
-  slug      String @unique
+  id    Int    @id @default(autoincrement())
+  title String
+  slug  String @unique
 
-  blogs     Blog[]  
+  blogs Blog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Topic {
-  id          Int      @id @default(autoincrement())
-  title       String
-  slug        String   @unique
+  id    Int    @id @default(autoincrement())
+  title String
+  slug  String @unique
 
+  blogs Blog[]
 
-  blogs       Blog[]
-
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-
-
-model BlogTag {
-  id        Int      @id @default(autoincrement())
-  title     String?
-  slug      String?
-  blogs     Blog[]   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model BlogTag {
+  id        Int             @id @default(autoincrement())
+  title     String?
+  slug      String?
+  blogs     BlogTagOnBlog[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }
 
 model Blog {
-  id        Int      @id @default(autoincrement())
-  image     String?
-  title     String?
-  slug      String?  @unique
-  author    String?
-
-  tagId     Int      
-  tag       BlogTag  @relation(fields: [tagId], references: [id])
-
-
-  topicId   Int
-  topic     Topic    @relation(fields: [topicId], references: [id])
-
-
+  id         Int             @id @default(autoincrement())
+  title      String
+  details    String
+  slug       String          @unique
+  image      String?
+  industry   Industry        @relation(fields: [industryId], references: [id])
   industryId Int
-  industry   Industry @relation(fields: [industryId], references: [id])
+  topic      Topic           @relation(fields: [topicId], references: [id])
+  topicId    Int
+  status     String?
+  tags       BlogTagOnBlog[]
 
-  details   String?
-  tags      String[]
-  status    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model BlogTagOnBlog {
+  id     Int     @id @default(autoincrement())
+  blogId Int
+  blog   Blog    @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  tagId  Int
+  tag    BlogTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([blogId, tagId])
+}
 
 // order management permissions
 model Order {
@@ -1054,7 +1047,7 @@ model Order {
   cartId Int?
   cart   Cart? @relation(fields: [cartId], references: [id])
 
-  status OrderStatus @default(PENDING)
+  status        OrderStatus   @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
 
   currency String @default("Dollar")
@@ -1071,7 +1064,6 @@ model Order {
   shipping OrderShipping[]
 }
 
-
 model OrderItem {
   id Int @id @default(autoincrement())
 
@@ -1082,13 +1074,13 @@ model OrderItem {
   titleTrans String?
   productFor ProductFor
 
-  product1688Id  String?
-  productLocalId Int?
+  product1688Id    String?
+  productLocalId   Int?
   productAlibabaId String?
-  vendorId Int?
+  vendorId         Int?
 
   // Pricing snapshot
-  quantity     Int
+  quantity    Int
   unitPrice   Decimal @db.Decimal(12, 2)
   totalPrice  Decimal @db.Decimal(12, 2)
   totalWeight Decimal @db.Decimal(10, 3)
@@ -1098,7 +1090,6 @@ model OrderItem {
 
   createdAt DateTime @default(now())
 }
-
 
 model OrderShipping {
   id Int @id @default(autoincrement())
@@ -1118,17 +1109,17 @@ model OrderShipping {
   totalQuantity Int
   approxWeight  Decimal @db.Decimal(10, 3)
 
-  totalCost     Decimal @db.Decimal(12, 2)
-  customDuty    Decimal @db.Decimal(12, 2)
-  vat           Decimal @db.Decimal(6, 2)
-  handlingFee   Decimal @db.Decimal(12, 2)
-  packagingFee  Decimal @db.Decimal(12, 2)
-  discount      Decimal @db.Decimal(12, 2)
-  finalPayable  Decimal @db.Decimal(12, 2)
+  totalCost    Decimal @db.Decimal(12, 2)
+  customDuty   Decimal @db.Decimal(12, 2)
+  vat          Decimal @db.Decimal(6, 2)
+  handlingFee  Decimal @db.Decimal(12, 2)
+  packagingFee Decimal @db.Decimal(12, 2)
+  discount     Decimal @db.Decimal(12, 2)
+  finalPayable Decimal @db.Decimal(12, 2)
 
   estDeliveryDays Int?
-  trackingNumber String?
-  trackingURL    String?
+  trackingNumber  String?
+  trackingURL     String?
 
   shippingStatus ShippingStatus @default(PENDING)
 
@@ -1159,8 +1150,6 @@ enum ShippingStatus {
   DELIVERED
   RETURNED
 }
-
-
 
 // model Payment {
 //   id Int @id @default(autoincrement())
@@ -1206,5 +1195,3 @@ enum ShippingStatus {
 //   REFUNDED
 //   PARTIAL
 // }
-
-

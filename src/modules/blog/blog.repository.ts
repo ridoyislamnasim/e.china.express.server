@@ -1,5 +1,5 @@
 // BlogRepository (TypeScript version)
-import { BlogI, CreateBlogTagRequestDto, TopicI, UpdateBlogRequestDto, UpdateBlogTagRequestDto } from "../../types/blog";
+import { BlogI, CreateBlogTagRequestDto, TopicI, IIndustries, UpdateBlogRequestDto, UpdateBlogTagRequestDto } from "../../types/blog";
 import { pagination } from "../../utils/pagination";
 import { Blog, PrismaClient } from '@prisma/client';
 import { BaseRepository } from "../base/base.repository";
@@ -7,21 +7,67 @@ import { BaseRepository } from "../base/base.repository";
 export class BlogRepository extends BaseRepository<Blog> {
 
 
-    private prisma: PrismaClient;
-  
-    constructor(prisma: PrismaClient) {
-          super(prisma.blog);
-      this.prisma = prisma;
-    }
+  private prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient) {
+    super(prisma.blog);
+    this.prisma = prisma;
+  }
 
 
   async createBlog(payload: any, tx?: any) {
-    return await this.prisma.blog.create({ data: payload });
+    const { title, details, slug, industryId, topicId, status,image, tagsArray } = payload;
+    const client = tx || this.prisma;
+    console.log('Creating blog with tagsArray:', tagsArray);
+
+    // Blog create with tags
+    const blog = await client.blog.create({
+      data: {
+        title,
+        details,
+        slug,
+        industryId: Number(industryId),
+        topicId: Number(topicId),
+        status,
+        image,
+        tags: {
+          create: tagsArray?.map((tagId: number) => ({
+            tag: { connect: { id: tagId } } // connect existing tag
+          })) || [],
+        },
+      },
+    });
+
+    return blog;
   }
 
-  async createBlogTag(payload: CreateBlogTagRequestDto): Promise<any> {
-    return await this.prisma.blogTag.create({ data: payload });
+  async addTagsToBlog(blogId: number, tagIds: number[], tx?: any) {
+    const client = tx || this.prisma;
+
+    console.log('Adding tags to blog:', blogId, tagIds);
+
+    for (const tagId of tagIds) {
+      console.log(`Processing tagId: ${tagId}, blogId: ${blogId}`);
+      // already exists?
+      const existing = await client.blogTagOnBlog.findFirst({
+        where: {
+          blogId: blogId,
+          tagId: tagId,
+        },
+      });
+      if (existing) {
+        continue; // skip if already exists
+      }
+      await client.blogTagOnBlog.create({
+        data: {
+          blogId: blogId,
+          tagId: tagId,
+        },
+      });
+    }
+
   }
+
 
   async findSlug(slug: string) {
     const result = await this.prisma.blog.findFirst({
@@ -46,19 +92,27 @@ export class BlogRepository extends BaseRepository<Blog> {
     return { blogs, total };
   }
 
-  async findAllBlogTags(offset = 0, limit = 10) {
-    const [blogTags, totalResult] = await Promise.all([
-      this.prisma.blogTag.findMany({
-        skip: offset,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-      }),
-      this.prisma.$queryRaw<{ count: number }[]>`SELECT COUNT(*)::int AS count FROM "BlogTag"`,
-    ]);
+  async getAllTagsByPagination(payload: any) {
+    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+      const [doc, totalDoc] = await Promise.all([
+        this.prisma.blogTag.findMany({
+          skip: offset,
+          take: limit,
+          // orderBy: sortOrder,
+        }),
+        this.prisma.blogTag.count(),
+      ]);
+      return { doc, totalDoc };
+    });
+  }
 
-    const total = totalResult[0]?.count ?? 0;
-
-    return { blogTags, total };
+  async findBlogTag(id: number) {
+    const result = await this.prisma.blogTag.findFirst({
+      where: {
+        id: id,
+      },
+    });
+    return result;
   }
 
   async findBlogSlugTag(slug: string) {
@@ -74,12 +128,6 @@ export class BlogRepository extends BaseRepository<Blog> {
     return await this.prisma.blog.findMany({ orderBy: { createdAt: "desc" } });
   }
 
-  async getNavBar() {
-    return await this.prisma.blog.findMany({
-      orderBy: { createdAt: "desc" },
-    });
-  }
-
   async getBlogBySlug(slug: string) {
     return await this.prisma.blog.findFirst({
       where: { slug },
@@ -87,10 +135,11 @@ export class BlogRepository extends BaseRepository<Blog> {
   }
 
   async updateBlog(slug: string, payload: UpdateBlogRequestDto) {
-    return await this.prisma.blog.update({
-      where: { slug: slug },
-      data: payload,
-    });
+    return
+    // await this.prisma.blog.update({
+    //   where: { slug: slug },
+    //   data: payload,
+    // });
   }
 
   async deleteBlogById(id: number) {
@@ -99,7 +148,63 @@ export class BlogRepository extends BaseRepository<Blog> {
     });
   }
 
-  async deleteBlogTagById(id: number) {
+  async deleteBlog(slug: string) {
+    return await this.prisma.blog.delete({
+      where: { slug },
+    });
+  }
+
+  async getAllBlogsByPagination(payload: any) {
+    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+      const [doc, totalDoc] = await Promise.all([
+        this.prisma.blog.findMany({
+          skip: offset,
+          take: limit,
+          // orderBy: sortOrder,
+          include: {
+            tags:{
+              select: {
+                tag: true
+              }
+            },
+            industry: true,
+            topic: true,
+          },
+        }),
+        this.prisma.blog.count(),
+      ]);
+      return { doc, totalDoc };
+    });
+  }
+
+
+
+
+  //! ==============================
+  // Tag
+  // ==============================
+
+    async createBlogTag(payload: CreateBlogTagRequestDto): Promise<any> {
+    return await this.prisma.blogTag.create({ data: payload });
+  }
+
+    async findAllBlogTags() {
+    return await this.prisma.blogTag.findMany();
+  }
+
+   async findBlogTagBySlug(slug: string) {
+    return this.prisma.blogTag.findFirst({ where: { slug } });
+  }
+
+
+    async getTagById(tagId: number) {
+    return await this.prisma.blogTag.findFirst({
+      where: { id: tagId },
+    });
+  }
+
+
+    async deleteBlogTagById(id: number) {
     return await this.prisma.blogTag.delete({
       where: { id },
     });
@@ -112,17 +217,7 @@ export class BlogRepository extends BaseRepository<Blog> {
     });
   }
 
-  async findBlogTagBySlug(slug: string) {
-    return this.prisma.blogTag.findFirst({ where: { slug } });
-  }
-
-  async deleteBlog(slug: string) {
-    return await this.prisma.blog.delete({
-      where: { slug },
-    });
-  }
-
-  async getBlogsByTags(tags: string[], tx?: any) {
+    async getBlogsByTags(tags: string[], tx?: any) {
     const client = tx || prisma;
     return client.blog.findMany({
       where: {
@@ -137,19 +232,6 @@ export class BlogRepository extends BaseRepository<Blog> {
     });
   }
 
-  async getBlogWithPagination(payload: any) {
-    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
-      const [doc, totalDoc] = await Promise.all([
-        this.prisma.blog.findMany({
-          skip: offset,
-          take: limit,
-          orderBy: sortOrder,
-        }),
-        this.prisma.blog.count(),
-      ]);
-      return { doc, totalDoc };
-    });
-  }
 
 
 
@@ -157,13 +239,7 @@ export class BlogRepository extends BaseRepository<Blog> {
 
 
 
-
-
-
-
-
-
-//! ==============================
+  //! ==============================
   // Create Topic
   // ==============================
   async createTopic(payload: TopicI, tx?: any) {
@@ -173,40 +249,28 @@ export class BlogRepository extends BaseRepository<Blog> {
     });
   }
 
-  // ==============================
-  // Find Topic by ID
-  // ==============================
   async findTopicById(id: number) {
     return await this.prisma.topic.findFirst({
       where: { id },
     });
   }
 
-  // ==============================
-  // Find Topic by Slug
-  // ==============================
   async findTopicBySlug(slug: string) {
     return await this.prisma.topic.findFirst({
       where: { slug },
     });
   }
 
-  // ==============================
-  // Get All Topics (with pagination)
-  // ==============================
   async getAllTopics() {
-     
-   return   this.prisma.topic.findMany({
 
-        orderBy: { createdAt: "desc" },
-      })
-    
+    return this.prisma.topic.findMany({
 
-    }
+      orderBy: { createdAt: "desc" },
+    })
 
-  // ==============================
-  // Update Topic
-  // ==============================
+
+  }
+
   async updateTopic(id: number, payload: TopicI) {
     return await this.prisma.topic.update({
       where: { id },
@@ -214,18 +278,12 @@ export class BlogRepository extends BaseRepository<Blog> {
     });
   }
 
-  // ==============================
-  // Delete Topic
-  // ==============================
   async deleteTopicById(id: number) {
     return await this.prisma.topic.delete({
       where: { id },
     });
   }
 
-  // ==============================
-  // Pagination Helper
-  // ==============================
   async getAllTopicByPagination(payload: any) {
     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
       const [doc, totalDoc] = await Promise.all([
@@ -242,7 +300,64 @@ export class BlogRepository extends BaseRepository<Blog> {
 
 
 
+  //! ==============================
+  // Create Industries
+  // ==============================
+  async createIndustries(payload: IIndustries, tx?: any) {
+    const client = tx || prisma;
+    return await client.industry.create({
+      data: payload,
+    });
+  }
 
+  async findIndustriesById(id: number) {
+    return await this.prisma.industry.findFirst({
+      where: { id },
+    });
+  }
+
+  async findIndustriesBySlug(slug: string) {
+    return await this.prisma.industry.findFirst({
+      where: { slug },
+    });
+  }
+
+  async getAllIndustriess() {
+
+    return this.prisma.industry.findMany({
+
+      orderBy: { createdAt: "desc" },
+    })
+
+
+  }
+
+  async updateIndustries(id: number, payload: IIndustries) {
+    return await this.prisma.industry.update({
+      where: { id },
+      data: payload,
+    });
+  }
+
+  async deleteIndustriesById(id: number) {
+    return await this.prisma.industry.delete({
+      where: { id },
+    });
+  }
+
+  async getAllIndustriesByPagination(payload: any) {
+    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+      const [doc, totalDoc] = await Promise.all([
+        this.prisma.industry.findMany({
+          skip: offset,
+          take: limit,
+        }),
+        this.prisma.industry.count(),
+      ]);
+
+      return { doc, totalDoc };
+    });
+  }
 
 
 
