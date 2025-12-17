@@ -3,18 +3,16 @@ import guideController from "../../modules/guide/guide.controller";
 
 const guideRoute = Router();
 
-guideRoute.get("/", guideController.getAllGuides);
+guideRoute
+  .get("/", guideController.getAllGuides)
+  .get("/pagination", guideController.getAllGuideWithPagination)
+//   .get("/:slug", guideController.getGuideBySlug)
+  .post("/", guideController.createGuide)
+//   .put("/:id", guideController.updateGuide)
+//   .delete("/:id", guideController.deleteGuide)
+//   .put("/video/:id", guideController.updateGuideVideo)
+//   .delete("/video/:id", guideController.deleteGuideVideo);
 
-guideRoute.get("/:slug", guideController.getGuideBySlug);
 
-guideRoute.post("/", guideController.createGuide);
-
-guideRoute.put("/:id", guideController.updateGuide);
-
-guideRoute.delete("/:id", guideController.deleteGuide);
-
-guideRoute.delete("/video/:id", guideController.deleteGuideVideo);
-
-guideRoute.put("/video/:id", guideController.updateGuideVideo);
 
 export default guideRoute;

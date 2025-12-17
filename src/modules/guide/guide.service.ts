@@ -2,8 +2,42 @@ import guideRepository from "./guide.repository";
 import { CreateGuideDTO, UpdateGuideDTO, CreateGuideVideoDTO, GuideVideoResponseDTO, GuideVideo, Guide } from "../../types/guide";
 import { NotFoundError } from "../../utils/errors";
 import { GuideResponseDTO } from "../../types/guide";
+import { pagination } from "../../utils/pagination";
 
 export default new (class GuideService {
+
+
+
+
+    async getAllGuideWithPagination(query: any): Promise<any> {
+    return await pagination<Guide>(query, async (limit, offset ) => {
+      try {
+        // Fetch paginated guides
+        const guides = await guideRepository.getAllGuidesWithPaginationRepository({
+          limit,
+          offset,
+        });
+
+        // Count total guides for pagination meta
+        const totalDoc = await guideRepository.countGuidesRepository();
+
+        return { doc: guides, totalDoc };
+      } catch (error) {
+        console.error("Error fetching paginated guides:", error);
+        throw error;
+      }
+    });
+  }
+
+
+
+  
+
+
+
+
+
+
   async getGuideById(id: string): Promise<GuideResponseDTO> {
     const guideId = parseInt(id, 10);
 

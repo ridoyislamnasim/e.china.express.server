@@ -4,6 +4,39 @@ import guideService from "./guide.service";
 import { CreateGuideDTO, GuideVideoResponseDTO, UpdateGuideDTO } from "../../types/guide";
 
 export default new (class GuideController {
+
+
+
+
+  
+getAllGuideWithPagination = catchError(
+  async (req: Request, res: Response) => {
+
+    const { page ,limit  } = req.query
+    const query = {page,limit}
+    const result = await guideService.getAllGuideWithPagination(query);
+
+    res.status(200).json({
+      status: "success",
+      message: "Guides retrieved successfully.",
+      data: result,
+    });
+  }
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   getAllGuides = catchError(async (req: Request, res: Response) => {
     const guides = await guideService.getAllGuides();
     res.status(200).json({
@@ -13,8 +46,31 @@ export default new (class GuideController {
     });
   });
 
+
+
+  //   async getPolicesWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
+  //   const { limit, offset } = payload;
+  //   const prismaClient: PrismaClient = tx || this.prisma;
+  //   return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+  //     const [doc, totalDoc] = await Promise.all([
+  //       this.prisma.policyType.findMany({
+  //         where: {},
+  //         skip: offset,
+  //         take: limit,
+  //       }),
+  //       prisma.policyType.count({ where: {} }),
+  //     ]);
+  //     return { doc, totalDoc };
+  //   });
+  // }
+
+
+
+
+
   createGuide = catchError(async (req: Request, res: Response) => {
     const payload: CreateGuideDTO = req.body;
+    console.log("🚀 ~ guide.controller.ts:22 ~ payload:", payload)
     const newGuide = await guideService.createGuideData(payload);
     res.status(201).json({
       status: "success",
@@ -22,6 +78,14 @@ export default new (class GuideController {
       data: newGuide,
     });
   });
+
+
+
+
+
+
+
+  
 
   getGuideBySlug = catchError(async (req: Request, res: Response) => {
     const { id } = req.params;

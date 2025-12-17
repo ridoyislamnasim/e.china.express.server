@@ -20,6 +20,13 @@ export interface Guide {
   updatedAt: Date;
 }
 
+
+
+
+
+
+
+
 // For creating a GuideVideo
 export interface CreateGuideVideoDTO {
   url: string;

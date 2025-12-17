@@ -5,6 +5,49 @@ import { CreateGuideDTO, UpdateGuideDTO, CreateGuideVideoDTO, GuideVideoResponse
 export default new (class GuideRespository {
   private prisma = prisma;
 
+
+
+
+    // Fetch guides with optional pagination
+  async getAllGuidesWithPaginationRepository(params?: { limit?: number; offset?: number }) : Promise<any> {
+    const { limit = 10, offset = 0  } = params || {};
+
+    return await this.prisma.guide.findMany({
+      orderBy: { serial: "asc" }, 
+      skip: offset,               
+      take: limit,                
+      include: {
+        guideVideos: {
+          orderBy: { videoSerial: "asc" }, 
+        },
+      },
+    });
+  }
+
+
+  // Count total guides for pagination
+  async countGuidesRepository() {
+    return await this.prisma.guide.count();
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   async getGuideData(serial: number): Promise<(Guide & { guideVideos: GuideVideo[] }) | null> {
     try {
       const guide = await this.prisma.guide.findUnique({
