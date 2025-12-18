@@ -13,7 +13,7 @@ guideRoute
   .delete("/:id", guideController.deleteGuide)
   .put("/:id",guideController.updateGuide)
 //   .put("/video/:id", guideController.updateGuideVideo)
-//   .delete("/video/:id", guideController.deleteGuideVideo);
+  .delete("/video/:id", guideController.deleteGuideVideo);
 
 
 

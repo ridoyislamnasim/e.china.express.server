@@ -70,8 +70,17 @@ export default new (class GuideController {
   });
 
 
-I
 
+  deleteGuideVideo = catchError(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await guideService.deleteGuideVideo(id);
+    const { message, data } = result;
+    res.status(200).json({
+      status: "success",
+      message: message,
+      data: data,
+    });
+  });
 
 
 
@@ -151,14 +160,5 @@ I
     });
   });
 
-  deleteGuideVideo = catchError(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const result = await guideService.deleteGuideVideo(id);
-    const { message, data } = result;
-    res.status(200).json({
-      status: "success",
-      message: message,
-      data: data,
-    });
-  });
+
 })();

@@ -135,6 +135,41 @@ export default new (class GuideService {
   }
 
 
+  async deleteGuideVideo(id: string): Promise<any> {
+    const guideId = parseInt(id, 10);
+
+    if (isNaN(guideId)) {
+      const error = new Error("Invalid Guide Video ID provided for deletion.");
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
+    try {
+      const existingGuide = await guideRepository.getGuideVideo(guideId);
+      if (!existingGuide) {
+        throw new NotFoundError(`Guide Video ID ${guideId} not found for deletion.`);
+      }
+
+      const data = await guideRepository.deleteGuideVideoRepository(guideId);
+      return { message: `Guide Video ID ${id} deleted successfully`, data };
+    } catch (error) {
+      console.error("Error deleting guide data:", error);
+      throw error;
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   //todo
 
@@ -257,26 +292,5 @@ export default new (class GuideService {
     }
   }
 
-  async deleteGuideVideo(id: string): Promise<any> {
-    const guideId = parseInt(id, 10);
 
-    if (isNaN(guideId)) {
-      const error = new Error("Invalid Guide Video ID provided for deletion.");
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    try {
-      const existingGuide = await guideRepository.getGuideVideo(guideId);
-      if (!existingGuide) {
-        throw new NotFoundError(`Guide Video ID ${guideId} not found for deletion.`);
-      }
-
-      const data = await guideRepository.deleteGuideVideoRepository(guideId);
-      return { message: `Guide Video ID ${id} deleted successfully`, data };
-    } catch (error) {
-      console.error("Error deleting guide data:", error);
-      throw error;
-    }
-  }
 })();
