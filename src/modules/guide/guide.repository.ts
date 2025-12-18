@@ -5,53 +5,107 @@ import { CreateGuideDTO, UpdateGuideDTO, CreateGuideVideoDTO, GuideVideoResponse
 export default new (class GuideRespository {
   private prisma = prisma;
 
-
-
-
-    // Fetch guides with optional pagination
-  async getAllGuidesWithPaginationRepository(params?: { limit?: number; offset?: number }) : Promise<any> {
-    const { limit = 10, offset = 0  } = params || {};
-
+  // done
+  async getAllGuidesWithPaginationRepository(params?: { limit?: number; offset?: number }): Promise<any> {
+    const { limit = 10, offset = 0 } = params || {};
     return await this.prisma.guide.findMany({
-      orderBy: { serial: "asc" }, 
-      skip: offset,               
-      take: limit,                
-      include: {
-        guideVideos: {
-          orderBy: { videoSerial: "asc" }, 
+      orderBy: { serial: "asc" },
+      skip: offset,
+      take: limit,
+    });
+  }
+
+  async countGuidesRepository() {
+    return await this.prisma.guide.count();
+  }
+
+  async getAllGuidesRepository(): Promise<any> {
+    return await this.prisma.guide.findMany({
+      orderBy: { serial: "asc" },
+    });
+  }
+
+  async deleteGuideRepository(id: number): Promise<Guide> {
+    return await this.prisma.guide.delete({
+      where: { id },
+    });
+  }
+
+  async deleteAllGuideVideos(guideId: number): Promise<number> {
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Delete all related videos first
+      const deleted = await tx.guideVideo.deleteMany({
+        where: { guideId },
+      });
+      return deleted.count; // optional, returns number of deleted rows
+    });
+
+    return result;
+  }
+
+  async findVideosByGuideId(id: number): Promise<any> {
+    return await this.prisma.guideVideo.findMany({
+      where: { guideId: id }, // guideId matches the provided id
+      orderBy: { videoSerial: "asc" }, // optional: sort videos by serial
+    });
+  }
+
+  async findGuideById(id: number) {
+    return this.prisma.guide.findUnique({
+      where: { id },
+    });
+  }
+
+  async shiftSerialDown(current: number, latest: number) {
+    return this.prisma.guide.updateMany({
+      where: {
+        serial: {
+          gt: current,
+          lte: latest,
+        },
+      },
+      data: {
+        serial: {
+          decrement: 1,
         },
       },
     });
   }
 
-
-  // Count total guides for pagination
-  async countGuidesRepository() {
-    return await this.prisma.guide.count();
+  async shiftSerialUp(current: number, latest: number) {
+    return this.prisma.guide.updateMany({
+      where: {
+        serial: {
+          gte: latest,
+          lt: current,
+        },
+      },
+      data: {
+        serial: {
+          increment: 1,
+        },
+      },
+    });
   }
 
+  async updateGuideById(id: number, payload: UpdateGuideDTO) {
+    return this.prisma.guide.update({
+      where: { id },
+      data: payload,
+    });
+  }
 
+  // async findGuideById(id: number): Promise<any> {
+  //   return await this.prisma.guide.findUnique({
+  //     where: { id },
+  //   });
+  // }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  async getGuideData(serial: number): Promise<(Guide & { guideVideos: GuideVideo[] }) | null> {
+  //todo
+  async getGuideData(id: number): Promise<(Guide & { guideVideos: GuideVideo[] }) | null> {
     try {
       const guide = await this.prisma.guide.findUnique({
-        where: { id: serial },
+        where: { id: id },
         include: {
           guideVideos: {
             orderBy: { videoSerial: "asc" },
@@ -87,12 +141,6 @@ export default new (class GuideRespository {
       console.error("Error retrieving guide video data:", error);
       throw new Error("Failed to retrieve guide video data from the database.");
     }
-  }
-
-  async getAllGuidesRepository(): Promise<any> {
-    return await this.prisma.guide.findMany({
-      orderBy: { serial: "asc" },
-    });
   }
 
   async getAllGuidesVideosRepository(): Promise<any> {
@@ -155,24 +203,6 @@ export default new (class GuideRespository {
         shortDes: body.shortDes,
       },
     });
-  }
-
-  async deleteGuideRepository(id: number): Promise<Guide> {
-    return await this.prisma.guide.delete({
-      where: { id },
-    });
-  }
-
-  async deleteAllGuideVideos(guideId: number): Promise<number> {
-    const result = await this.prisma.$transaction(async (tx) => {
-      // Delete all related videos first
-      const deleted = await tx.guideVideo.deleteMany({
-        where: { guideId },
-      });
-      return deleted.count; // optional, returns number of deleted rows
-    });
-
-    return result;
   }
 
   async deleteGuideVideoRepository(id: number): Promise<GuideVideo> {

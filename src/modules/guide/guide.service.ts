@@ -5,12 +5,9 @@ import { GuideResponseDTO } from "../../types/guide";
 import { pagination } from "../../utils/pagination";
 
 export default new (class GuideService {
-
-
-
-
-    async getAllGuideWithPagination(query: any): Promise<any> {
-    return await pagination<Guide>(query, async (limit, offset ) => {
+  //done
+  async getAllGuideWithPagination(query: any): Promise<any> {
+    return await pagination<Guide>(query, async (limit, offset) => {
       try {
         // Fetch paginated guides
         const guides = await guideRepository.getAllGuidesWithPaginationRepository({
@@ -29,14 +26,117 @@ export default new (class GuideService {
     });
   }
 
+  async getAllGuides(): Promise<any> {
+    let allGuides: Guide[] = [];
+    let allGuidesVideos: GuideVideo[] = [];
+    try {
+      allGuides = await guideRepository.getAllGuidesRepository();
+
+      // allGuidesVideos = await guideRepository.getAllGuidesVideosRepository();
+    } catch (error) {
+      console.error("Error getting all guides:", error);
+      throw error;
+    }
+
+    return { allGuides, count: allGuides.length };
+  }
+
+  async deleteGuideData(id: string): Promise<any> {
+    const guideId = parseInt(id, 10);
+
+    if (isNaN(guideId)) {
+      const error = new Error("Invalid Guide ID provided for deletion.");
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
+    try {
+      const existingGuide = await guideRepository.getGuideData(guideId);
+      if (!existingGuide) {
+        throw new NotFoundError(`Guide with ID ${guideId} not found for deletion.`);
+      }
+
+      const totalDeleted = await guideRepository.deleteAllGuideVideos(guideId);
+
+      if (!totalDeleted) {
+        console.error(`Unable to delete guide videos of ${guideId}`);
+        throw new Error("Unable to delete guide videos.");
+      }
+
+      const data = await guideRepository.deleteGuideRepository(guideId);
+      return { message: `Guide data with id ${id} deleted successfully`, data: data };
+    } catch (error) {
+      console.error("Error deleting guide data:", error);
+      throw error;
+    }
+  }
+
+  async getGuideVideosById(id: number): Promise<any> {
+    // Fetch videos for the guide
+    const guideVideos = await guideRepository.findVideosByGuideId(id);
+
+    // If no videos found, send a response
+    if (!guideVideos || guideVideos.length === 0) {
+      return {
+        status: "success",
+        message: `No videos found for guide with ID ${id}`,
+        data: [],
+      };
+    }
+
+    // If videos exist, return them
+    return {
+      status: "success",
+      message: `Guide videos retrieved successfully.`,
+      data: guideVideos,
+    };
+  }
 
 
-  
+  async updateGuideData(id: string, payload: UpdateGuideDTO) {
+    const guideId = Number(id);
+
+    if (isNaN(guideId)) {
+      throw new Error("Invalid guide id");
+    }
+
+    const existingGuide = await guideRepository.findGuideById(guideId);
+    if (!existingGuide) {
+      throw new NotFoundError("Guide not found");
+    }
+
+    const currentSerial = existingGuide.serial;
+    const totalGuides = await guideRepository.countGuidesRepository();
+
+    const newSerial = payload.serial;
+
+    if (newSerial !== undefined) {
+      if (newSerial < 1 || newSerial > totalGuides) {
+        throw new Error(`Serial must be between 1 and ${totalGuides}`);
+      }
+
+      if (newSerial !== currentSerial) {
+        if (currentSerial < newSerial) {
+          await guideRepository.shiftSerialDown(currentSerial, newSerial);
+        }
+
+        if (currentSerial > newSerial) {
+          await guideRepository.shiftSerialUp(currentSerial, newSerial);
+        }
+      }
+    }
+
+    const updatedGuide = await guideRepository.updateGuideById(guideId, payload);
+
+    return {
+      message: "Guide updated successfully",
+      data: updatedGuide,
+    };
+  }
 
 
 
-
-
+  //todo
 
   async getGuideById(id: string): Promise<GuideResponseDTO> {
     const guideId = parseInt(id, 10);
@@ -84,20 +184,6 @@ export default new (class GuideService {
     }
   }
 
-  async getAllGuides(): Promise<any> {
-    let allGuides: Guide[] = [];
-    let allGuidesVideos: GuideVideo[] = [];
-    try {
-      allGuides = await guideRepository.getAllGuidesRepository();
-      allGuidesVideos = await guideRepository.getAllGuidesVideosRepository();
-    } catch (error) {
-      console.error("Error getting all guides:", error);
-      throw error;
-    }
-
-    return { allGuides, allGuidesVideos };
-  }
-
   async createGuideData(payload: CreateGuideDTO): Promise<any> {
     const { title, serial, videos } = payload;
 
@@ -140,31 +226,6 @@ export default new (class GuideService {
     }
   }
 
-  async updateGuideData(id: string, payload: UpdateGuideDTO): Promise<any> {
-    const serial = parseInt(id, 10);
-
-    if (isNaN(serial)) {
-      const error = new Error("Invalid Serial provided for update.");
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    const existingGuide = await guideRepository.getGuideData(serial);
-    if (!existingGuide) {
-      throw new NotFoundError(`Serial ${serial} not found for update.`);
-    }
-
-    try {
-      const updatedGuide = await guideRepository.updateGuideRepository(serial, payload);
-      return {
-        message: `Guide data with serial ${id} updated successfully`,
-        data: updatedGuide,
-      };
-    } catch (error) {
-      console.error("Error updating guide data:", error);
-      throw error;
-    }
-  }
 
   async updateGuideVideo(id: number, payload: GuideVideoResponseDTO): Promise<any> {
     if (isNaN(id)) {
@@ -192,31 +253,6 @@ export default new (class GuideService {
       };
     } catch (error) {
       console.error("Error updating guide data:", error);
-      throw error;
-    }
-  }
-
-  async deleteGuideData(id: string): Promise<any> {
-    const guideId = parseInt(id, 10);
-
-    if (isNaN(guideId)) {
-      const error = new Error("Invalid Guide ID provided for deletion.");
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    try {
-      const existingGuide = await guideRepository.getGuideData(guideId);
-      if (!existingGuide) {
-        throw new NotFoundError(`Guide with ID ${guideId} not found for deletion.`);
-      }
-
-      const totalDeleted = await guideRepository.deleteAllGuideVideos(guideId);
-
-      const data = await guideRepository.deleteGuideRepository(guideId);
-      return { message: `Guide data with id ${id} deleted successfully`, data: data };
-    } catch (error) {
-      console.error("Error deleting guide data:", error);
       throw error;
     }
   }
