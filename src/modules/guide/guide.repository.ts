@@ -95,6 +95,35 @@ export default new (class GuideRespository {
     });
   }
 
+
+
+async createGuideVideo(payload: {
+  guideId: number;
+  title: string;
+  url: string;
+  shortDes?: string;
+  videoLength?: string;
+  videoSerial: number;
+  imgSrc?: string;
+}) {
+  return prisma.guideVideo.create({
+    data: {
+      guideId: payload.guideId,
+      index: payload.videoSerial,
+      title: payload.title,
+      url: payload.url,
+      shortDes: payload.shortDes,
+      videoLength: payload.videoLength,
+      videoSerial: payload.videoSerial,
+      imgSrc: payload.imgSrc,
+    },
+  });
+}
+
+
+  
+
+
   // async findGuideById(id: number): Promise<any> {
   //   return await this.prisma.guide.findUnique({
   //     where: { id },

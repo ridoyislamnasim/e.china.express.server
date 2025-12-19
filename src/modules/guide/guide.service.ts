@@ -159,9 +159,56 @@ export default new (class GuideService {
   }
 
 
+createGuideVideo = async (payload: {
+  guideId: number;
+  title: string;
+  url: string;
+  shortDes?: string;
+  videoLength?: string;
+  videoSerial: number;
+  file?: Express.Multer.File;
+}) => {
+  if (
+    !payload.title ||
+    !payload.url ||
+    !payload.guideId ||
+    !payload.videoSerial
+  ) {
+    throw new Error(
+      "Title, URL, guideId, and videoSerial are required"
+    );
+  }
 
+  let imgSrc: string | undefined;
 
+  // if (payload.file) {
+    // 🔥 upload buffer to cloud (example)
+    // imgSrc = await uploadToCloud(payload.file);
+  // }
 
+  // const video = await guideRepository.createGuideVideo({
+  //   guideId: payload.guideId,
+  //   title: payload.title,
+  //   url: payload.url,
+  //   shortDes: payload.shortDes,
+  //   videoLength: payload.videoLength,
+  //   videoSerial: payload.videoSerial,
+  //   imgSrc,
+  // });
+  
+  const video = await guideRepository.createGuideVideo({
+    guideId: payload.guideId,
+    title: payload.title,
+    url: payload.url,
+    shortDes: payload.shortDes,
+    videoLength: payload.videoLength,
+    videoSerial: payload.videoSerial,
+  });
+  return {
+    message: "Guide video created successfully",
+    data: video,
+  };
+};
 
 
 

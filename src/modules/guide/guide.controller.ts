@@ -83,6 +83,39 @@ export default new (class GuideController {
   });
 
 
+createGuideVideo = catchError(async (req: Request, res: Response) => {
+  const {
+    guideId,
+    title,
+    url,
+    shortDes,
+    videoLength,
+    videoSerial,
+  } = req.body;
+
+  const file = req.file; 
+
+  const payload = {
+    guideId: Number(guideId),
+    title,
+    url,
+    shortDes,
+    videoLength,
+    videoSerial: Number(videoSerial),
+    file, 
+  };
+
+  const result = await guideService.createGuideVideo(payload);
+
+  res.status(201).json({
+    status: "success",
+    message: result.message,
+    data: result.data,
+  });
+});
+
+
+
 
 
 

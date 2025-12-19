@@ -1,5 +1,6 @@
 import { Router } from "express";
 import guideController from "../../modules/guide/guide.controller";
+import { upload } from "../../middleware/upload/upload";
 
 const guideRoute = Router();
 
@@ -12,7 +13,8 @@ guideRoute
   .get("/:id",guideController.getGuideVideosById)
   .delete("/:id", guideController.deleteGuide)
   .put("/:id",guideController.updateGuide)
-//   .put("/video/:id", guideController.updateGuideVideo)
+  //   .put("/video/:id", guideController.updateGuideVideo)
+  .post("/video",upload.single("imgSrc"),guideController.createGuideVideo)
   .delete("/video/:id", guideController.deleteGuideVideo);
 
 
