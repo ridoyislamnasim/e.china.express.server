@@ -218,6 +218,14 @@ export class BlogService {
     return await this.repository.getAllBlogsByPagination(payload);
   }
 
+  async getAllTrendingContent() {
+    return await this.repository.getAllTrendingContent();
+  }
+
+  async getAllFeaturedContent() {
+    return await this.repository.getAllFeaturedContent();
+  }
+
   async getSingleBlogWithSlug(slug: string) {
     const blogData = await this.repository.getBlogBySlug(slug);
     if (!blogData) throw new NotFoundError("Blog Not Found");

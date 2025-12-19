@@ -118,13 +118,35 @@ export class BlogController {
   });
 
   getAllBlogsByPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    // Parse industryIds and topicIds as integer arrays
+    const parseIds = (value: any): number[] | undefined => {
+      if (!value) return undefined;
+      const arr = Array.isArray(value) ? value : [value];
+      return arr.map(id => parseInt(id as string, 10)).filter(id => !isNaN(id));
+    };
+
     let payload = {
       page: req.query.page,
       limit: req.query.limit,
       order: req.query.order,
+      industryIds: parseIds(req.query.industryIds),
+      topicIds: parseIds(req.query.topicIds),
     };
     const blog = await BlogService.getAllBlogsByPagination(payload);
     const resDoc = responseHandler(200, "Blogs get successfully", blog);
+    res.status(resDoc.statusCode).json(resDoc);
+  }); 
+
+  getAllTrendingContent = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const blog = await BlogService.getAllTrendingContent();
+    const resDoc = responseHandler(200, "Trending Content fetched successfully", blog);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
+  getAllFeaturedContent = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const blog = await BlogService.getAllFeaturedContent();
+    const resDoc = responseHandler(200, "Featured Content fetched successfully", blog);
     res.status(resDoc.statusCode).json(resDoc);
   });
 

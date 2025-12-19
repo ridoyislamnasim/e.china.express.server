@@ -72,6 +72,8 @@ BlogRoute
 
 
 BlogRoute.get("/pagination", controller.getAllBlogsByPagination);
+BlogRoute.get("/trending-content", controller.getAllTrendingContent);
+BlogRoute.get("/featured", controller.getAllFeaturedContent);
 
 BlogRoute
   .route("/:slug")

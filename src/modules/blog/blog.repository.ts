@@ -201,9 +201,23 @@ export class BlogRepository extends BaseRepository<Blog> {
   }
 
   async getAllBlogsByPagination(payload: any) {
+    const { industryIds, topicIds } = payload;
+
     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+      const whereClause: any = {};
+      
+      if (industryIds && Array.isArray(industryIds) && industryIds.length > 0) {
+        whereClause.industryId = { in: industryIds };
+      }
+      
+      if (topicIds && Array.isArray(topicIds) && topicIds.length > 0) {
+        whereClause.topicId = { in: topicIds };
+      }
+      console.log('Filtering blogs with whereClause:',payload,  whereClause);
+      
       const [doc, totalDoc] = await Promise.all([
         this.prisma.blog.findMany({
+          where: whereClause,
           skip: offset,
           take: limit,
           // orderBy: sortOrder,
@@ -217,9 +231,46 @@ export class BlogRepository extends BaseRepository<Blog> {
             topic: true,
           },
         }),
-        this.prisma.blog.count(),
+        this.prisma.blog.count({
+          where: whereClause,
+        }),
       ]);
       return { doc, totalDoc };
+    });
+  }
+
+
+  async getAllTrendingContent(){
+    return await this.prisma.blog.findMany({
+      where: {
+        trendingContent: true,
+      },
+      include: {
+        tags:{
+          select: {
+            tag: true
+          }
+        },
+        // industry: true,
+        // topic: true,
+      }
+    });
+  }
+
+  async getAllFeaturedContent(){
+    return await this.prisma.blog.findMany({
+      where: {
+        featured: true,
+      },
+      include: {
+        tags:{
+          select: {
+            tag: true
+          }
+        },
+        // industry: true,
+        // topic: true,
+      }
     });
   }
 
