@@ -13,6 +13,7 @@ export interface BlogResponseDto {
 }
 
 export interface UpdateBlogRequestDto {
+  user?: string;
   image?: string;
   title?: string;
   slug?: string;
@@ -21,7 +22,13 @@ export interface UpdateBlogRequestDto {
   tags?: string[];
   files?: string[];
   status?: boolean;
+  featured?: boolean;
+  trendingContent?: boolean;
+  industryId: number;
+  topicId?: number;
+    tagIds?: number[];
 }
+
 
 export interface CreateBlogRequestDto {
   image?: string;
@@ -49,6 +56,8 @@ export interface BlogI {
   tagIds?: number[];
   tags?: string[];
   files?: any;
+  featured?: boolean;
+  trendingContent?: boolean;
 }
 
 export interface CreateBlogTagRequestDto {

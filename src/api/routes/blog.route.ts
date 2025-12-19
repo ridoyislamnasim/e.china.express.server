@@ -76,8 +76,7 @@ BlogRoute.get("/pagination", controller.getAllBlogsByPagination);
 BlogRoute
   .route("/:slug")
   .get(controller.getSingleBlog)
-  .patch(controller.updateBlogBySlug)
-  .put(upload.any(), controller.updateBlog)
+  .patch(upload.any(), controller.updateBlog)
   .delete(controller.deleteBlogBySlug);
 
 BlogRoute

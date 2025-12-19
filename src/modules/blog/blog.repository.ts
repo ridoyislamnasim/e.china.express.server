@@ -16,7 +16,8 @@ export class BlogRepository extends BaseRepository<Blog> {
 
 
   async createBlog(payload: any, tx?: any) {
-    const { title, details, slug, industryId, topicId, status,image, tagsArray } = payload;
+    const toBool = (val: any) => val === true || val === "true" || val === 1 || val === "1";
+    const { title, details, slug, industryId, topicId, status, image, tagsArray, trendingContent, featured } = payload;
     const client = tx || this.prisma;
     console.log('Creating blog with tagsArray:', tagsArray);
 
@@ -28,8 +29,10 @@ export class BlogRepository extends BaseRepository<Blog> {
         slug,
         industryId: Number(industryId),
         topicId: Number(topicId),
-        status,
+        status: toBool(status),
         image,
+        featured: toBool(featured),
+        trendingContent: toBool(trendingContent),
         tags: {
           create: tagsArray?.map((tagId: number) => ({
             tag: { connect: { id: tagId } } // connect existing tag
@@ -134,12 +137,55 @@ export class BlogRepository extends BaseRepository<Blog> {
     });
   }
 
+  private buildUpdateData(payload: UpdateBlogRequestDto) {
+    const data: any = {};
+    if (payload.title !== undefined) data.title = payload.title;
+    if (payload.details !== undefined) data.details = payload.details;
+    if (payload.slug !== undefined) data.slug = payload.slug;
+    if (payload.industryId !== undefined) data.industryId = Number(payload.industryId);
+    if (payload.topicId !== undefined) data.topicId = Number(payload.topicId);
+    const toBool = (val: any) => val === true || val === "true" || val === 1 || val === "1";
+    if (payload.status !== undefined) data.status = toBool(payload.status);
+    if ((payload as any).featured !== undefined) data.featured = toBool((payload as any).featured);
+    if ((payload as any).trendingContent !== undefined) data.trendingContent = toBool((payload as any).trendingContent);
+    if ((payload as any).image !== undefined) data.image = (payload as any).image;
+    return data;
+  }
+
   async updateBlog(slug: string, payload: UpdateBlogRequestDto) {
-    return
-    // await this.prisma.blog.update({
-    //   where: { slug: slug },
-    //   data: payload,
-    // });
+    const data = this.buildUpdateData(payload);  
+    console.log('Updating blog with data:', data); 
+    return await this.prisma.blog.update({
+      where: { slug: slug },
+      data,
+    });
+  }
+
+  async updateBlogById(id: number, payload: UpdateBlogRequestDto, tx?: any) {
+    const client = tx || this.prisma;
+    console.log('Updating blog id:', id, 'with payload:', payload);
+    const data = this.buildUpdateData(payload);
+    console.log('Updating blog with data:', data); 
+    return await client.blog.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async removeTagsFromBlog(blogId: number, tx?: any) {
+    const client = tx || this.prisma;
+    return await client.blogTagOnBlog.deleteMany({
+      where: { blogId },
+    });
+  }
+
+  async getFeaturedBlogs(limit = 2, order: 'asc' | 'desc' = 'desc') {
+    return await this.prisma.blog.findMany({
+      where: { featured: true },
+      orderBy: { createdAt: order },
+      take: limit,
+      select: { id: true, slug: true, createdAt: true },
+    });
   }
 
   async deleteBlogById(id: number) {

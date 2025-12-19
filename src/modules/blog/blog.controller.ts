@@ -4,6 +4,7 @@ import { responseHandler } from "../../utils/responseHandler";
 import withTransaction from "../../middleware/transactions/withTransaction";
 import BlogService from "./blog.service";
 import { BlogI, CreateBlogRequestDto, IIndustries, TopicI, UpdateBlogRequestDto, UpdateBlogTagRequestDto } from "../../types/blog";
+import { string } from "zod";
 
 export class BlogController {
 
@@ -50,7 +51,7 @@ export class BlogController {
       files: req.files,
     };
 
-    const { title, details, tagIds, industryId, topicId, status }: BlogI = req.body;
+    const { title, details, tagIds, industryId, topicId, status, trendingContent, featured }: BlogI = req.body;
 
     const payload = {
       user,
@@ -59,7 +60,10 @@ export class BlogController {
       tagIds,
       industryId,
       topicId,
-      status
+      status,
+      trendingContent,
+      featured,
+
     };
 
     const blogResult = await BlogService.createBlog(payloadFiles, payload, tx);
@@ -68,16 +72,33 @@ export class BlogController {
   });
 
   updateBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const slug = req.params.slug;
     const payloadFiles = {
       files: req.files,
     };
+    const { title, details, tagIds, industryId, topicId, status, featured, trendingContent }: BlogI = req.body;
+
     const payload = {
-      title: req.body.title,
-      details: req.body.details,
+      user,
+      title: title ?? undefined,
+      details: details ?? undefined,
+      tagIds,
+      industryId: industryId ?? 0,
+      topicId: topicId ?? 0,
+      status,
+      featured,
+      trendingContent,
     };
-    const blogResult = await BlogService.updateBlog(slug, payload);
+    const blogResult = await BlogService.updateBlog(slug, payloadFiles, payload);
     const resDoc = responseHandler(201, "Blog Update successfully", blogResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+   getSingleBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const slug = req.params.slug;
+    const blogResult = await BlogService.getSingleBlog(slug);
+    const resDoc = responseHandler(201, "Single Blog successfully", blogResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
@@ -133,21 +154,7 @@ export class BlogController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  getSingleBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const slug = req.params.slug;
-    const blogResult = await BlogService.getSingleBlog(slug);
-    const resDoc = responseHandler(201, "Single Blog successfully", blogResult);
-    res.status(resDoc.statusCode).json(resDoc);
-  });
-
-  updateBlogBySlug = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const slugStr = req.params.slug;
-    const { image, title, slug, author, details, tags, status, files }: UpdateBlogRequestDto = req.body;
-    const payload = { image, title, slug, author, details, tags, status, files };
-    const blogResult = await BlogService.updateBlog(slugStr, payload);
-    const resDoc = responseHandler(201, "Blog Status Update successfully", blogResult);
-    res.status(resDoc.statusCode).json(resDoc);
-  });
+ 
 
   getSingleBlogTag = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const tagId = Number(req.params.id);

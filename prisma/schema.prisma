@@ -1009,17 +1009,19 @@ model BlogTag {
 }
 
 model Blog {
-  id         Int             @id @default(autoincrement())
-  title      String
-  details    String
-  slug       String          @unique
-  image      String?
-  industry   Industry        @relation(fields: [industryId], references: [id])
-  industryId Int
-  topic      Topic           @relation(fields: [topicId], references: [id])
-  topicId    Int
-  status     String?
-  tags       BlogTagOnBlog[]
+  id              Int             @id @default(autoincrement())
+  title           String
+  details         String
+  slug            String          @unique
+  image           String?
+  industry        Industry        @relation(fields: [industryId], references: [id])
+  industryId      Int
+  topic           Topic           @relation(fields: [topicId], references: [id])
+  topicId         Int
+  status          Boolean         @default(false)
+  featured        Boolean         @default(false)
+  trendingContent Boolean         @default(false)
+  tags            BlogTagOnBlog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
