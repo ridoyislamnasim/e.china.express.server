@@ -20,6 +20,17 @@ export interface Guide {
   updatedAt: Date;
 }
 
+export interface GuideListItem {
+  id: number;
+  title: string;
+  slug: string;
+  serial: number;
+  videoCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+
 
 
 
@@ -49,7 +60,6 @@ export interface UpdateGuideVideoDTO {
 
 // For returning GuideVideo in responses
 export interface GuideVideoResponseDTO {
-  id: number;
   guideId: number;
   url: string;
   imgSrc?: string;
@@ -57,9 +67,8 @@ export interface GuideVideoResponseDTO {
   title?: string;
   shortDes?: string;
   videoSerial: number;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
+
 
 // For creating a Guide with videos
 export interface CreateGuideDTO {

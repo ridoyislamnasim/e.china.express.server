@@ -1,10 +1,13 @@
 import guideRepository from "./guide.repository";
-import { CreateGuideDTO, UpdateGuideDTO, CreateGuideVideoDTO, GuideVideoResponseDTO, GuideVideo, Guide } from "../../types/guide";
+import { CreateGuideDTO, UpdateGuideDTO, CreateGuideVideoDTO, GuideVideoResponseDTO, GuideVideo, Guide, GuideListItem } from "../../types/guide";
 import { NotFoundError } from "../../utils/errors";
 import { GuideResponseDTO } from "../../types/guide";
 import { pagination } from "../../utils/pagination";
+import ImgUploader from "../../middleware/upload/ImgUploder";
 
 export default new (class GuideService {
+  //done
+
   //done
   async getAllGuideWithPagination(query: any): Promise<any> {
     return await pagination<Guide>(query, async (limit, offset) => {
@@ -56,13 +59,25 @@ export default new (class GuideService {
         throw new NotFoundError(`Guide with ID ${guideId} not found for deletion.`);
       }
 
-      const totalDeleted = await guideRepository.deleteAllGuideVideos(guideId);
+      // const totalDeleted = await guideRepository.deleteAllGuideVideos(guideId);
 
-      if (!totalDeleted) {
-        console.error(`Unable to delete guide videos of ${guideId}`);
-        throw new Error("Unable to delete guide videos.");
+      // if (!totalDeleted) {
+      //   console.error(`Unable to delete guide videos of ${guideId}`);
+      //   throw new Error("Unable to delete guide videos.");
+      // }
+      try {
+        const guideVideos = await guideRepository.deleteAllGuideVideos(guideId);
+        console.log(`Deleted ${guideVideos} videos for guide ID ${guideId}`);
+      } catch (error) {
+        console.error("Unable to delete all guide videos for guide ID", guideId, error);
+        throw error; // re-throw if you want upper layers to handle it
       }
 
+      // if (guideVideos && guideVideos.length > 0) {
+      //   for (const video of guideVideos) {
+      //     await guideRepository.deleteAllGuideVideos(video.id);
+      //   }
+      // }
       const data = await guideRepository.deleteGuideRepository(guideId);
       return { message: `Guide data with id ${id} deleted successfully`, data: data };
     } catch (error) {
@@ -91,7 +106,6 @@ export default new (class GuideService {
       data: guideVideos,
     };
   }
-
 
   async updateGuideData(id: string, payload: UpdateGuideDTO) {
     const guideId = Number(id);
@@ -134,7 +148,6 @@ export default new (class GuideService {
     };
   }
 
-
   async deleteGuideVideo(id: string): Promise<any> {
     const guideId = parseInt(id, 10);
 
@@ -158,65 +171,89 @@ export default new (class GuideService {
     }
   }
 
+  createGuideVideo = async (payload: { guideId: number; title: string; url: string; shortDes?: string; videoLength?: string; videoSerial: number; payloadFiles?: any }) => {
+    if (!payload.title || !payload.url || !payload.guideId || !payload.videoSerial) {
+      throw new Error("Title, URL, guideId, and videoSerial are required");
+    }
 
-createGuideVideo = async (payload: {
-  guideId: number;
-  title: string;
-  url: string;
-  shortDes?: string;
-  videoLength?: string;
-  videoSerial: number;
-  file?: Express.Multer.File;
-}) => {
-  if (
-    !payload.title ||
-    !payload.url ||
-    !payload.guideId ||
-    !payload.videoSerial
-  ) {
-    throw new Error(
-      "Title, URL, guideId, and videoSerial are required"
-    );
-  }
+    const { payloadFiles } = payload;
+    if (!payloadFiles) {
+      throw new Error("Image is required");
+    }
 
-  let imgSrc: string | undefined;
+    const images = await ImgUploader(payloadFiles.files);
+    for (const key in images) {
+      (payload as any)[key] = images[key] as string;
+    }
 
-  // if (payload.file) {
-    // 🔥 upload buffer to cloud (example)
-    // imgSrc = await uploadToCloud(payload.file);
-  // }
+    if (payloadFiles && payloadFiles.length !== 0) {
+      const images = await ImgUploader(payloadFiles.files);
+      for (const key in images) {
+        (payload as any)[key] = images[key] as string;
+      }
+    }
 
-  // const video = await guideRepository.createGuideVideo({
-  //   guideId: payload.guideId,
-  //   title: payload.title,
-  //   url: payload.url,
-  //   shortDes: payload.shortDes,
-  //   videoLength: payload.videoLength,
-  //   videoSerial: payload.videoSerial,
-  //   imgSrc,
-  // });
-  
-  const video = await guideRepository.createGuideVideo({
-    guideId: payload.guideId,
-    title: payload.title,
-    url: payload.url,
-    shortDes: payload.shortDes,
-    videoLength: payload.videoLength,
-    videoSerial: payload.videoSerial,
-  });
-  return {
-    message: "Guide video created successfully",
-    data: video,
+    const video = await guideRepository.createGuideVideo({
+      guideId: payload.guideId,
+      title: payload.title,
+      url: payload.url,
+      shortDes: payload.shortDes,
+      videoLength: payload.videoLength,
+      videoSerial: payload.videoSerial,
+      ...(images || {}),
+    });
+
+    return {
+      message: "Guide video created successfully",
+      data: video,
+    };
   };
-};
 
+  async createGuideData(payload: CreateGuideDTO, payloadFiles: any): Promise<any> {
+    const { title, serial } = payload;
 
+    if (!title || serial === undefined) {
+      const missingFields: string[] = [];
+      if (!title) missingFields.push("title");
+      if (serial === undefined) missingFields.push("serial");
 
+      const error = new Error(`Missing required field(s): ${missingFields.join(", ")}`);
+      (error as any).statusCode = 400;
+      throw error;
+    }
 
+    if (serial !== undefined && (await guideRepository.isSerialExists(serial))) {
+      throw Object.assign(new Error(`Serial ${serial} already exists.`), { statusCode: 400 });
+    }
 
+    if (title !== undefined && (await guideRepository.isTitleExists(title))) {
+      throw Object.assign(new Error(`Title "${title}" already exists.`), { statusCode: 400 });
+    }
 
+    const totalGuides = await guideRepository.countGuidesRepository();
+    if (serial < 1 || serial > totalGuides + 1) {
+      throw new Error(`Please use serial between 1 and ${totalGuides + 1}`);
+    }
 
+    if (totalGuides !== 0) {
+      await guideRepository.adjustSerialsForCreate(serial);
+    }
 
+    const dataToSave: any = { title, serial };
+    const { files } = payloadFiles;
+
+    if (files && files.length > 0) {
+      const images = await ImgUploader(files); // returns object { imgSrc: '...', thumbnail: '...' }
+      for (const key in images) {
+        dataToSave[key] = images[key];
+      }
+    }
+
+    // 5️⃣ Create in DB
+    const newGuide = await guideRepository.createGuideRepository(dataToSave);
+
+    return newGuide;
+  }
 
   //todo
 
@@ -266,50 +303,10 @@ createGuideVideo = async (payload: {
     }
   }
 
-  async createGuideData(payload: CreateGuideDTO): Promise<any> {
-    const { title, serial, videos } = payload;
+  async updateGuideVideo(id: number, payload: GuideVideoResponseDTO, payloadFiles: any): Promise<any> {
+    const { files } = payloadFiles;
+    if (!files) throw new Error("Image is required");
 
-    if (serial !== undefined) {
-      try {
-        const serialExist = await guideRepository.isSerialExists(serial);
-
-        if (serialExist) {
-          const error: any = new Error(`Serial ${serial} already exists.`);
-          error.statusCode = 400;
-          throw error;
-        }
-      } catch (error) {
-        throw error; // Let your controller/service catch this
-      }
-    }
-
-    if (!title || serial === undefined) {
-      const missingFields: string[] = [];
-      if (!title) missingFields.push("title");
-      if (serial === undefined) missingFields.push("serial");
-
-      const error = new Error(`Missing required field(s): ${missingFields.join(", ")}`);
-      (error as any).statusCode = 400;
-      throw error;
-    }
-
-    try {
-      const newGuide = await guideRepository.createGuideRepository({ title, serial });
-
-      if (videos && videos.length > 0) {
-        const createdVideos = await Promise.all(videos.map((video) => guideRepository.createGuideVideoRepository(newGuide.id, video as CreateGuideVideoDTO)));
-        (newGuide as any).videos = createdVideos;
-      }
-
-      return newGuide;
-    } catch (error) {
-      console.error("Error creating guide data:", error);
-      throw error;
-    }
-  }
-
-
-  async updateGuideVideo(id: number, payload: GuideVideoResponseDTO): Promise<any> {
     if (isNaN(id)) {
       const error = new Error("Invalid id provided for update.");
       (error as any).statusCode = 400;
@@ -338,6 +335,4 @@ createGuideVideo = async (payload: {
       throw error;
     }
   }
-
-
 })();

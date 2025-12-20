@@ -13,8 +13,12 @@ guideRoute
   .get("/:id",guideController.getGuideVideosById)
   .delete("/:id", guideController.deleteGuide)
   .put("/:id",guideController.updateGuide)
-  //   .put("/video/:id", guideController.updateGuideVideo)
+
+
+  .put("/video/:id",upload.single("imgSrc"), guideController.updateGuideVideo)
   .post("/video",upload.single("imgSrc"),guideController.createGuideVideo)
+
+
   .delete("/video/:id", guideController.deleteGuideVideo);
 
 

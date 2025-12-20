@@ -8,11 +8,24 @@ export default new (class GuideRespository {
   // done
   async getAllGuidesWithPaginationRepository(params?: { limit?: number; offset?: number }): Promise<any> {
     const { limit = 10, offset = 0 } = params || {};
-    return await this.prisma.guide.findMany({
+
+    const result = await this.prisma.guide.findMany({
       orderBy: { serial: "asc" },
       skip: offset,
       take: limit,
+      include: {
+        _count: {
+          select: { guideVideos: true }, // counts the videos for each guide
+        },
+      },
     });
+
+    // Map the result to include a `totalVideos` property
+    return result.map((guide) => ({
+      ...guide,
+      totalVideos: guide._count.guideVideos,
+      _count: undefined, // optional: remove the internal _count property
+    }));
   }
 
   async countGuidesRepository() {
@@ -72,6 +85,13 @@ export default new (class GuideRespository {
     });
   }
 
+  async isTitleExists(title: string): Promise<boolean> {
+    const count = await this.prisma.guide.count({
+      where: { title },
+    });
+    return count > 0;
+  }
+
   async shiftSerialUp(current: number, latest: number) {
     return this.prisma.guide.updateMany({
       where: {
@@ -95,34 +115,20 @@ export default new (class GuideRespository {
     });
   }
 
-
-
-async createGuideVideo(payload: {
-  guideId: number;
-  title: string;
-  url: string;
-  shortDes?: string;
-  videoLength?: string;
-  videoSerial: number;
-  imgSrc?: string;
-}) {
-  return prisma.guideVideo.create({
-    data: {
-      guideId: payload.guideId,
-      index: payload.videoSerial,
-      title: payload.title,
-      url: payload.url,
-      shortDes: payload.shortDes,
-      videoLength: payload.videoLength,
-      videoSerial: payload.videoSerial,
-      imgSrc: payload.imgSrc,
-    },
-  });
-}
-
-
-  
-
+  async createGuideVideo(payload: { guideId: number; title: string; url: string; shortDes?: string; videoLength?: string; videoSerial: number; imgSrc?: string }) {
+    return prisma.guideVideo.create({
+      data: {
+        guideId: payload.guideId,
+        index: payload.videoSerial,
+        title: payload.title,
+        url: payload.url,
+        shortDes: payload.shortDes,
+        videoLength: payload.videoLength,
+        videoSerial: payload.videoSerial,
+        imgSrc: payload.imgSrc,
+      },
+    });
+  }
 
   // async findGuideById(id: number): Promise<any> {
   //   return await this.prisma.guide.findUnique({
@@ -185,12 +191,17 @@ async createGuideVideo(payload: {
     return count > 0;
   }
 
-  async createGuideRepository(body: CreateGuideDTO): Promise<any> {
+  async createGuideRepository(data: any): Promise<any> {
     return await this.prisma.guide.create({
-      data: {
-        title: body.title,
-        serial: body.serial,
-      },
+      data: data,
+    });
+  }
+
+  // Optional: adjust serials when creating a new guide
+  async adjustSerialsForCreate(serial: number) {
+    await this.prisma.guide.updateMany({
+      where: { serial: { gte: serial } },
+      data: { serial: { increment: 1 } },
     });
   }
 
@@ -232,6 +243,13 @@ async createGuideVideo(payload: {
         shortDes: body.shortDes,
       },
     });
+  }
+
+  async deleteAllGuideVideosByGuideId(guideId: number): Promise<number> {
+    const result = await this.prisma.guideVideo.deleteMany({
+      where: { guideId },
+    });
+    return result.count;
   }
 
   async deleteGuideVideoRepository(id: number): Promise<GuideVideo> {
