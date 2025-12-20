@@ -31,7 +31,7 @@ class BlogService {
         return await blog_repository_1.default.findAllBlogTags();
     }
     async createBlog(payloadFiles, payload, tx) {
-        const { title, details, tagIds, industryId, topicId, status } = payload;
+        const { title, details, tagIds, industryId, topicId, status, trendingContent, featured } = payload;
         const { files } = payloadFiles;
         if (!files)
             throw new Error('image is required');
@@ -76,6 +76,15 @@ class BlogService {
                 throw new Error(`Tag with ID ${tagId} does not exist.`);
             }
         }
+        // Enforce: maximum 2 featured blogs. If incoming is featured=true and already 2 exist,
+        // unfeature the oldest among the currently featured before creating the new one.
+        if (featured === true) {
+            const currentFeatured = await this.repository.getFeaturedBlogs(2, 'desc');
+            if (currentFeatured.length >= 2) {
+                const toUnfeature = currentFeatured[currentFeatured.length - 1];
+                await this.repository.updateBlogById(toUnfeature.id, { featured: false }, tx);
+            }
+        }
         payload.tagsArray = tagsArray;
         console.log('Creating blog with payload:', payload);
         // Create blog first
@@ -86,40 +95,96 @@ class BlogService {
         }
         return createdBlog;
     }
+    async updateBlog(slug, payloadFiles, payload) {
+        const { files } = payloadFiles || {};
+        const { title, details, tagIds, industryId, topicId, status, featured } = payload;
+        console.log('Updating blog with payload:', payload);
+        // Validate required fields
+        if (!title || !details) {
+            const error = new Error(`Title and details are required.`);
+            error.statusCode = 400;
+            throw error;
+        }
+        // Find existing blog
+        const existingBlog = await this.repository.findSlug(slug);
+        if (!existingBlog) {
+            const error = new Error(`Blog with slug "${slug}" does not exist.`);
+            error.statusCode = 404;
+            throw error;
+        }
+        // Handle slug if title changed
+        let newSlug = slug;
+        if (title !== existingBlog.title) {
+            newSlug = (0, slugGenerate_1.slugGenerate)(title);
+            const slugConflict = await this.repository.findSlug(newSlug);
+            if (slugConflict && slugConflict.id !== existingBlog.id) {
+                const error = new Error(`A blog with title "${title}" already exists.`);
+                error.statusCode = 400;
+                throw error;
+            }
+            payload.slug = newSlug;
+        }
+        // Handle image upload
+        if (files && files.length > 0) {
+            const images = await (0, ImgUploder_1.default)(files);
+            for (const key in images) {
+                payload[key] = images[key];
+            }
+        }
+        // Parse tagIds
+        let tagsArray = [];
+        if (typeof tagIds === "string") {
+            try {
+                tagsArray = JSON.parse(tagIds);
+                if (!Array.isArray(tagsArray))
+                    tagsArray = [];
+            }
+            catch (error) {
+                console.error("Invalid tagIds format", error);
+                tagsArray = [];
+            }
+        }
+        else if (Array.isArray(tagIds)) {
+            tagsArray = tagIds;
+        }
+        else if (typeof tagIds === "number") {
+            tagsArray = [tagIds];
+        }
+        // Validate tags exist
+        for (const tagId of tagsArray) {
+            const tag = await this.repository.findBlogTag(tagId);
+            if (!tag) {
+                throw new Error(`Tag with ID ${tagId} does not exist.`);
+            }
+        }
+        // Remove tagIds from payload as it's handled separately
+        const { tagIds: _, ...updatePayload } = payload;
+        // Enforce: maximum 2 featured blogs. If setting featured=true and this
+        // blog isn't already one of the two, unfeature the oldest among current featured.
+        if (updatePayload.featured === true) {
+            const currentFeatured = await this.repository.getFeaturedBlogs(2, 'desc');
+            const isAlreadyFeatured = currentFeatured.some((b) => b.id === existingBlog.id);
+            if (!isAlreadyFeatured && currentFeatured.length >= 2) {
+                const toUnfeature = currentFeatured[currentFeatured.length - 1];
+                await this.repository.updateBlogById(toUnfeature.id, { featured: false });
+            }
+        }
+        // Update blog by id to avoid slug-where conflict
+        const updatedBlog = await this.repository.updateBlogById(existingBlog.id, updatePayload);
+        // Update tags if provided
+        if (tagsArray.length > 0 && updatedBlog.id) {
+            // Remove old tags
+            await this.repository.removeTagsFromBlog(updatedBlog.id);
+            // Add new tags
+            await this.repository.addTagsToBlog(updatedBlog.id, tagsArray);
+        }
+        return updatedBlog;
+    }
     async getSingleBlog(slug) {
         const blogData = await this.repository.getBlogBySlug(slug);
         if (!blogData)
             throw new errors_1.NotFoundError("Blog Not Found");
         return blogData;
-    }
-    async updateBlog(slug, payload) {
-        if (!payload.title || !payload.details) {
-            const error = new Error(`Blog with title "${payload.title}" are required.`);
-            error.statusCode = 400;
-            throw error;
-        }
-        payload.slug = (0, slugGenerate_1.slugGenerate)(payload.title);
-        const existingBlog = await this.repository.findSlug(slug);
-        if (!existingBlog) {
-            const error = new Error(`Blog with title "${payload.title}" does not exists.`);
-            error.statusCode = 400;
-            throw error;
-        }
-        else {
-            const doesNewTItleExist = await this.repository.findSlug(payload.slug);
-            if (doesNewTItleExist) {
-                const error = new Error(`Blog with title "${payload.title}" already exists.`);
-                error.statusCode = 400;
-                throw error;
-            }
-        }
-        const updatedBlog = await this.repository.updateBlog(slug, payload);
-        // if (!updatedBlog) {
-        //   const error = new Error(`Blog with title "${payload.title}" is unable to update.`);
-        //   (error as any).statusCode = 400;
-        //   throw error;
-        // }
-        return updatedBlog;
     }
     async getBlogsByTags(tags, tx) {
         const blogs = await blog_repository_1.default.getBlogsByTags(tags, tx);
@@ -128,6 +193,12 @@ class BlogService {
     //todo
     async getAllBlogsByPagination(payload) {
         return await this.repository.getAllBlogsByPagination(payload);
+    }
+    async getAllTrendingContent() {
+        return await this.repository.getAllTrendingContent();
+    }
+    async getAllFeaturedContent() {
+        return await this.repository.getAllFeaturedContent();
     }
     async getSingleBlogWithSlug(slug) {
         const blogData = await this.repository.getBlogBySlug(slug);

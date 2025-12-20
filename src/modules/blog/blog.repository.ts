@@ -134,6 +134,15 @@ export class BlogRepository extends BaseRepository<Blog> {
   async getBlogBySlug(slug: string) {
     return await this.prisma.blog.findFirst({
       where: { slug },
+      include: {
+        tags:{
+          select: {
+            tag: true
+          }
+        },
+        industry: true,
+        topic: true,
+      }
     });
   }
 

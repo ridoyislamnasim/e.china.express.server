@@ -10,7 +10,8 @@ class BlogRepository extends base_repository_1.BaseRepository {
         this.prisma = prisma;
     }
     async createBlog(payload, tx) {
-        const { title, details, slug, industryId, topicId, status, image, tagsArray } = payload;
+        const toBool = (val) => val === true || val === "true" || val === 1 || val === "1";
+        const { title, details, slug, industryId, topicId, status, image, tagsArray, trendingContent, featured } = payload;
         const client = tx || this.prisma;
         console.log('Creating blog with tagsArray:', tagsArray);
         // Blog create with tags
@@ -21,8 +22,10 @@ class BlogRepository extends base_repository_1.BaseRepository {
                 slug,
                 industryId: Number(industryId),
                 topicId: Number(topicId),
-                status,
+                status: toBool(status),
                 image,
+                featured: toBool(featured),
+                trendingContent: toBool(trendingContent),
                 tags: {
                     create: (tagsArray === null || tagsArray === void 0 ? void 0 : tagsArray.map((tagId) => ({
                         tag: { connect: { id: tagId } } // connect existing tag
@@ -110,14 +113,71 @@ class BlogRepository extends base_repository_1.BaseRepository {
     async getBlogBySlug(slug) {
         return await this.prisma.blog.findFirst({
             where: { slug },
+            include: {
+                tags: {
+                    select: {
+                        tag: true
+                    }
+                },
+                industry: true,
+                topic: true,
+            }
         });
     }
+    buildUpdateData(payload) {
+        const data = {};
+        if (payload.title !== undefined)
+            data.title = payload.title;
+        if (payload.details !== undefined)
+            data.details = payload.details;
+        if (payload.slug !== undefined)
+            data.slug = payload.slug;
+        if (payload.industryId !== undefined)
+            data.industryId = Number(payload.industryId);
+        if (payload.topicId !== undefined)
+            data.topicId = Number(payload.topicId);
+        const toBool = (val) => val === true || val === "true" || val === 1 || val === "1";
+        if (payload.status !== undefined)
+            data.status = toBool(payload.status);
+        if (payload.featured !== undefined)
+            data.featured = toBool(payload.featured);
+        if (payload.trendingContent !== undefined)
+            data.trendingContent = toBool(payload.trendingContent);
+        if (payload.image !== undefined)
+            data.image = payload.image;
+        return data;
+    }
     async updateBlog(slug, payload) {
-        return;
-        // await this.prisma.blog.update({
-        //   where: { slug: slug },
-        //   data: payload,
-        // });
+        const data = this.buildUpdateData(payload);
+        console.log('Updating blog with data:', data);
+        return await this.prisma.blog.update({
+            where: { slug: slug },
+            data,
+        });
+    }
+    async updateBlogById(id, payload, tx) {
+        const client = tx || this.prisma;
+        console.log('Updating blog id:', id, 'with payload:', payload);
+        const data = this.buildUpdateData(payload);
+        console.log('Updating blog with data:', data);
+        return await client.blog.update({
+            where: { id },
+            data,
+        });
+    }
+    async removeTagsFromBlog(blogId, tx) {
+        const client = tx || this.prisma;
+        return await client.blogTagOnBlog.deleteMany({
+            where: { blogId },
+        });
+    }
+    async getFeaturedBlogs(limit = 2, order = 'desc') {
+        return await this.prisma.blog.findMany({
+            where: { featured: true },
+            orderBy: { createdAt: order },
+            take: limit,
+            select: { id: true, slug: true, createdAt: true },
+        });
     }
     async deleteBlogById(id) {
         return await this.prisma.blog.delete({
@@ -130,9 +190,19 @@ class BlogRepository extends base_repository_1.BaseRepository {
         });
     }
     async getAllBlogsByPagination(payload) {
+        const { industryIds, topicIds } = payload;
         return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
+            const whereClause = {};
+            if (industryIds && Array.isArray(industryIds) && industryIds.length > 0) {
+                whereClause.industryId = { in: industryIds };
+            }
+            if (topicIds && Array.isArray(topicIds) && topicIds.length > 0) {
+                whereClause.topicId = { in: topicIds };
+            }
+            console.log('Filtering blogs with whereClause:', payload, whereClause);
             const [doc, totalDoc] = await Promise.all([
                 this.prisma.blog.findMany({
+                    where: whereClause,
                     skip: offset,
                     take: limit,
                     // orderBy: sortOrder,
@@ -146,9 +216,43 @@ class BlogRepository extends base_repository_1.BaseRepository {
                         topic: true,
                     },
                 }),
-                this.prisma.blog.count(),
+                this.prisma.blog.count({
+                    where: whereClause,
+                }),
             ]);
             return { doc, totalDoc };
+        });
+    }
+    async getAllTrendingContent() {
+        return await this.prisma.blog.findMany({
+            where: {
+                trendingContent: true,
+            },
+            include: {
+                tags: {
+                    select: {
+                        tag: true
+                    }
+                },
+                // industry: true,
+                // topic: true,
+            }
+        });
+    }
+    async getAllFeaturedContent() {
+        return await this.prisma.blog.findMany({
+            where: {
+                featured: true,
+            },
+            include: {
+                tags: {
+                    select: {
+                        tag: true
+                    }
+                },
+                // industry: true,
+                // topic: true,
+            }
         });
     }
     //! ==============================

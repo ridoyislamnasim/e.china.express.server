@@ -29,7 +29,7 @@ class BlogController {
             const payloadFiles = {
                 files: req.files,
             };
-            const { title, details, tagIds, industryId, topicId, status } = req.body;
+            const { title, details, tagIds, industryId, topicId, status, trendingContent, featured } = req.body;
             const payload = {
                 user,
                 title,
@@ -37,23 +37,41 @@ class BlogController {
                 tagIds,
                 industryId,
                 topicId,
-                status
+                status,
+                trendingContent,
+                featured,
             };
             const blogResult = await blog_service_1.default.createBlog(payloadFiles, payload, tx);
             const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Created successfully", blogResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.updateBlog = (0, catchError_1.default)(async (req, res, next) => {
+            var _a, _b, _c, _d;
+            const user = (_d = (_c = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.user_info_encrypted) === null || _b === void 0 ? void 0 : _b.id) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : null;
             const slug = req.params.slug;
             const payloadFiles = {
                 files: req.files,
             };
+            const { title, details, tagIds, industryId, topicId, status, featured, trendingContent } = req.body;
             const payload = {
-                title: req.body.title,
-                details: req.body.details,
+                user,
+                title: title !== null && title !== void 0 ? title : undefined,
+                details: details !== null && details !== void 0 ? details : undefined,
+                tagIds,
+                industryId: industryId !== null && industryId !== void 0 ? industryId : 0,
+                topicId: topicId !== null && topicId !== void 0 ? topicId : 0,
+                status,
+                featured,
+                trendingContent,
             };
-            const blogResult = await blog_service_1.default.updateBlog(slug, payload);
+            const blogResult = await blog_service_1.default.updateBlog(slug, payloadFiles, payload);
             const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Update successfully", blogResult);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.getSingleBlog = (0, catchError_1.default)(async (req, res, next) => {
+            const slug = req.params.slug;
+            const blogResult = await blog_service_1.default.getSingleBlog(slug);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Single Blog successfully", blogResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.deleteBlog = (0, catchError_1.default)(async (req, res, next) => {
@@ -69,13 +87,32 @@ class BlogController {
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getAllBlogsByPagination = (0, catchError_1.default)(async (req, res, next) => {
+            // Parse industryIds and topicIds as integer arrays
+            const parseIds = (value) => {
+                if (!value)
+                    return undefined;
+                const arr = Array.isArray(value) ? value : [value];
+                return arr.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+            };
             let payload = {
                 page: req.query.page,
                 limit: req.query.limit,
                 order: req.query.order,
+                industryIds: parseIds(req.query.industryIds),
+                topicIds: parseIds(req.query.topicIds),
             };
             const blog = await blog_service_1.default.getAllBlogsByPagination(payload);
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Blogs get successfully", blog);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.getAllTrendingContent = (0, catchError_1.default)(async (req, res, next) => {
+            const blog = await blog_service_1.default.getAllTrendingContent();
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Trending Content fetched successfully", blog);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
+        this.getAllFeaturedContent = (0, catchError_1.default)(async (req, res, next) => {
+            const blog = await blog_service_1.default.getAllFeaturedContent();
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Featured Content fetched successfully", blog);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.deleteBlogBySlug = (0, catchError_1.default)(async (req, res) => {
@@ -91,20 +128,6 @@ class BlogController {
             const title = req.body.title;
             const result = await blog_service_1.default.createBlogTag(title);
             const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Created successfully", result);
-            res.status(resDoc.statusCode).json(resDoc);
-        });
-        this.getSingleBlog = (0, catchError_1.default)(async (req, res, next) => {
-            const slug = req.params.slug;
-            const blogResult = await blog_service_1.default.getSingleBlog(slug);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, "Single Blog successfully", blogResult);
-            res.status(resDoc.statusCode).json(resDoc);
-        });
-        this.updateBlogBySlug = (0, catchError_1.default)(async (req, res, next) => {
-            const slugStr = req.params.slug;
-            const { image, title, slug, author, details, tags, status, files } = req.body;
-            const payload = { image, title, slug, author, details, tags, status, files };
-            const blogResult = await blog_service_1.default.updateBlog(slugStr, payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, "Blog Status Update successfully", blogResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getSingleBlogTag = (0, catchError_1.default)(async (req, res, next) => {
