@@ -90,8 +90,12 @@ class WarehouseSpaceController {
   // Space CRUD
   createSpace = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
-      const { warehouseSpaceId } = req.params;
-      const payload = req.body;
+      const { warehouseSpaceId } = req.params;  // Get from URL params
+      const payload = req.body;  // This should contain spaceData
+      
+      // Log the incoming data for debugging
+      console.log('Received createSpace request:', { warehouseSpaceId, payload });
+      
       const space = await warehouseSpaceService.createSpace(warehouseSpaceId, payload, tx);
       const resDoc = responseHandler(201, 'Space created successfully', space);
       res.status(resDoc.statusCode).json(resDoc);
@@ -100,6 +104,7 @@ class WarehouseSpaceController {
     }
   });
 
+  
   getAllSpaces = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { warehouseSpaceId } = req.params;
