@@ -1,12 +1,14 @@
 import prisma from "../../config/prismadatabase";
-import { CreatePolicyRequestDTO, CreatePolicyTypeRequestDTO, PoliciesI, PolicyRequestDTO } from "../../types/policy";
-import { PrismaClient } from "@prisma/client";
+import { CreatePolicyRequestDTO, PolicyRequestDTO, PolicyTypeI } from "../../types/policy";
 import { pagination } from "../../utils/pagination";
 
 export default new (class PoliciesRepository {
   private prisma = prisma;
 
-
+  getAllPolicyTypesRepository = async (): Promise<PolicyTypeI[] | []> => {
+    const allPolicyTypes = await this.prisma.policyType.findMany();
+    return allPolicyTypes;
+  };
 
   getAllPolicyTitlesRepository = async () => {
     const allPolicyTypes = await this.prisma.policyType.findMany();
@@ -16,8 +18,37 @@ export default new (class PoliciesRepository {
 
   getAllPoliciesCount = async () => {
     const policiesCount = await this.prisma.policies.count();
-    return policiesCount
-  }
+    return policiesCount;
+  };
+
+  getPolicyTypesWithPagination = async (payload: { limit: number; offset: number }): Promise<any> => {
+    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+      const [doc, totalDoc] = await Promise.all([
+        this.prisma.policyType.findMany({
+          where: {},
+          skip: offset,
+          take: limit,
+        }),
+        this.prisma.policyType.count({ where: {} }),
+      ]);
+      return { doc, totalDoc };
+    });
+  };
+
+  getAllPolicyRepository = async ({ limit, offset, order = "desc" }: { limit: number; offset: number; order?: "asc" | "desc" }) => {
+    return this.prisma.policies.findMany({
+      skip: offset,
+      take: limit,
+      orderBy: { createdAt: order },
+    });
+  };
+
+  getPolicyTypeByIdRepository = async (id: number) => {
+    const policyType = await this.prisma.policyType.findUnique({
+      where: { id: id },
+    });
+    return policyType;
+  };
 
   getPolicyTypeBySlugRepository = async (slug: string) => {
     const policyType = await this.prisma.policyType.findFirst({
@@ -33,7 +64,14 @@ export default new (class PoliciesRepository {
     return policy;
   };
 
-  getPolicyByIdRepository=async (id: number) => {
+  deletePolicyTypeRepository = async (slug: string) => {
+    const policyType = await this.prisma.policyType.deleteMany({
+      where: { slug: slug },
+    });
+    return policyType;
+  }
+
+  getPolicyByIdRepository = async (id: number) => {
     const policy = await this.prisma.policies.findUnique({
       where: { id: id },
     });
@@ -71,6 +109,7 @@ export default new (class PoliciesRepository {
       data: {
         title: body.title,
         description: body.description,
+        policyTypeId: body.policyTypeId,
       },
     });
   };
@@ -82,8 +121,6 @@ export default new (class PoliciesRepository {
   };
 
   async getPolicesWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
-    const { limit, offset } = payload;
-    const prismaClient: PrismaClient = tx || this.prisma;
     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
       const [doc, totalDoc] = await Promise.all([
         this.prisma.policyType.findMany({
@@ -97,23 +134,20 @@ export default new (class PoliciesRepository {
     });
   }
 
+  async addHelpfulCount(id: number, helpfulCount: number) {
+    return await this.prisma.policies.update({
+      where: { id: id },
+      data: {
+        helpfulCount: helpfulCount,
+      },
+    });
+  }
 
-async addHelpfulCount(id: number, helpfulCount: number) {
-
-  return await this.prisma.policies.update({
-    where: { id: id },
-    data: {
-      helpfulCount: helpfulCount
-    }
-  });
-}
-
-addUnhelpfulCount = async (id: number, notHelpfulCount: number): Promise<any> => {
-  const updatedPolicy = await this.prisma.policies.update({
-    where: { id: id },
-    data: { notHelpfulCount: notHelpfulCount },
-  });
-  return updatedPolicy;
-};
-
+  addUnhelpfulCount = async (id: number, notHelpfulCount: number): Promise<any> => {
+    const updatedPolicy = await this.prisma.policies.update({
+      where: { id: id },
+      data: { notHelpfulCount: notHelpfulCount },
+    });
+    return updatedPolicy;
+  };
 })();
