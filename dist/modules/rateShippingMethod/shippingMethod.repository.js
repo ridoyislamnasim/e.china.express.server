@@ -10,13 +10,13 @@ class ShippingMethodRepository {
         this.prisma = prismadatabase_1.default;
     }
     async createShippingMethod(payload) {
-        const newRateShippingMethod = await this.prisma.rateSippingMethod.create({
+        const newRateShippingMethod = await this.prisma.rateShippingMethod.create({
             data: payload
         });
         return newRateShippingMethod;
     }
     async getShippingMethod() {
-        const shippingMethods = await this.prisma.rateSippingMethod.findMany();
+        const shippingMethods = await this.prisma.rateShippingMethod.findMany();
         return shippingMethods;
     }
 }

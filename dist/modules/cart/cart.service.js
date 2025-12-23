@@ -37,7 +37,7 @@ class CartService extends base_service_1.BaseService {
             for (const it of items) {
                 const qty = Number((_g = it.quantity) !== null && _g !== void 0 ? _g : 1) || 1;
                 const price = (() => {
-                    var _a, _b, _c, _d;
+                    var _a, _b, _c, _d, _e, _f;
                     if (it.skuId && ((_a = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _a === void 0 ? void 0 : _a.priceRangeList)) {
                         const totalQuantity = items.reduce((sum, item) => { var _a; return sum + ((_a = item.quantity) !== null && _a !== void 0 ? _a : 1); }, 0);
                         const priceRange = product.saleInfo.priceRangeList
@@ -46,7 +46,10 @@ class CartService extends base_service_1.BaseService {
                         if ((priceRange === null || priceRange === void 0 ? void 0 : priceRange.price) != null)
                             return Number(priceRange.price);
                     }
-                    return it.skuId ? ((_d = (_c = (_b = product === null || product === void 0 ? void 0 : product.productSkuInfos_Variant) === null || _b === void 0 ? void 0 : _b.find((v) => v.skuId === it.skuId)) === null || _c === void 0 ? void 0 : _c.consignPrice) !== null && _d !== void 0 ? _d : (it.price != null ? Number(it.price) : undefined)) : (it.price != null ? Number(it.price) : undefined);
+                    if (it.skuId) {
+                        return (_d = (_c = (_b = product === null || product === void 0 ? void 0 : product.productSkuInfos_Variant) === null || _b === void 0 ? void 0 : _b.find((v) => v.skuId === it.skuId)) === null || _c === void 0 ? void 0 : _c.consignPrice) !== null && _d !== void 0 ? _d : (it.price != null ? Number(it.price) : undefined);
+                    }
+                    return Number((_f = (_e = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _e === void 0 ? void 0 : _e.priceRangeList[0]) === null || _f === void 0 ? void 0 : _f.price);
                 })();
                 const weight = (() => {
                     var _a, _b;
@@ -88,7 +91,7 @@ class CartService extends base_service_1.BaseService {
                 const productTotalQty = items.reduce((sum, item) => { var _a; return sum + ((_a = item.quantity) !== null && _a !== void 0 ? _a : 0); }, 0); // Calculate total quantity of all products
                 console.log("Product Total Quantity for all items: ", productTotalQty);
                 const price = (() => {
-                    var _a, _b, _c, _d;
+                    var _a, _b, _c, _d, _e, _f;
                     if (it.skuId && ((_a = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _a === void 0 ? void 0 : _a.priceRangeList)) {
                         const priceRange = product.saleInfo.priceRangeList
                             .filter((range) => productTotalQty >= range.startQuantity)
@@ -96,11 +99,10 @@ class CartService extends base_service_1.BaseService {
                         if ((priceRange === null || priceRange === void 0 ? void 0 : priceRange.price) != null)
                             return Number(priceRange.price);
                     }
-                    return it.skuId
-                        ? (_d = (_c = (_b = product === null || product === void 0 ? void 0 : product.variants) === null || _b === void 0 ? void 0 : _b.find((v) => v.skuId === it.skuId)) === null || _c === void 0 ? void 0 : _c.consignPrice) !== null && _d !== void 0 ? _d : (it.price != null ? Number(it.price) : undefined)
-                        : it.price != null
-                            ? Number(it.price)
-                            : undefined;
+                    if (it.skuId) {
+                        return (_d = (_c = (_b = product === null || product === void 0 ? void 0 : product.productSkuInfos_Variant) === null || _b === void 0 ? void 0 : _b.find((v) => v.skuId === it.skuId)) === null || _c === void 0 ? void 0 : _c.consignPrice) !== null && _d !== void 0 ? _d : (it.price != null ? Number(it.price) : undefined);
+                    }
+                    return Number((_f = (_e = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _e === void 0 ? void 0 : _e.priceRangeList[0]) === null || _f === void 0 ? void 0 : _f.price);
                 })();
                 const weight = (() => {
                     var _a, _b;
@@ -217,13 +219,20 @@ class CartService extends base_service_1.BaseService {
                         return null;
                     })(),
                     price: (() => {
-                        var _a;
+                        var _a, _b, _c, _d;
+                        if (it.skuId && ((_a = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _a === void 0 ? void 0 : _a.priceRangeList)) {
+                            const priceRange = product.saleInfo.priceRangeList
+                                .filter((range) => productTotalQty >= range.startQuantity)
+                                .sort((a, b) => b.startQuantity - a.startQuantity)[0];
+                            if ((priceRange === null || priceRange === void 0 ? void 0 : priceRange.price) != null)
+                                return Number(priceRange.price);
+                        }
                         if (it.skuId) {
-                            const variant = (_a = product === null || product === void 0 ? void 0 : product.productSkuInfos_Variant) === null || _a === void 0 ? void 0 : _a.find((v) => String(v.skuId) === String(it.skuId));
+                            const variant = (_b = product === null || product === void 0 ? void 0 : product.productSkuInfos_Variant) === null || _b === void 0 ? void 0 : _b.find((v) => String(v.skuId) === String(it.skuId));
                             if ((variant === null || variant === void 0 ? void 0 : variant.consignPrice) != null)
                                 return Number(variant.consignPrice);
                         }
-                        return it.price != null ? Number(it.price) : 0; // Default to 0 if price is undefined
+                        return Number((_d = (_c = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _c === void 0 ? void 0 : _c.priceRangeList[0]) === null || _d === void 0 ? void 0 : _d.price); // Default to 0 if price is undefined
                     })(),
                     skuImageUrl: (() => {
                         var _a, _b;
@@ -310,18 +319,19 @@ class CartService extends base_service_1.BaseService {
             throw new errors_1.NotFoundError('Rate not found for the given rateId');
         }
         console.log("Rate info found:", rateInfo);
-        // Prepare payload for ProductShipping
+        // // Prepare payload for ProductShipping
+        // return;
         const productShippingPayload = {
             cartId: cartItem.id,
-            rateId: rateInfo.id,
             cartProductId: cartItem.products[0].id,
+            rateId: rateInfo.id,
             userId: Number(userId),
             fromCountryId: rateInfo.countryCombination.importCountryId,
             toCountryId: rateInfo.countryCombination.exportCountryId,
             totalQuantity: cartItem.products[0].quantity,
             approxWeight: cartItem.products[0].totalWeight,
             // weightRange: rateInfo.weightRange,
-            // shippingMethodId: rateInfo.shippingMethod.id,
+            shippingMethodId: rateInfo.shippingMethod.id,
             totalCost: rateInfo.price * ((_a = cartItem === null || cartItem === void 0 ? void 0 : cartItem.products[0]) === null || _a === void 0 ? void 0 : _a.totalWeight),
             // customDuty: rateInfo.customDuty,
             // vat: rateInfo.vat,
@@ -332,7 +342,8 @@ class CartService extends base_service_1.BaseService {
             // estDeliveryDays: rateInfo.estDeliveryDays,
             shippingStatus: "pending",
         };
-        await this.repository.createProductShipping(productShippingPayload, tx);
+        console.log("Prepared ProductShipping payload:", productShippingPayload);
+        await this.repository.createCartProductShipping(productShippingPayload, tx);
         await this.repository.updateCartProductShippingConfirm(cartItem.products[0].id, tx);
         console.log("Prepared ProductShipping payload:", productShippingPayload);
         return productShippingPayload;

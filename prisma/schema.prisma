@@ -250,28 +250,29 @@ model Space {
 }
 
 model Inventory {
-  id          String        @id @default(cuid())
-  code        String        @unique
-  name        String        @default("Inventory")
-  type        InventoryType // TYPE_X, TYPE_Y, or TYPE_Z
-  description String?
-  price       String?
-  duration    String?
-  occupied    Boolean?      @default(false)
-  spaceNumber Int?
-  capacity    Int?
-  fixedCbm    Boolean       @default(true)
-  notes       String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  code             String         
+  name              String        @default("Inventory")
+  type              InventoryType             // TYPE_X, TYPE_Y, or TYPE_Z
+  description       String?
+  price             String?
+  duration          String?
+  occupied          Boolean?      @default(false)
+  spaceNumber       Int?
+  capacity          Int?
+  fixedCbm          Boolean       @default(true)
+  notes             String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
-  warehouseSpaceId String
-  warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+  warehouseSpaceId  String
+  warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
-  @@unique([warehouseSpaceId, type])
+  @@unique([warehouseSpaceId, type, code])
+  @@unique([warehouseSpaceId, type, spaceNumber])
   @@index([warehouseSpaceId])
   @@index([type])
-  @@map("inventories")
+  @@map("inventories")     
 }
 
 enum SpaceType {

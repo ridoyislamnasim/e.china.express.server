@@ -34,5 +34,26 @@ class RateWeightCategoriesController {
             }
         };
     }
+    async updateRateWeightCategories(req, res, next) {
+        const { id } = req.params;
+        const { label, min_weight, max_weight } = req.body;
+        const payload = {
+            label, min_weight, max_weight
+        };
+        const updatedCategory = await rateWeightCategoriesService.updateRateWeightCategories(id, payload);
+        const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate weight categories updated successfully', updatedCategory);
+        res.status(resDoc.statusCode).json(resDoc);
+    }
+    async deleteRateWeightCategories(req, res, next) {
+        try {
+            const { id } = req.params;
+            const deletedCategory = await rateWeightCategoriesService.deleteRateWeightCategories(id);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate weight categories deleted successfully', deletedCategory);
+            res.status(resDoc.statusCode).json(resDoc);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
 }
 exports.default = new RateWeightCategoriesController();

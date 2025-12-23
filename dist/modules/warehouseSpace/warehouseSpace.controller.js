@@ -93,6 +93,7 @@ class WarehouseSpaceController {
             try {
                 const { warehouseSpaceId } = req.params;
                 const payload = req.body;
+                // console.log('Received createSpace request:', { warehouseSpaceId, payload });
                 const space = await warehouseSpaceService.createSpace(warehouseSpaceId, payload, tx);
                 const resDoc = (0, responseHandler_1.responseHandler)(201, 'Space created successfully', space);
                 res.status(resDoc.statusCode).json(resDoc);
