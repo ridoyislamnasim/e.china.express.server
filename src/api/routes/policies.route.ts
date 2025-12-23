@@ -3,34 +3,57 @@ import policiesController from "../../modules/policies/policies.controller";
 
 const policiesRoute = Router();
 
-/* ==============================
-   Policy Types (Categories)
-================================ */
+
 policiesRoute
-  .route("/policy-types")
+  .route("/type")
   .get(policiesController.getAllPolicyTypes)
+
+policiesRoute
+  .route("/create-policy-type")
   .post(policiesController.createPolicyType);
 
 policiesRoute
-  .route("/policy-types/pagination")
+  .route("/type-pagination")
   .get(policiesController.getPolicyTypesWithPagination);
 
 policiesRoute
-  .route("/policy-types/:slug")
+  .route("/update-policy-type/:slug")
   .patch(policiesController.updatePolicyType)
+
+
+policiesRoute
+  .route("/policy-type/:slug")
   .delete(policiesController.deletePolicyType);
 
-/* ==============================
-   Policies
-================================ */
+
+
+
+policiesRoute
+  .route("/table-view")
+  .get(policiesController.getAllPolicyTableView);
+
+policiesRoute
+  .route("/get-single-policy/:id")
+  .get(policiesController.getSinglePolicyById);
+
+
+  policiesRoute
+  .route("/add-policy-helpful")
+  .patch(policiesController.addHelpfulCount);
+
+policiesRoute
+  .route("/add-policy-unhelpful")
+  .patch(policiesController.addUnhelpfulCount);
+
+
+
 policiesRoute
   .route("/")
   .get(policiesController.getAllPolicyTitles)
   .post(policiesController.createPolicy);
 
-policiesRoute
-  .route("/table-view")
-  .get(policiesController.getAllPolicyTableView);
+
+
 
 policiesRoute
   .route("/:slug")
@@ -39,19 +62,5 @@ policiesRoute
   .delete(policiesController.deletePolicy);
 
 
-policiesRoute
-  .route("/get-single-policy/:id")
-  .get(policiesController.getSinglePolicyById)
-
-/* ==============================
-   Policy Feedback
-================================ */
-policiesRoute
-  .route("/:policyId/feedback/helpful")
-  .patch(policiesController.addHelpfulCount);
-
-policiesRoute
-  .route("/:policyId/feedback/unhelpful")
-  .patch(policiesController.addUnhelpfulCount);
-
+  
 export default policiesRoute;

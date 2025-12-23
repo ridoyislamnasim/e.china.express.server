@@ -176,8 +176,7 @@ export default new (class PoliciesService {
   getPolicyTypesWithPagination = async (payload: { page: number; limit: number }): Promise<any> => {
     console.log("🚀 ~ policies.service.ts:207 ~ payload:", payload);
     const { page, limit } = payload;
-    const offset = (page - 1) * limit;
-    const policyTypes = await policiesRepository.getPolicyTypesWithPagination({ limit, offset });
+    const policyTypes = await policiesRepository.getPolicyTypesWithPagination({ limit, page });
     return policyTypes;
   };
 
@@ -193,6 +192,7 @@ export default new (class PoliciesService {
   };
 
   createPolicy = async (payload: CreatePolicyRequestDTO): Promise<any> => {
+    console.log("🚀 ~ policies.service.ts:196 ~ payload:", payload)
     const { title, description, policyTypeId } = payload;
 
     if (!title || !policyTypeId || !description) {
@@ -200,6 +200,8 @@ export default new (class PoliciesService {
       if (!title) missingFields.push("title");
       if (!policyTypeId) missingFields.push("policyTypeId");
       if (!description) missingFields.push("description");
+
+      
 
       const error = new Error(`Missing required field(s): ${missingFields.join(", ")}`);
       (error as any).statusCode = 400;
@@ -230,6 +232,7 @@ export default new (class PoliciesService {
   };
 
   createPolicyType = async (payload: CreatePolicyTypeRequestDTO): Promise<any> => {
+    console.log("🚀 ~ policies.service.ts:236 ~ payload:", payload)
     const { title } = payload;
 
     if (!title) {
@@ -296,6 +299,7 @@ export default new (class PoliciesService {
   };
 
   updatePolicy = async (slug: string, body: Partial<PolicyRequestDTO>) => {
+    console.log("🚀 ~ policies.service.ts:302 ~ body:", body)
     try {
       const missingFields: string[] = [];
       if (!body.title) missingFields.push("title");
@@ -364,7 +368,6 @@ export default new (class PoliciesService {
   }
 
   addHelpfulCount = async (id: number): Promise<any> => {
-    console.log("🚀 ~ policies.service.ts:432 ~ id:", id);
     try {
       if (!id) {
         const error = new Error("Missing required field: id");
@@ -373,7 +376,6 @@ export default new (class PoliciesService {
       }
 
       const policy = await policiesRepository.getPolicyByIdRepository(id);
-      console.log("🚀 ~ policies.service.ts:440 ~ policy:", policy);
       if (!policy) {
         const error = new Error(`Policy not found for id ${id}`);
         (error as any).statusCode = 404;
