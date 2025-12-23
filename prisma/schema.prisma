@@ -969,7 +969,7 @@ model Policies {
 
 model Guide {
   id          Int          @id @default(autoincrement())
-  serial      Int
+  serial      Int          
   title       String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

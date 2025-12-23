@@ -4,6 +4,19 @@ import guideService from "./guide.service";
 import { CreateGuideDTO, GuideVideoResponseDTO, UpdateGuideDTO } from "../../types/guide";
 
 export default new (class GuideController {
+  //done
+  getAllGuideWithPagination = catchError(async (req: Request, res: Response) => {
+    const { page, limit } = req.query;
+    const query = { page, limit };
+    const result = await guideService.getAllGuideWithPagination(query);
+
+    res.status(200).json({
+      status: "success",
+      message: "Guides retrieved successfully.",
+      data: result,
+    });
+  });
+
   getAllGuides = catchError(async (req: Request, res: Response) => {
     const guides = await guideService.getAllGuides();
     res.status(200).json({
@@ -13,9 +26,97 @@ export default new (class GuideController {
     });
   });
 
+  deleteGuide = catchError(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await guideService.deleteGuideData(id);
+    res.status(200).json({
+      status: "success",
+      message: result.message,
+      data: result.data,
+    });
+  });
+
+  getGuideVideosById = catchError(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const guides = await guideService.getGuideVideosById(parseInt(id));
+    res.status(200).json({
+      status: "success",
+      message: "All guides retrieved successfully.",
+      data: guides,
+    });
+  });
+
+  updateGuide = catchError(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const { serial, title } = req.body;
+    const payload = { serial, title };
+    const updatedGuide = await guideService.updateGuideData(id, payload);
+    res.status(200).json({
+      status: "success",
+      ...updatedGuide,
+    });
+  });
+
+  deleteGuideVideo = catchError(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await guideService.deleteGuideVideo(id);
+    const { message, data } = result;
+    res.status(200).json({
+      status: "success",
+      message: message,
+      data: data,
+    });
+  });
+
+  createGuideVideo = catchError(async (req: Request, res: Response) => {
+    const { guideId, title, url, shortDes, videoLength, videoSerial } = req.body;
+
+    const file = req.file;
+    console.log("🚀 ~ guide.controller.ts:97 ~ file:", file);
+
+    const payload = {
+      guideId: Number(guideId),
+      title,
+      url,
+      shortDes,
+      videoLength,
+      videoSerial: Number(videoSerial),
+      file,
+    };
+
+    const result = await guideService.createGuideVideo(payload);
+
+    res.status(201).json({
+      status: "success",
+      message: result.message,
+      data: result.data,
+    });
+  });
+
+  //todo
+
+  //   async getPolicesWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
+  //   const { limit, offset } = payload;
+  //   const prismaClient: PrismaClient = tx || this.prisma;
+  //   return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+  //     const [doc, totalDoc] = await Promise.all([
+  //       this.prisma.policyType.findMany({
+  //         where: {},
+  //         skip: offset,
+  //         take: limit,
+  //       }),
+  //       prisma.policyType.count({ where: {} }),
+  //     ]);
+  //     return { doc, totalDoc };
+  //   });
+  // }
+
   createGuide = catchError(async (req: Request, res: Response) => {
     const payload: CreateGuideDTO = req.body;
-    const newGuide = await guideService.createGuideData(payload);
+    const payloadFiles = { files: req.files };
+
+    const newGuide = await guideService.createGuideData(payload, payloadFiles);
+
     res.status(201).json({
       status: "success",
       message: "Guide created successfully.",
@@ -33,51 +134,32 @@ export default new (class GuideController {
     });
   });
 
-  updateGuide = catchError(async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const { serial, title } = req.body;
-    const payload = { serial, title };
-    const updatedGuide = await guideService.updateGuideData(id, payload);
-    res.status(200).json({
-      status: "success",
-      message: `Guide with ID ${id} updated successfully.`,
-      data: updatedGuide,
-    });
-  });
-
-  deleteGuide = catchError(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const result = await guideService.deleteGuideData(id);
-    res.status(200).json({
-      status: "success",
-      message: result.message,
-      data: result.data,
-    });
-  });
-
   //todo update guide video
   updateGuideVideo = catchError(async (req: Request, res: Response) => {
-    const id = req.params.id;
-    const { guideId, url, imgSrc, videoLength, title, shortDes, videoSerial } = req.body;
+    const id = Number(req.params.id);
 
-    const payload = { guideId, url, imgSrc, videoLength, title, shortDes, videoSerial };
+    const { guideId, url, videoLength, title, shortDes, videoSerial } = req.body;
 
-    const updatedGuide = await guideService.updateGuideVideo(parseInt(id), payload as GuideVideoResponseDTO);
+    const payloadFiles = {
+      files: req.files,
+    };
+    console.log("🚀 ~ guide.controller.ts:200 ~ payloadFiles:", payloadFiles);
+
+    const payload = {
+      guideId: Number(guideId),
+      url,
+      videoLength,
+      title,
+      shortDes,
+      videoSerial: Number(videoSerial),
+    };
+
+    const updatedGuide = await guideService.updateGuideVideo(id, payload, payloadFiles);
+
     res.status(200).json({
       status: "success",
       message: `Guide with ID ${id} updated successfully.`,
       data: updatedGuide,
-    });
-  });
-
-  deleteGuideVideo = catchError(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const result = await guideService.deleteGuideVideo(id);
-    const { message, data } = result;
-    res.status(200).json({
-      status: "success",
-      message: message,
-      data: data,
     });
   });
 })();

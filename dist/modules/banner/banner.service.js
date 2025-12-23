@@ -17,7 +17,7 @@ class BannerService extends base_service_1.BaseService {
     async createBanner(payload, payloadFiles, session) {
         const { files } = payloadFiles;
         if (!files)
-            throw new Error('image is required');
+            throw new Error("image is required");
         const images = await (0, ImgUploder_1.default)(files);
         for (const key in images) {
             payload[key] = images[key];
@@ -40,7 +40,7 @@ class BannerService extends base_service_1.BaseService {
         const numericId = Number(id);
         const bannerData = await this.repository.getSingleBanner(numericId);
         if (!bannerData)
-            throw new errors_1.NotFoundError('Banner Not Find');
+            throw new errors_1.NotFoundError("Banner Not Find");
         return bannerData;
     }
     async updateBanner(id, payload, payloadFiles, session) {
@@ -53,7 +53,7 @@ class BannerService extends base_service_1.BaseService {
         }
         const bannerData = await this.repository.updateBanner(Number(id), payload);
         if (!bannerData)
-            throw new errors_1.NotFoundError('Banner Not Find');
+            throw new errors_1.NotFoundError("Banner Not Find");
         if ((files === null || files === void 0 ? void 0 : files.length) && bannerData) {
             // await removeUploadFile(bannerData?.image);
         }
@@ -69,4 +69,4 @@ class BannerService extends base_service_1.BaseService {
     }
 }
 exports.BannerService = BannerService;
-exports.default = new BannerService(banner_repository_1.default, 'banner');
+exports.default = new BannerService(banner_repository_1.default, "banner");

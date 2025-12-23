@@ -1,20 +1,26 @@
 import { Router } from "express";
 import guideController from "../../modules/guide/guide.controller";
+import { upload } from "../../middleware/upload/upload";
 
 const guideRoute = Router();
 
-guideRoute.get("/", guideController.getAllGuides);
+guideRoute
+  .get("/", guideController.getAllGuides)
+  .get("/pagination", guideController.getAllGuideWithPagination)
+//   .get("/:slug", guideController.getGuideBySlug)
+  .post("/", guideController.createGuide)
+  //   .put("/:id", guideController.updateGuide)
+  .get("/:id",guideController.getGuideVideosById)
+  .delete("/:id", guideController.deleteGuide)
+  .put("/:id",guideController.updateGuide)
 
-guideRoute.get("/:slug", guideController.getGuideBySlug);
 
-guideRoute.post("/", guideController.createGuide);
+  .put("/video/:id",upload.single("imgSrc"), guideController.updateGuideVideo)
+  .post("/video",upload.single("imgSrc"),guideController.createGuideVideo)
 
-guideRoute.put("/:id", guideController.updateGuide);
 
-guideRoute.delete("/:id", guideController.deleteGuide);
+  .delete("/video/:id", guideController.deleteGuideVideo);
 
-guideRoute.delete("/video/:id", guideController.deleteGuideVideo);
 
-guideRoute.put("/video/:id", guideController.updateGuideVideo);
 
 export default guideRoute;

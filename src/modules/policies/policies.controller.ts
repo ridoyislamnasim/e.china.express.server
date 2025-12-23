@@ -4,87 +4,135 @@ import { responseHandler } from "../../utils/responseHandler";
 import catchError from "../../middleware/errors/catchError";
 import withTransaction from "../../middleware/transactions/withTransaction";
 
-export default new class PoliciesController {
-
-
-
+export default new (class PoliciesController {
   getAllPolicyTitles = catchError(async (req: Request, res: Response) => {
     const getAllPolicies = await policiesService.getAllPolicyTitles();
     const getAllPoliciesCount = await policiesService.getAllPoliciesCount();
-    const resDoc = responseHandler(201, 'All policies fetched successfully.', {data: getAllPolicies, count : getAllPoliciesCount});
+    const resDoc = responseHandler(201, "All policies fetched successfully.", { data: getAllPolicies, count: getAllPoliciesCount });
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-getPolicyById = catchError(async (req: Request, res: Response) => {
-  const slug = req.params.slug;
-  const policy = await policiesService.getPolicyById(slug);
+  getAllPolicyTableView = catchError(async (req: Request, res: Response) => {
+    const payload = {
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 10,
+      order: (req.query.order as "asc" | "desc") || "desc",
+    };
 
-  const resDoc = responseHandler(200, 'Policy fetched successfully.', policy);
-  res.status(resDoc.statusCode).json(resDoc);
-});
+    const policies = await policiesService.getAllPolicyTableView(payload);
 
-createPolicy = catchError(async (req: Request, res: Response) => {
-  const newPolicy = await policiesService.createPolicy(req.body);
+    const resDoc = responseHandler(200, "All policies fetched successfully.", policies);
 
-  const resDoc = responseHandler(201, 'New policy created successfully.', newPolicy);
-  res.status(resDoc.statusCode).json(resDoc);
-});
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
-createPolicyType = catchError(async (req: Request, res: Response) => {
-  const newPolicyType = await policiesService.createPolicyType(req.body);
+  getAllPolicyTypes = catchError(async (req: Request, res: Response) => {
+    const allPolicyTypes = await policiesService.getAllPolicyTypes();
+    const resDoc = responseHandler(201, "All policy types fetched successfully.", allPolicyTypes);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
-  const resDoc = responseHandler(201, 'New policy type created successfully.', newPolicyType);
-  res.status(resDoc.statusCode).json(resDoc);
-});
 
-updatePolicy = catchError(async (req: Request, res: Response) => {
-  const slug = req.params.slug;
-  const updated = await policiesService.updatePolicy(slug, req.body);
+  getSinglePolicyById = catchError(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const policy = await policiesService.getSinglePolicyById(id);
+    const resDoc = responseHandler(200, "Policy fetched successfully.", policy);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
-  const resDoc = responseHandler(200, 'Policy updated successfully.', updated);
-  res.status(resDoc.statusCode).json(resDoc);
-});
 
-deletePolicy = catchError(async (req: Request, res: Response) => {
-  const id = req.params.slug;
-  await policiesService.deletePolicy(id);
+  deletePolicyType = catchError(async (req: Request, res: Response) => {
+    const slug = req.params.slug;
+    const result = await policiesService.deletePolicyType(slug);
 
-  const resDoc = responseHandler(200, `Policy with id ${id} deleted successfully.`, null);
-  res.status(resDoc.statusCode).json(resDoc);
-});
+    const resDoc = responseHandler(200, "Policy fetched successfully.", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
-getPolicesWithPagination = withTransaction(
-  async (req: Request, res: Response, next: NextFunction, tx: any) => {
+  updatePolicyType = catchError(async (req: Request, res: Response) => {
+    const slug = req.params.slug;
+    const { title, id } = req.body;
+    const payload = { title, id };
+    const updated = await policiesService.updatePolicyType(slug, payload);
+    const resDoc = responseHandler(200, "Policy Type updated successfully.", updated);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getPolicyById = catchError(async (req: Request, res: Response) => {
+    const slug = req.params.slug;
+    const policy = await policiesService.getPolicyById(slug);
+
+    const resDoc = responseHandler(200, "Policy fetched successfully.", policy);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  createPolicy = catchError(async (req: Request, res: Response) => {
+    const newPolicy = await policiesService.createPolicy(req.body);
+
+    const resDoc = responseHandler(201, "New policy created successfully.", newPolicy);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  createPolicyType = catchError(async (req: Request, res: Response) => {
+    const newPolicyType = await policiesService.createPolicyType(req.body);
+
+    const resDoc = responseHandler(201, "New policy type created successfully.", newPolicyType);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  updatePolicy = catchError(async (req: Request, res: Response) => {
+    const slug = req.params.slug;
+    const { title, description, policyTypeId, policyTypeTitle, id } = req.body;
+    const payload = { title, description, policyTypeId, policyTypeTitle, id };
+    const updated = await policiesService.updatePolicy(slug, payload);
+
+    const resDoc = responseHandler(200, "Policy updated successfully.", updated);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  deletePolicy = catchError(async (req: Request, res: Response) => {
+    const id = req.params.slug;
+    await policiesService.deletePolicy(id);
+
+    const resDoc = responseHandler(200, `Policy with id ${id} deleted successfully.`, null);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getPolicesWithPagination = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
-    const result = await policiesService.getPolicesWithPagination({ page, limit }, tx);
+    const data = await policiesService.getPolicesWithPagination({ page, limit }, tx);
 
-    const resDoc = responseHandler(200, 'Policies retrieved successfully with pagination.', result);
+    const resDoc = responseHandler(200, "Policies retrieved successfully with pagination.", data);
     res.status(resDoc.statusCode).json(resDoc);
-  }
-);
+  });
 
+  getPolicyTypesWithPagination = withTransaction(async (req: Request, res: Response, next: NextFunction) => {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
 
-addHelpfulCount = catchError(async(req:Request,res:Response)=>{
-  const {id} = req.body
-  // res.send(id)
+    const data = await policiesService.getPolicyTypesWithPagination({ page, limit });
+
+    const resDoc = responseHandler(200, "Policy types retrieved successfully with pagination.", data);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  addHelpfulCount = catchError(async (req: Request, res: Response) => {
+    const { id } = req.body;
+    // res.send(id)
     const result = await policiesService.addHelpfulCount(id);
 
-    const resDoc = responseHandler(200, 'Policy Counted as helpful.', result);
+    const resDoc = responseHandler(200, "Policy Counted as helpful.", result);
     res.status(resDoc.statusCode).json(resDoc);
+  });
 
-})
+  addUnhelpfulCount = catchError(async (req: Request, res: Response) => {
+    const { id } = req.body;
+    // res.send(id)
+    const result = await policiesService.addUnhelpfulCount(id);
 
-addUnhelpfulCount = catchError(async (req: Request, res: Response) => {
-  const { id } = req.body
-  // res.send(id)
-  const result = await policiesService.addUnhelpfulCount(id);
-
-  const resDoc = responseHandler(200, 'Policy Counted as unhelpful.', result);
-  res.status(resDoc.statusCode).json(resDoc);
-})
-
-
-
-};
+    const resDoc = responseHandler(200, "Policy Counted as unhelpful.", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+})();

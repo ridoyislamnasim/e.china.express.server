@@ -3,29 +3,55 @@ import policiesController from "../../modules/policies/policies.controller";
 
 const policiesRoute = Router();
 
+/* ==============================
+   Policy Types (Categories)
+================================ */
+policiesRoute
+  .route("/policy-types")
+  .get(policiesController.getAllPolicyTypes)
+  .post(policiesController.createPolicyType);
 
-policiesRoute.get("/", policiesController.getAllPolicyTitles);
-policiesRoute.get("/type-pagination", policiesController.getPolicesWithPagination);
+policiesRoute
+  .route("/policy-types/pagination")
+  .get(policiesController.getPolicyTypesWithPagination);
 
-policiesRoute.post("/", policiesController.createPolicy);
-policiesRoute.post("/create-policy-type", policiesController.createPolicyType);
-policiesRoute.patch("/add-policy-helpful",policiesController.addHelpfulCount)
-policiesRoute.patch("/add-policy-unhelpful", policiesController.addUnhelpfulCount)
+policiesRoute
+  .route("/policy-types/:slug")
+  .patch(policiesController.updatePolicyType)
+  .delete(policiesController.deletePolicyType);
 
-policiesRoute.get("/:slug",policiesController.getPolicyById);
-policiesRoute.patch("/:slug", policiesController.updatePolicy);
+/* ==============================
+   Policies
+================================ */
+policiesRoute
+  .route("/")
+  .get(policiesController.getAllPolicyTitles)
+  .post(policiesController.createPolicy);
 
-policiesRoute.delete("/:slug", policiesController.deletePolicy);
+policiesRoute
+  .route("/table-view")
+  .get(policiesController.getAllPolicyTableView);
+
+policiesRoute
+  .route("/:slug")
+  .get(policiesController.getPolicyById)
+  .patch(policiesController.updatePolicy)
+  .delete(policiesController.deletePolicy);
 
 
-// policiesRoute.put("/handfulCount", (req, res) => {
-//   res.send("Policies PUT route works");
-// });
+policiesRoute
+  .route("/get-single-policy/:id")
+  .get(policiesController.getSinglePolicyById)
 
+/* ==============================
+   Policy Feedback
+================================ */
+policiesRoute
+  .route("/:policyId/feedback/helpful")
+  .patch(policiesController.addHelpfulCount);
 
-// policiesRoute.put("/nonHandfulCount", (req, res) => {
-//   res.send("Policies PUT route works");
-// });
-
+policiesRoute
+  .route("/:policyId/feedback/unhelpful")
+  .patch(policiesController.addUnhelpfulCount);
 
 export default policiesRoute;

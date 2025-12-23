@@ -6,19 +6,45 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const policies_controller_1 = __importDefault(require("../../modules/policies/policies.controller"));
 const policiesRoute = (0, express_1.Router)();
-policiesRoute.get("/", policies_controller_1.default.getAllPolicyTitles);
-policiesRoute.get("/type-pagination", policies_controller_1.default.getPolicesWithPagination);
-policiesRoute.post("/", policies_controller_1.default.createPolicy);
-policiesRoute.post("/create-policy-type", policies_controller_1.default.createPolicyType);
-policiesRoute.patch("/add-policy-helpful", policies_controller_1.default.addHelpfulCount);
-policiesRoute.patch("/add-policy-unhelpful", policies_controller_1.default.addUnhelpfulCount);
-policiesRoute.get("/:slug", policies_controller_1.default.getPolicyById);
-policiesRoute.patch("/:slug", policies_controller_1.default.updatePolicy);
-policiesRoute.delete("/:slug", policies_controller_1.default.deletePolicy);
-// policiesRoute.put("/handfulCount", (req, res) => {
-//   res.send("Policies PUT route works");
-// });
-// policiesRoute.put("/nonHandfulCount", (req, res) => {
-//   res.send("Policies PUT route works");
-// });
+/* ==============================
+   Policy Types (Categories)
+================================ */
+policiesRoute
+    .route("/policy-types")
+    .get(policies_controller_1.default.getAllPolicyTypes)
+    .post(policies_controller_1.default.createPolicyType);
+policiesRoute
+    .route("/policy-types/pagination")
+    .get(policies_controller_1.default.getPolicyTypesWithPagination);
+policiesRoute
+    .route("/policy-types/:slug")
+    .patch(policies_controller_1.default.updatePolicyType)
+    .delete(policies_controller_1.default.deletePolicyType);
+/* ==============================
+   Policies
+================================ */
+policiesRoute
+    .route("/")
+    .get(policies_controller_1.default.getAllPolicyTitles)
+    .post(policies_controller_1.default.createPolicy);
+policiesRoute
+    .route("/table-view")
+    .get(policies_controller_1.default.getAllPolicyTableView);
+policiesRoute
+    .route("/:slug")
+    .get(policies_controller_1.default.getPolicyById)
+    .patch(policies_controller_1.default.updatePolicy)
+    .delete(policies_controller_1.default.deletePolicy);
+policiesRoute
+    .route("/get-single-policy/:id")
+    .get(policies_controller_1.default.getSinglePolicyById);
+/* ==============================
+   Policy Feedback
+================================ */
+policiesRoute
+    .route("/:policyId/feedback/helpful")
+    .patch(policies_controller_1.default.addHelpfulCount);
+policiesRoute
+    .route("/:policyId/feedback/unhelpful")
+    .patch(policies_controller_1.default.addUnhelpfulCount);
 exports.default = policiesRoute;
