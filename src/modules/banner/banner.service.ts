@@ -1,9 +1,9 @@
-import { NotFoundError } from '../../utils/errors';
-import { BaseService } from '../base/base.service';
-import bannerRepository from './banner.repository';
+import { NotFoundError } from "../../utils/errors";
+import { BaseService } from "../base/base.service";
+import bannerRepository from "./banner.repository";
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
 
-import ImgUploader from '../../middleware/upload/ImgUploder';
+import ImgUploader from "../../middleware/upload/ImgUploder";
 
 export class BannerService extends BaseService<typeof bannerRepository> {
   private repository: typeof bannerRepository;
@@ -14,7 +14,7 @@ export class BannerService extends BaseService<typeof bannerRepository> {
 
   async createBanner(payload: any, payloadFiles: any, session?: any) {
     const { files } = payloadFiles;
-    if (!files) throw new Error('image is required');
+    if (!files) throw new Error("image is required");
     const images = await ImgUploader(files);
     for (const key in images) {
       payload[key] = images[key];
@@ -38,7 +38,7 @@ export class BannerService extends BaseService<typeof bannerRepository> {
   async getSingleBanner(id: string) {
     const numericId = Number(id);
     const bannerData = await this.repository.getSingleBanner(numericId);
-    if (!bannerData) throw new NotFoundError('Banner Not Find');
+    if (!bannerData) throw new NotFoundError("Banner Not Find");
     return bannerData;
   }
 
@@ -51,7 +51,7 @@ export class BannerService extends BaseService<typeof bannerRepository> {
       }
     }
     const bannerData = await this.repository.updateBanner(Number(id), payload);
-    if (!bannerData) throw new NotFoundError('Banner Not Find');
+    if (!bannerData) throw new NotFoundError("Banner Not Find");
     if (files?.length && bannerData) {
       // await removeUploadFile(bannerData?.image);
     }
@@ -68,4 +68,4 @@ export class BannerService extends BaseService<typeof bannerRepository> {
   }
 }
 
-export default new BannerService(bannerRepository, 'banner');
+export default new BannerService(bannerRepository, "banner");

@@ -194,6 +194,89 @@ class BlogService {
         // TODO: Remove files if needed
         return await this.repository.deleteBlog(slug); // Or use a delete method
     }
+    // ==============================
+    // Create Topic
+    // ==============================
+    async createTopic(payload, tx) {
+        const { title, } = payload;
+        if (!title) {
+            const error = new Error("Missing required field: title ");
+            error.statusCode = 400;
+            throw error;
+        }
+        let slug = (0, slugGenerate_1.slugGenerate)(title);
+        const existing = await this.repository.findTopicBySlug(slug);
+        if (existing) {
+            const error = new Error(`Topic with title "${title}" already exists.`);
+            error.statusCode = 400;
+            throw error;
+        }
+        const data = {
+            title,
+            slug,
+        };
+        const topic = await this.repository.createTopic(data, tx);
+        return topic;
+    }
+    // ==============================
+    // Get All Topics
+    // ==============================
+    async getAllTopics() {
+        return await this.repository.getAllTopics();
+    }
+    // ==============================
+    // Get Single Topic
+    // ==============================
+    async getSingleTopic(id) {
+        const existing = await this.repository.findTopicById(id);
+        if (!existing) {
+            const error = new Error(`Topic with id "${id}" not found.`);
+            error.statusCode = 404;
+            throw error;
+        }
+        return existing;
+    }
+    // ==============================
+    // Update Topic
+    // ==============================
+    async updateTopic(id, payload) {
+        const existing = await this.repository.findTopicById(id);
+        if (!existing) {
+            const error = new Error(`Topic does not exist.`);
+            error.statusCode = 400;
+            throw error;
+        }
+        if (payload.title) {
+            const slug = (0, slugGenerate_1.slugGenerate)(payload.title);
+            const ifSlugExist = await this.repository.findTopicBySlug(slug);
+            if (ifSlugExist) {
+                const error = new Error(`Topic already exist.`);
+                error.statusCode = 400;
+                throw error;
+            }
+            payload.slug = slug;
+        }
+        const updated = await this.repository.updateTopic(id, payload);
+        return updated;
+    }
+    // ==============================
+    // Delete Topic
+    // ==============================
+    async deleteTopic(id) {
+        const existing = await this.repository.findTopicById(id);
+        if (!existing) {
+            const error = new Error(`Topic not found.`);
+            error.statusCode = 404;
+            throw error;
+        }
+        return await this.repository.deleteTopicById(id);
+    }
+    // ==============================
+    // Pagination
+    // ==============================
+    async getAllTopicByPagination(payload) {
+        return await this.repository.getAllTopicByPagination(payload);
+    }
 }
 exports.BlogService = BlogService;
 exports.default = new BlogService(blog_repository_1.default);

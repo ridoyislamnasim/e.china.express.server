@@ -17,7 +17,7 @@ export default new (class PoliciesService {
       }
       const transformedData = allPolicyTypes.map((policyType) => {
         const relatedPolicies = allPolicies.filter((policy) => policy.policyTypeId === policyType.id);
-        console.log("🚀 ~ policies.service.ts:19 ~ relatedPolicies:", relatedPolicies);
+        // console.log("🚀 ~ policies.service.ts:19 ~ relatedPolicies:", relatedPolicies);
 
         return {
           id: policyType.slug,
@@ -37,36 +37,29 @@ export default new (class PoliciesService {
     }
   };
 
+  updatePolicyType = async (slug: string, body: { title: string; id: number }) => {
+    let policyType;
+    if (!slug) {
+      const error = new Error("Policy type slug is Missing.");
+      (error as any).statusCode = 400;
+      throw error;
+    } else {
+      policyType = await policiesRepository.getPolicyTypeBySlugRepository(slug);
+      if (!policyType) {
+        const error = new Error("Policy type not found");
+        (error as any).statusCode = 404;
+        throw error;
+      }
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    try {
+      const updatedPolicyType = await policiesRepository.updatePolicyTypeRepository(policyType.slug, body);
+      return updatedPolicyType;
+    } catch (error) {
+      console.error("Error updating policy type:", error);
+      throw error;
+    }
+  };
 
   deletePolicyType = async (slug: string) => {
     let policyType;
@@ -98,44 +91,6 @@ export default new (class PoliciesService {
       throw error;
     }
   };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
 
   getAllPolicyTableView = async (payload: { page?: number; limit?: number; order?: "asc" | "desc" }) => {
     try {
@@ -193,6 +148,7 @@ export default new (class PoliciesService {
   };
 
   getPolicyTypesWithPagination = async (payload: { page: number; limit: number }): Promise<any> => {
+    console.log("🚀 ~ policies.service.ts:207 ~ payload:", payload);
     const { page, limit } = payload;
     const offset = (page - 1) * limit;
     const policyTypes = await policiesRepository.getPolicyTypesWithPagination({ limit, offset });
@@ -314,13 +270,12 @@ export default new (class PoliciesService {
   };
 
   updatePolicy = async (slug: string, body: Partial<PolicyRequestDTO>) => {
-    console.log("🚀 ~ policies.service.ts:217 ~ slug:", slug);
     try {
       const missingFields: string[] = [];
       if (!body.title) missingFields.push("title");
       if (!body.description) missingFields.push("description");
       if (!body.policyTypeId) missingFields.push("policy Type Id");
-      if (!body.policyTypeTitle) missingFields.push("policy Type Title");
+      // if (!body.policyTypeTitle) missingFields.push("policy Type Title");
 
       if (missingFields.length > 0) {
         const error = new Error(`Missing required field(s): ${missingFields.join(", ")}`);
@@ -383,6 +338,7 @@ export default new (class PoliciesService {
   }
 
   addHelpfulCount = async (id: number): Promise<any> => {
+    console.log("🚀 ~ policies.service.ts:432 ~ id:", id);
     try {
       if (!id) {
         const error = new Error("Missing required field: id");
@@ -391,6 +347,7 @@ export default new (class PoliciesService {
       }
 
       const policy = await policiesRepository.getPolicyByIdRepository(id);
+      console.log("🚀 ~ policies.service.ts:440 ~ policy:", policy);
       if (!policy) {
         const error = new Error(`Policy not found for id ${id}`);
         (error as any).statusCode = 404;

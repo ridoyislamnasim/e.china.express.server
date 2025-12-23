@@ -1,6 +1,7 @@
 import prisma from "../../config/prismadatabase";
 import { CreatePolicyRequestDTO, PolicyRequestDTO, PolicyTypeI } from "../../types/policy";
 import { pagination } from "../../utils/pagination";
+import { slugGenerate } from "../../utils/slugGenerate";
 
 export default new (class PoliciesRepository {
   private prisma = prisma;
@@ -21,16 +22,28 @@ export default new (class PoliciesRepository {
     return policiesCount;
   };
 
-  getPolicyTypesWithPagination = async (payload: { limit: number; offset: number }): Promise<any> => {
-    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+  updatePolicyTypeRepository = async (slug: string, payload: { title: string; id: number }): Promise<any> => {
+    return await this.prisma.policyType.updateMany({
+      where: { slug: slug },
+      data: {
+        slug: slugGenerate(payload.title),
+        title: payload.title,
+        id: payload.id,
+      },
+    });
+  };
+
+  getPolicyTypesWithPagination = async ({ limit, offset }: { limit: number; offset: number }): Promise<any> => {
+    return pagination({ limit, offset }, async (limit, offset) => {
       const [doc, totalDoc] = await Promise.all([
         this.prisma.policyType.findMany({
-          where: {},
           skip: offset,
           take: limit,
+          orderBy: { createdAt: "desc" },
         }),
-        this.prisma.policyType.count({ where: {} }),
+        this.prisma.policyType.count(),
       ]);
+
       return { doc, totalDoc };
     });
   };
@@ -69,7 +82,7 @@ export default new (class PoliciesRepository {
       where: { slug: slug },
     });
     return policyType;
-  }
+  };
 
   getPolicyByIdRepository = async (id: number) => {
     const policy = await this.prisma.policies.findUnique({
@@ -104,6 +117,7 @@ export default new (class PoliciesRepository {
   };
 
   updatePolicyRepository = async (policyId: number, body: Partial<PolicyRequestDTO>): Promise<any> => {
+    console.log("🚀 ~ policies.repository.ts:132 ~ body:", body);
     return await this.prisma.policies.update({
       where: { id: policyId },
       data: {

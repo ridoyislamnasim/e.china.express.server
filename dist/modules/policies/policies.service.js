@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("../../utils/errors");
+const pagination_1 = require("../../utils/pagination");
 const responseHandler_1 = require("../../utils/responseHandler");
 const slugGenerate_1 = require("../../utils/slugGenerate");
 const policies_repository_1 = __importDefault(require("./policies.repository"));
@@ -19,14 +20,14 @@ exports.default = new (class PoliciesService {
                 }
                 const transformedData = allPolicyTypes.map((policyType) => {
                     const relatedPolicies = allPolicies.filter((policy) => policy.policyTypeId === policyType.id);
+                    // console.log("🚀 ~ policies.service.ts:19 ~ relatedPolicies:", relatedPolicies);
                     return {
                         id: policyType.slug,
                         title: policyType.title,
                         submenus: relatedPolicies.map((policy) => ({
-                            // id: slugGenerate(policy.title),
                             id: policy.id,
                             title: policy.title,
-                            terms_html: policy.description,
+                            description: policy.description,
                         })),
                     };
                 });
@@ -34,6 +35,127 @@ exports.default = new (class PoliciesService {
             }
             catch (error) {
                 console.error("Error getting policy titles:", error);
+                throw error;
+            }
+        };
+        this.updatePolicyType = async (slug, body) => {
+            let policyType;
+            if (!slug) {
+                const error = new Error("Policy type slug is Missing.");
+                error.statusCode = 400;
+                throw error;
+            }
+            else {
+                policyType = await policies_repository_1.default.getPolicyTypeBySlugRepository(slug);
+                if (!policyType) {
+                    const error = new Error("Policy type not found");
+                    error.statusCode = 404;
+                    throw error;
+                }
+            }
+            try {
+                const updatedPolicyType = await policies_repository_1.default.updatePolicyTypeRepository(policyType.slug, body);
+                return updatedPolicyType;
+            }
+            catch (error) {
+                console.error("Error updating policy type:", error);
+                throw error;
+            }
+        };
+        this.deletePolicyType = async (slug) => {
+            let policyType;
+            if (!slug) {
+                const error = new Error("Policy type is Missing.");
+                error.statusCode = 400;
+                throw error;
+            }
+            else {
+                policyType = await policies_repository_1.default.getPolicyTypeBySlugRepository(slug);
+                if (!policyType) {
+                    const error = new Error("Policy type not found");
+                    error.statusCode = 404;
+                    throw error;
+                }
+            }
+            try {
+                const policyExistWithCurrentType = await policies_repository_1.default.getPolicyByPolicyTypeIdRepository(policyType.id);
+                if (policyExistWithCurrentType) {
+                    const error = new Error("Cannot delete policy type. Policies exist with this type.");
+                    error.statusCode = 400;
+                    throw error;
+                }
+                else {
+                    return await policies_repository_1.default.deletePolicyTypeRepository(slug);
+                }
+            }
+            catch (error) {
+                console.error("Error deleting policy type:", error);
+                throw error;
+            }
+        };
+        this.getAllPolicyTableView = async (payload) => {
+            try {
+                return await (0, pagination_1.pagination)(payload, async (limit, offset) => {
+                    const [policies, totalDoc] = await Promise.all([
+                        policies_repository_1.default.getAllPolicyRepository({
+                            limit,
+                            offset,
+                            order: payload.order,
+                        }),
+                        policies_repository_1.default.getAllPoliciesCount(),
+                    ]);
+                    if (!policies || policies.length === 0) {
+                        return { doc: [], totalDoc };
+                    }
+                    const doc = await Promise.all(policies.map(async (policy) => {
+                        var _a, _b;
+                        const policyType = await policies_repository_1.default.getPolicyTypeByIdRepository(policy.id);
+                        return {
+                            id: policy.id,
+                            title: policy.title,
+                            description: policy.description,
+                            policyTypeId: policy.policyTypeId,
+                            policyType: (_a = policyType === null || policyType === void 0 ? void 0 : policyType.title) !== null && _a !== void 0 ? _a : null,
+                            policyTypeSlug: (_b = policyType === null || policyType === void 0 ? void 0 : policyType.slug) !== null && _b !== void 0 ? _b : null,
+                            helpfulCount: policy.helpfulCount,
+                            notHelpfulCount: policy.notHelpfulCount,
+                            createdAt: policy.createdAt,
+                            updatedAt: policy.updatedAt,
+                        };
+                    }));
+                    return { doc, totalDoc };
+                });
+            }
+            catch (error) {
+                console.error("Error getting policy table view:", error);
+                throw error;
+            }
+        };
+        this.getAllPolicyTypes = async () => {
+            try {
+                const allPolicyTypes = await policies_repository_1.default.getAllPolicyTypesRepository();
+                return allPolicyTypes;
+            }
+            catch (error) {
+                console.error("Error getting policy types:", error);
+                throw error;
+            }
+        };
+        this.getPolicyTypesWithPagination = async (payload) => {
+            console.log("🚀 ~ policies.service.ts:207 ~ payload:", payload);
+            const { page, limit } = payload;
+            const offset = (page - 1) * limit;
+            const policyTypes = await policies_repository_1.default.getPolicyTypesWithPagination({ limit, offset });
+            return policyTypes;
+        };
+        this.getAllPoliciesCount = async () => {
+            try {
+                return await policies_repository_1.default.getAllPoliciesCount();
+            }
+            catch (e) {
+                console.error(e);
+                const error = new Error("Failed to fetch policies count");
+                error.statusCode = 500;
                 throw error;
             }
         };
@@ -139,28 +261,28 @@ exports.default = new (class PoliciesService {
                     missingFields.push("title");
                 if (!body.description)
                     missingFields.push("description");
+                if (!body.policyTypeId)
+                    missingFields.push("policy Type Id");
+                // if (!body.policyTypeTitle) missingFields.push("policy Type Title");
                 if (missingFields.length > 0) {
                     const error = new Error(`Missing required field(s): ${missingFields.join(", ")}`);
                     error.statusCode = 400;
                     throw error;
                 }
-                const policyType = await policies_repository_1.default.getPolicyTypeBySlugRepository(slug);
-                if (!policyType) {
+                const isPolicyTypeExist = await policies_repository_1.default.getPolicyTypeByIdRepository(body.policyTypeId);
+                if (!isPolicyTypeExist) {
                     const error = new Error("Policy type not found");
                     error.statusCode = 404;
                     throw error;
                 }
-                const policy = await policies_repository_1.default.getPolicyByPolicyTypeIdRepository(policyType.id);
-                if (!policy) {
-                    const error = new Error("Policy not found for this policy type");
+                const isPolicyExist = await policies_repository_1.default.getPolicyByIdRepository(body.id);
+                if (!isPolicyExist) {
+                    const error = new Error("Policy not found");
                     error.statusCode = 404;
                     throw error;
                 }
-                const updatedPolicy = await policies_repository_1.default.updatePolicyRepository(policy.id, body);
-                return {
-                    message: "Policy updated successfully",
-                    data: updatedPolicy,
-                };
+                const update = await policies_repository_1.default.updatePolicyRepository(body.id, body);
+                return update;
             }
             catch (error) {
                 console.error("Error updating policy:", error);
@@ -175,7 +297,7 @@ exports.default = new (class PoliciesService {
                     error.statusCode = 400;
                     throw error;
                 }
-                const policy = await policies_repository_1.default.getPolicyByPolicyTypeIdRepository(id);
+                const policy = await policies_repository_1.default.getPolicyByIdRepository(id);
                 if (!policy) {
                     const error = new Error("Policy not found");
                     error.statusCode = 404;
@@ -189,6 +311,7 @@ exports.default = new (class PoliciesService {
             }
         };
         this.addHelpfulCount = async (id) => {
+            console.log("🚀 ~ policies.service.ts:432 ~ id:", id);
             try {
                 if (!id) {
                     const error = new Error("Missing required field: id");
@@ -196,6 +319,7 @@ exports.default = new (class PoliciesService {
                     throw error;
                 }
                 const policy = await policies_repository_1.default.getPolicyByIdRepository(id);
+                console.log("🚀 ~ policies.service.ts:440 ~ policy:", policy);
                 if (!policy) {
                     const error = new Error(`Policy not found for id ${id}`);
                     error.statusCode = 404;
@@ -240,7 +364,7 @@ exports.default = new (class PoliciesService {
                     helpfulCount,
                     notHelpfulCount: unhelpfulCounter,
                     createdAt,
-                    updatedAt
+                    updatedAt,
                 };
                 if ((payload === null || payload === void 0 ? void 0 : payload.notHelpfulCount) == null) {
                     const error = new Error("Missing required field: notHelpfulCount");
@@ -261,7 +385,7 @@ exports.default = new (class PoliciesService {
     async getPolicesWithPagination(payload, tx) {
         const { page, limit } = payload;
         const offset = (page - 1) * limit;
-        const countries = await policies_repository_1.default.getPolicesWithPagination({ limit, offset }, tx);
-        return countries;
+        const policyTypes = await policies_repository_1.default.getPolicesWithPagination({ limit, offset }, tx);
+        return policyTypes;
     }
 })();

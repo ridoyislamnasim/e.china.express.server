@@ -32,26 +32,22 @@ export default new (class PoliciesController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-
-  deletePolicyType = catchError(async(req:Request,res:Response)=>{
+  deletePolicyType = catchError(async (req: Request, res: Response) => {
     const slug = req.params.slug;
     const result = await policiesService.deletePolicyType(slug);
-    
+
     const resDoc = responseHandler(200, "Policy fetched successfully.", result);
     res.status(resDoc.statusCode).json(resDoc);
-  })
+  });
 
-
-
-
-
-
-
-
-
-
-
-
+  updatePolicyType = catchError(async (req: Request, res: Response) => {
+    const slug = req.params.slug;
+    const { title, id } = req.body;
+    const payload = { title, id };
+    const updated = await policiesService.updatePolicyType(slug, payload);
+    const resDoc = responseHandler(200, "Policy Type updated successfully.", updated);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
   getPolicyById = catchError(async (req: Request, res: Response) => {
     const slug = req.params.slug;
@@ -104,8 +100,9 @@ export default new (class PoliciesController {
   });
 
   getPolicyTypesWithPagination = withTransaction(async (req: Request, res: Response, next: NextFunction) => {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+
     const data = await policiesService.getPolicyTypesWithPagination({ page, limit });
 
     const resDoc = responseHandler(200, "Policy types retrieved successfully with pagination.", data);

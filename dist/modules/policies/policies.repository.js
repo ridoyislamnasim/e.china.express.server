@@ -5,13 +5,58 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const prismadatabase_1 = __importDefault(require("../../config/prismadatabase"));
 const pagination_1 = require("../../utils/pagination");
+const slugGenerate_1 = require("../../utils/slugGenerate");
 exports.default = new (class PoliciesRepository {
     constructor() {
         this.prisma = prismadatabase_1.default;
+        this.getAllPolicyTypesRepository = async () => {
+            const allPolicyTypes = await this.prisma.policyType.findMany();
+            return allPolicyTypes;
+        };
         this.getAllPolicyTitlesRepository = async () => {
             const allPolicyTypes = await this.prisma.policyType.findMany();
             const allPolicies = await this.prisma.policies.findMany();
             return { allPolicies, allPolicyTypes };
+        };
+        this.getAllPoliciesCount = async () => {
+            const policiesCount = await this.prisma.policies.count();
+            return policiesCount;
+        };
+        this.updatePolicyTypeRepository = async (slug, payload) => {
+            return await this.prisma.policyType.updateMany({
+                where: { slug: slug },
+                data: {
+                    slug: (0, slugGenerate_1.slugGenerate)(payload.title),
+                    title: payload.title,
+                    id: payload.id,
+                },
+            });
+        };
+        this.getPolicyTypesWithPagination = async ({ limit, offset }) => {
+            return (0, pagination_1.pagination)({ limit, offset }, async (limit, offset) => {
+                const [doc, totalDoc] = await Promise.all([
+                    this.prisma.policyType.findMany({
+                        skip: offset,
+                        take: limit,
+                        orderBy: { createdAt: "desc" },
+                    }),
+                    this.prisma.policyType.count(),
+                ]);
+                return { doc, totalDoc };
+            });
+        };
+        this.getAllPolicyRepository = async ({ limit, offset, order = "desc" }) => {
+            return this.prisma.policies.findMany({
+                skip: offset,
+                take: limit,
+                orderBy: { createdAt: order },
+            });
+        };
+        this.getPolicyTypeByIdRepository = async (id) => {
+            const policyType = await this.prisma.policyType.findUnique({
+                where: { id: id },
+            });
+            return policyType;
         };
         this.getPolicyTypeBySlugRepository = async (slug) => {
             const policyType = await this.prisma.policyType.findFirst({
@@ -24,6 +69,12 @@ exports.default = new (class PoliciesRepository {
                 where: { policyTypeId: id },
             });
             return policy;
+        };
+        this.deletePolicyTypeRepository = async (slug) => {
+            const policyType = await this.prisma.policyType.deleteMany({
+                where: { slug: slug },
+            });
+            return policyType;
         };
         this.getPolicyByIdRepository = async (id) => {
             const policy = await this.prisma.policies.findUnique({
@@ -54,11 +105,13 @@ exports.default = new (class PoliciesRepository {
             });
         };
         this.updatePolicyRepository = async (policyId, body) => {
+            console.log("🚀 ~ policies.repository.ts:132 ~ body:", body);
             return await this.prisma.policies.update({
                 where: { id: policyId },
                 data: {
                     title: body.title,
                     description: body.description,
+                    policyTypeId: body.policyTypeId,
                 },
             });
         };
@@ -76,8 +129,6 @@ exports.default = new (class PoliciesRepository {
         };
     }
     async getPolicesWithPagination(payload, tx) {
-        const { limit, offset } = payload;
-        const prismaClient = tx || this.prisma;
         return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
             const [doc, totalDoc] = await Promise.all([
                 this.prisma.policyType.findMany({
@@ -94,8 +145,8 @@ exports.default = new (class PoliciesRepository {
         return await this.prisma.policies.update({
             where: { id: id },
             data: {
-                helpfulCount: helpfulCount
-            }
+                helpfulCount: helpfulCount,
+            },
         });
     }
 })();

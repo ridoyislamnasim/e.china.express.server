@@ -19,24 +19,19 @@ class BannerController {
                 link: (_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b.link,
             };
             const bannerResult = await banner_service_1.default.createBanner(payload, payloadFiles, session);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Banner Created successfully', bannerResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Banner Created successfully", bannerResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getAllBanner = (0, catchError_1.default)(async (req, res, next) => {
-            console.log('Banner Get All request body:', req);
+            console.log("Banner Get All request body:", req);
             // ip address logging
-            const ip = (typeof req.headers["x-forwarded-for"] === "string"
-                ? req.headers["x-forwarded-for"].split(",")[0]
-                : Array.isArray(req.headers["x-forwarded-for"])
-                    ? req.headers["x-forwarded-for"][0]
-                    : req.socket.remoteAddress || req.ip || "")
-                .replace(/^.*:/, ""); // Clean IPv6 prefix if present
+            const ip = (typeof req.headers["x-forwarded-for"] === "string" ? req.headers["x-forwarded-for"].split(",")[0] : Array.isArray(req.headers["x-forwarded-for"]) ? req.headers["x-forwarded-for"][0] : req.socket.remoteAddress || req.ip || "").replace(/^.*:/, ""); // Clean IPv6 prefix if present
             console.log("Extracted IP -------------- :", ip);
             let payload = {
                 bannerType: req.query.bannerType,
             };
             const bannerResult = await banner_service_1.default.getAllBanner(payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Get All Banners', bannerResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Get All Banners", bannerResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getBannerWithPagination = (0, catchError_1.default)(async (req, res, next) => {
@@ -46,13 +41,13 @@ class BannerController {
                 order: req.query.order,
             };
             const banner = await banner_service_1.default.getBannerWithPagination(payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Banners get successfully', { ...banner });
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Banners get successfully", { ...banner });
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getSingleBanner = (0, catchError_1.default)(async (req, res, next) => {
             const id = req.params.id;
             const bannerResult = await banner_service_1.default.getSingleBanner(id);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Single Banner successfully', bannerResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Single Banner successfully", bannerResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.updateBanner = (0, catchError_1.default)(async (req, res, next) => {
@@ -66,13 +61,13 @@ class BannerController {
                 link: (_b = req === null || req === void 0 ? void 0 : req.body) === null || _b === void 0 ? void 0 : _b.link,
             };
             const bannerResult = await banner_service_1.default.updateBanner(id, payload, payloadFiles);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Banner Update successfully');
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Banner Update successfully");
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.deleteBanner = (0, catchError_1.default)(async (req, res, next) => {
             const id = req.params.id;
             const bannerResult = await banner_service_1.default.deleteBanner(id);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Banner Deleted successfully');
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Banner Deleted successfully");
             res.status(resDoc.statusCode).json(resDoc);
         });
     }
