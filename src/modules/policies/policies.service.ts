@@ -25,7 +25,8 @@ export default new (class PoliciesService {
           submenus: relatedPolicies.map((policy) => ({
             id: policy.id,
             title: policy.title,
-            description: policy.description,
+            createdAt: policy.createdAt,
+            updatedAt: policy.updatedAt,
           })),
         };
       });
@@ -36,6 +37,31 @@ export default new (class PoliciesService {
       throw error;
     }
   };
+
+
+
+
+  getSinglePolicyById = async (id: string) => {
+    try {
+      if (!id) {
+        const error = new Error("Policy ID is missing.");
+        (error as any).statusCode = 400;
+        throw error;
+      } 
+      const policy = await policiesRepository.getSinglePolicyByIdRepository(id);
+      if (!policy) {
+        const error = new Error(`No policy found for ID ${id}`);
+        (error as any).statusCode = 404;
+        throw error;
+      }
+      return policy;
+    } catch (error) {
+      console.error("Error getting policy by ID:", error);
+      throw error;
+    }
+  };
+
+
 
   updatePolicyType = async (slug: string, body: { title: string; id: number }) => {
     let policyType;

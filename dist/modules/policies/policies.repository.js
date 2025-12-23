@@ -15,8 +15,23 @@ exports.default = new (class PoliciesRepository {
         };
         this.getAllPolicyTitlesRepository = async () => {
             const allPolicyTypes = await this.prisma.policyType.findMany();
-            const allPolicies = await this.prisma.policies.findMany();
+            const allPolicies = await this.prisma.policies.findMany({
+                select: {
+                    id: true,
+                    title: true,
+                    policyTypeId: true,
+                    createdAt: true,
+                    updatedAt: true,
+                },
+            });
             return { allPolicies, allPolicyTypes };
+        };
+        this.getSinglePolicyByIdRepository = async (id) => {
+            const policyId = parseInt(id, 10);
+            const policy = await this.prisma.policies.findUnique({
+                where: { id: policyId },
+            });
+            return policy;
         };
         this.getAllPoliciesCount = async () => {
             const policiesCount = await this.prisma.policies.count();

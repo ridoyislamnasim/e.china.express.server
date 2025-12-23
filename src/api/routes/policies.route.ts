@@ -38,6 +38,11 @@ policiesRoute
   .patch(policiesController.updatePolicy)
   .delete(policiesController.deletePolicy);
 
+
+policiesRoute
+  .route("/get-single-policy/:id")
+  .get(policiesController.getSinglePolicyById)
+
 /* ==============================
    Policy Feedback
 ================================ */

@@ -32,6 +32,15 @@ export default new (class PoliciesController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+
+  getSinglePolicyById = catchError(async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const policy = await policiesService.getSinglePolicyById(id);
+    const resDoc = responseHandler(200, "Policy fetched successfully.", policy);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
   deletePolicyType = catchError(async (req: Request, res: Response) => {
     const slug = req.params.slug;
     const result = await policiesService.deletePolicyType(slug);

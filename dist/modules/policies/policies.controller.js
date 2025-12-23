@@ -30,6 +30,12 @@ exports.default = new (class PoliciesController {
             const resDoc = (0, responseHandler_1.responseHandler)(201, "All policy types fetched successfully.", allPolicyTypes);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.getSinglePolicyById = (0, catchError_1.default)(async (req, res) => {
+            const id = req.params.id;
+            const policy = await policies_service_1.default.getSinglePolicyById(id);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Policy fetched successfully.", policy);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         this.deletePolicyType = (0, catchError_1.default)(async (req, res) => {
             const slug = req.params.slug;
             const result = await policies_service_1.default.deletePolicyType(slug);
