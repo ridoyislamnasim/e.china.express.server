@@ -59,7 +59,7 @@ export class CartRepository extends BaseRepository<Cart> {
           totalPrice: newTotalPrice,
           totalWeight: newTotalWeight,
           mainSkuImageUrl: payload.mainSkuImageUrl ?? existing.mainSkuImageUrl,
-          calculatedPrice:  existing.calculatedPrice,
+          calculatedPrice: existing.calculatedPrice,
         },
       });
     }
@@ -77,11 +77,13 @@ export class CartRepository extends BaseRepository<Cart> {
     if (payload.skuId == null && payload.specId == null) {
       // find exiting variant by cartProductId only
       const existing = await client.cartProductVariant.findFirst({ where: { cartProductId: payload.cartProductId } });
-      if(payload.quantity == 0) {
-        await client.cartProductVariant.delete({ where: {id: existing.id  } });
+      console.log("Existing variant found by cartProductId only:", existing, payload.quantity);
+      if (payload.quantity == 0) {
+        console.log("Deleting existing variant ID -0 :", existing?.id);
+        await client.cartProductVariant.delete({ where: { id: existing.id } });
         return [];
       }
-    
+
       if (existing) {
         const newQuantity = (payload.quantity ?? 0);
         const newPrice = (payload.price ?? 0);
@@ -100,7 +102,9 @@ export class CartRepository extends BaseRepository<Cart> {
         });
       }
       // create directly if no parent id provided
+      console.log("Deleting existing variant ID 0:", existing?.id);
       return await client.cartProductVariant.create({ data: payload as any });
+
     }
 
     const whereClauses: any[] = [];
@@ -111,7 +115,17 @@ export class CartRepository extends BaseRepository<Cart> {
       ? await client.cartProductVariant.findFirst({ where: { cartProductId: payload.cartProductId, OR: whereClauses } })
       : null;
 
+    console.log("Existing variant found by SKU/Spec:", existing, payload.quantity, whereClauses);
+
     if (existing) {
+      console.log("Existing variant found by cartProductId only:", existing, payload.quantity);
+      if (payload.quantity == 0) {
+        console.log("Deleting existing variant ID 1:", existing?.id);
+        await client.cartProductVariant.delete({ where: { id: existing.id } });
+        return [];
+      }
+      console.log("Deleting existing variant ID 2:", existing?.id);
+
       const newQuantity = (payload.quantity ?? 0);
       const newPrice = (payload.price ?? 0);
       const newWeight = (payload.weight ?? 0);
@@ -127,6 +141,12 @@ export class CartRepository extends BaseRepository<Cart> {
           skuImageUrl: payload.skuImageUrl ?? existing.skuImageUrl,
         },
       });
+    }
+
+    if (payload.quantity == 0) {
+      console.log("Deleting existing variant ID 1:", existing?.id);
+      await client.cartProductVariant.delete({ where: { id: existing.id } });
+      return [];
     }
 
     return await client.cartProductVariant.create({ data: payload as any });
@@ -176,7 +196,7 @@ export class CartRepository extends BaseRepository<Cart> {
       throw new NotFoundError('Cart not found for the user');
     }
     return cart?.products[0]?.variants;
-  }  
+  }
 
   async findCartItemByUserAndProductForRate(userId: string | number, productId: string | number, tx?: any) {
     const client = tx || this.prisma;
@@ -224,35 +244,48 @@ export class CartRepository extends BaseRepository<Cart> {
     return cart;
   }
 
-  async createProductShipping(payload: any, tx?: any) {
-    console.log("Creating/Updating Product Shipping with payload: ", payload);
+  async createCartProductShipping(payload: any, tx?: any) {
+    console.log("Creating/Updating Cart Product Shipping with payload: ", payload);
     const { userId, cartProductId } = payload;
     const client = tx || this.prisma;
 
-    // Check if a ProductShipping entry already exists for the given userId and cartProductId
-    const existing = await client.productShipping.findFirst({
-        where: {
-            userId: Number(userId),
-            cartProductId: Number(cartProductId),
-        },
+    if (payload.shippingMethodId) {
+      const method = await client.rateSippingMethod.findUnique({
+        where: { id: Number(payload.shippingMethodId) }
+      });
+
+      if (!method) {
+        throw new Error(
+          `Shipping method ${payload.shippingMethodId} not found`
+        );
+      }
+    }
+
+
+    // Check if a CartProductShipping entry already exists for the given userId and cartProductId
+    const existing = await client.cartProductShipping.findFirst({
+      where: {
+        userId: Number(userId),
+        cartProductId: Number(cartProductId),
+      },
     });
 
     if (existing) {
-        // Update the existing ProductShipping entry
-        console.log("Updating existing ProductShipping entry:", existing.id);
-        return await client.productShipping.update({
-            where: { id: existing.id },
-            data: payload,
-        });
+      // Update the existing ProductShipping entry
+      console.log("Updating existing ProductShipping entry:", existing.id);
+      return await client.cartProductShipping.update({
+        where: { id: existing.id },
+        data: payload,
+      });
     }
 
     // Create a new ProductShipping entry if none exists
     console.log("Creating new ProductShipping entry with payload:", payload);
-    return await client.productShipping.create({ data: payload });
-}
+    return await client.cartProductShipping.create({ data: payload });
+  }
 
 
-  async updateCartProductShippingConfirm(cartProductId: string | number,  tx?: any) {
+  async updateCartProductShippingConfirm(cartProductId: string | number, tx?: any) {
     const client = tx || this.prisma;
 
     return await client.cartProduct.updateMany({
@@ -263,20 +296,24 @@ export class CartRepository extends BaseRepository<Cart> {
         confirm: true,
       },
     });
-  } 
+  }
 
   async findAllCartByUser(userId: string | number, tx?: any) {
     const client = tx || this.prisma;
     const carts = await client.cart.findMany({
-        where: { userId: Number(userId) },
-        include: {
-            products: {
-                where: { confirm: true }, 
-                include: {
-                    variants: true,
-                },
-            },
+      where: { userId: Number(userId) },
+      include: {
+        products: {
+          where: { confirm: true },
+          include: {
+            variants: true,
+            productShipping: true,
+            // shipping: true,
+            // cartProductShipping: true,
+
+          },
         },
+      },
     });
     return carts;
   }

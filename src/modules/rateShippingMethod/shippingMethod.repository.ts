@@ -6,14 +6,14 @@ export class ShippingMethodRepository {
   private prisma = prisma;
 
   async createShippingMethod(payload: any): Promise<any> {
-    const newRateShippingMethod = await this.prisma.rateSippingMethod.create({
+    const newRateShippingMethod = await this.prisma.rateShippingMethod.create({
       data: payload
     })
     return newRateShippingMethod
   }
 
   async getShippingMethod(): Promise<any> {
-    const shippingMethods = await this.prisma.rateSippingMethod.findMany();
+    const shippingMethods = await this.prisma.rateShippingMethod.findMany();
     return shippingMethods;
   }
 }

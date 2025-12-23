@@ -27,5 +27,27 @@ getAllRateWeightCategories = async (req: Request, res: Response, next: NextFunct
     next(error);
   }
 }
+
+ async updateRateWeightCategories(req: Request, res: Response, next: NextFunction) {
+    const { id } = req.params;
+    const { label, min_weight, max_weight } = req.body;
+    const payload = {
+      label, min_weight, max_weight
+    };
+    const updatedCategory = await rateWeightCategoriesService.updateRateWeightCategories(id, payload);
+    const resDoc = responseHandler(200, 'Rate weight categories updated successfully', updatedCategory);
+    res.status(resDoc.statusCode).json(resDoc);
+}
+
+async deleteRateWeightCategories(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = req.params;
+    const deletedCategory = await rateWeightCategoriesService.deleteRateWeightCategories(id);
+    const resDoc = responseHandler(200, 'Rate weight categories deleted successfully', deletedCategory);
+    res.status(resDoc.statusCode).json(resDoc);
+  } catch (error) {
+    next(error);
+  }
+}
 }
 export default new RateWeightCategoriesController();

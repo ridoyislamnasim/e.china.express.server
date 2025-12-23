@@ -14,6 +14,14 @@ export class RateWeightCategoriesRepository {
     return newRateShippingMethod
   }
 
+  async updateRateWeightCategories(id: string, payload: any): Promise<any> {
+    const updatedCategory = await this.prisma.rateWeightCategorie.update({
+      where: { id: Number(id) },
+      data: payload
+    });
+    return updatedCategory;
+  }
+
   async getAllRateWeightCategories(): Promise<any> {
     const rateWeightCategories = await this.prisma.rateWeightCategorie.findMany({
       orderBy: {
@@ -21,6 +29,13 @@ export class RateWeightCategoriesRepository {
       }
     });
     return rateWeightCategories;
+  }
+
+  async deleteRateWeightCategories(id: string): Promise<any> {
+    const deletedCategory = await this.prisma.rateWeightCategorie.delete({
+      where: { id: Number(id) }
+    });
+    return deletedCategory;
   }
 }
 

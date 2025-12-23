@@ -56,7 +56,10 @@ export class CartService extends BaseService<typeof cartRepository> {
             .sort((a: any, b: any) => b.startQuantity - a.startQuantity)[0];
           if (priceRange?.price != null) return Number(priceRange.price);
         }
-        return it.skuId ? (product?.productSkuInfos_Variant?.find((v: any) => v.skuId === it.skuId)?.consignPrice ?? (it.price != null ? Number(it.price) : undefined)) : (it.price != null ? Number(it.price) : undefined);
+        if (it.skuId) {
+          return product?.productSkuInfos_Variant?.find((v: any) => v.skuId === it.skuId)?.consignPrice ?? (it.price != null ? Number(it.price) : undefined);
+        }
+        return Number(product?.saleInfo?.priceRangeList[0]?.price);
       })();
       const weight = (() => {
         try {
@@ -108,11 +111,10 @@ export class CartService extends BaseService<typeof cartRepository> {
             .sort((a: any, b: any) => b.startQuantity - a.startQuantity)[0];
           if (priceRange?.price != null) return Number(priceRange.price);
         }
-        return it.skuId
-          ? product?.variants?.find((v: any) => v.skuId === it.skuId)?.consignPrice ?? (it.price != null ? Number(it.price) : undefined)
-          : it.price != null
-            ? Number(it.price)
-            : undefined;
+        if (it.skuId) {
+          return product?.productSkuInfos_Variant?.find((v: any) => v.skuId === it.skuId)?.consignPrice ?? (it.price != null ? Number(it.price) : undefined);
+        }
+         return Number(product?.saleInfo?.priceRangeList[0]?.price);
       })();
       const weight = (() => {
         try {
@@ -141,7 +143,7 @@ export class CartService extends BaseService<typeof cartRepository> {
         cartId: cart.id,
         quantity: productTotalQty,
         totalPrice: (price != null && Number.isFinite(Number(price)) ? Number(price) * productTotalQty : 0),
-        calculatedPrice: price ,
+        calculatedPrice: price,
         totalWeight: (weight ?? 0) * productTotalQty,
         mainSkuImageUrl: product.images && product.images.length > 0 ? product.images[0] : null,
       };
@@ -220,11 +222,17 @@ export class CartService extends BaseService<typeof cartRepository> {
           return null;
         })(),
         price: (() => {
+          if (it.skuId && product?.saleInfo?.priceRangeList) {
+            const priceRange = product.saleInfo.priceRangeList
+              .filter((range: any) => productTotalQty >= range.startQuantity)
+              .sort((a: any, b: any) => b.startQuantity - a.startQuantity)[0];
+            if (priceRange?.price != null) return Number(priceRange.price);
+          }
           if (it.skuId) {
             const variant = product?.productSkuInfos_Variant?.find((v: any) => String(v.skuId) === String(it.skuId));
             if (variant?.consignPrice != null) return Number(variant.consignPrice);
           }
-          return it.price != null ? Number(it.price) : 0; // Default to 0 if price is undefined
+           return Number(product?.saleInfo?.priceRangeList[0]?.price); // Default to 0 if price is undefined
         })(),
         skuImageUrl: (() => {
           try {
@@ -263,64 +271,66 @@ export class CartService extends BaseService<typeof cartRepository> {
 
   //  cartProductConfirm = async (payload: any, tx: any) => { 
   async cartProductConfirm(payload?: any, tx?: any) {
-        console.log("cartProductConfirm method called with payload:", payload);
+    console.log("cartProductConfirm method called with payload:", payload);
 
-        const { userId, productId, rateId } = payload;
-        if (!userId) {
-            console.error("Error: Missing user id in cart product confirm payload");
-            throw new Error('Missing user id in cart product confirm payload');
-        }
+    const { userId, productId, rateId } = payload;
+    if (!userId) {
+      console.error("Error: Missing user id in cart product confirm payload");
+      throw new Error('Missing user id in cart product confirm payload');
+    }
 
-        const cartItem = await this.repository.findCartItemByUserAndProductForRate(userId, productId);
-        console.log("Cart item found for confirmation:", cartItem);
+    const cartItem = await this.repository.findCartItemByUserAndProductForRate(userId, productId);
+    console.log("Cart item found for confirmation:", cartItem);
 
-        if (!cartItem) {
-            console.error("Error: Cart item not found for the given user and product");
-            throw new NotFoundError('Cart item not found for the given user and product');
-        }
+    if (!cartItem) {
+      console.error("Error: Cart item not found for the given user and product");
+      throw new NotFoundError('Cart item not found for the given user and product');
+    }
 
-        
-        // find rate 
-        const rateInfo = await this.rateRepository.findRateByTId(rateId);
-        if (!rateInfo) {
-            console.error("Error: Rate not found for the given rateId:", rateId);
-            throw new NotFoundError('Rate not found for the given rateId');
-        }
-        console.log("Rate info found:", rateInfo);
 
-        // Prepare payload for ProductShipping
-        
+    // find rate 
+    const rateInfo = await this.rateRepository.findRateByTId(rateId);
+    if (!rateInfo) {
+      console.error("Error: Rate not found for the given rateId:", rateId);
+      throw new NotFoundError('Rate not found for the given rateId');
+    }
+    console.log("Rate info found:", rateInfo);
 
-        const productShippingPayload: ProductShippingPayload = {
-            cartId: cartItem.id,
-            rateId: rateInfo.id,
-            cartProductId: cartItem.products[0].id,
-            userId: Number(userId),
-            fromCountryId: rateInfo.countryCombination.importCountryId,
-            toCountryId: rateInfo.countryCombination.exportCountryId,
-            totalQuantity: cartItem.products[0].quantity,
-            approxWeight: cartItem.products[0].totalWeight,
-            // weightRange: rateInfo.weightRange,
-            // shippingMethodId: rateInfo.shippingMethod.id,
-            totalCost: rateInfo.price * cartItem?.products[0]?.totalWeight,
-            // customDuty: rateInfo.customDuty,
-            // vat: rateInfo.vat,
-            // handlingFee: rateInfo.handlingFee,
-            // packagingFee: rateInfo.packagingFee,
-            // discount: rateInfo.discount,
-            // finalPayable: rateInfo.finalPayable,
-            // estDeliveryDays: rateInfo.estDeliveryDays,
-            shippingStatus: "pending",
-        };
+    // // Prepare payload for ProductShipping
+    // return;
 
-        await this.repository.createProductShipping(productShippingPayload,  tx);
+    const productShippingPayload: ProductShippingPayload = {
+      cartId: cartItem.id,
+      cartProductId: cartItem.products[0].id,
+      rateId: rateInfo.id,
+      userId: Number(userId),
+      fromCountryId: rateInfo.countryCombination.importCountryId,
+      toCountryId: rateInfo.countryCombination.exportCountryId,
 
-        await this.repository.updateCartProductShippingConfirm(cartItem.products[0].id, tx);
+      totalQuantity: cartItem.products[0].quantity,
+      approxWeight: cartItem.products[0].totalWeight,
+      // weightRange: rateInfo.weightRange,
+      shippingMethodId: rateInfo.shippingMethod.id,
+      totalCost: rateInfo.price * cartItem?.products[0]?.totalWeight,
+      // customDuty: rateInfo.customDuty,
+      // vat: rateInfo.vat,
+      // handlingFee: rateInfo.handlingFee,
+      // packagingFee: rateInfo.packagingFee,
+      // discount: rateInfo.discount,
+      // finalPayable: rateInfo.finalPayable,
+      // estDeliveryDays: rateInfo.estDeliveryDays,
+      shippingStatus: "pending",
+    };
+    console.log("Prepared ProductShipping payload:", productShippingPayload);
 
-        console.log("Prepared ProductShipping payload:", productShippingPayload);
+    await this.repository.createCartProductShipping(productShippingPayload, tx);
 
-        return productShippingPayload;
-    
+    await this.repository.updateCartProductShippingConfirm(cartItem.products[0].id, tx);
+
+    console.log("Prepared ProductShipping payload:", productShippingPayload);
+
+    return productShippingPayload;
+
   }
 
   async getUserCartByProductId(userId: string | number, productId: string | number, tx?: any) {

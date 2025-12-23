@@ -29,7 +29,7 @@ model User {
   address           Address?          @relation(fields: [addressId], references: [id])
   buyNowCarts       BuyNowCart[]
   otp               OTP[]
-  productShipping   ProductShipping[]
+  productShipping   CartProductShipping[]
   order             Order[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -606,7 +606,7 @@ model RateShippingMethod {
   name            String            @unique
   description     String? // optional field, nullable
   createdAt       DateTime          @default(now())
-  productShipping ProductShipping[]
+  productShipping CartProductShipping[]
   orderShipping   OrderShipping[]
 }
 
@@ -624,8 +624,8 @@ model Country {
   ports              Ports[]
   warehouses         Warehouse[]
   countryHsCodes     CountryHsCode[]
-  productShipping    ProductShipping[]    @relation("FromCountry")
-  productShippingTo  ProductShipping[]    @relation("ToCountry")
+  productShipping    CartProductShipping[]    @relation("FromCountry")
+  productShippingTo  CartProductShipping[]    @relation("ToCountry")
   orderShipping      OrderShipping[]      @relation("OrderFromCountry")
   orderShippingTo    OrderShipping[]      @relation("OrderToCountry")
 
@@ -738,7 +738,7 @@ model Rate {
   shippingMethod     RateSippingMethod    @relation(fields: [shippingMethodId], references: [id])
   weightCategory     RateWeightCategorie  @relation(fields: [weightCategoryId], references: [id])
   cartProductVariant CartProductVariant[]
-  productShipping    ProductShipping[]
+  productShipping    CartProductShipping[]
 }
 
 model Category1688 {
@@ -810,8 +810,9 @@ model Cart {
 
   user            User              @relation(fields: [userId], references: [id])
   products        CartProduct[]
-  productShipping ProductShipping[]
+  productShipping CartProductShipping[]
   oders           Order[]
+  
 }
 
 model CartProduct {
@@ -840,8 +841,22 @@ model CartProduct {
   isDeleted Boolean @default(false)
 
   variants        CartProductVariant[]
-  productShipping ProductShipping[]
+  productShipping CartProductShipping[]
+  priceRanges     CartProductPriceRange[]
 }
+
+model CartProductPriceRange {
+  id            Int @id @default(autoincrement())
+
+  startQuantity Int
+  price         Decimal @db.Decimal(10, 2)
+
+  cartProductId Int
+  cartProduct   CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
 
 enum ProductFor {
   FROM1688
@@ -873,7 +888,7 @@ model CartProductVariant {
   shippingRate   Rate?       @relation(fields: [shippingRateId], references: [id])
 }
 
-model ProductShipping {
+model CartProductShipping {
   id Int @id @default(autoincrement())
 
   cartId Int
@@ -899,8 +914,7 @@ model ProductShipping {
   weightRange   Decimal @default("0") @db.Decimal(10, 3)
 
   shippingMethodId Int?
-  shippingMethod   RateShippingMethod? @relation(fields: [shippingMethodId], references: [id], onDelete: Cascade)
-
+  shippingMethod   RateShippingMethod? @relation(fields: [shippingMethodId], references: [id])
   totalCost Decimal @default("0") @db.Decimal(12, 2)
 
   orderEnabled Boolean @default(false)
