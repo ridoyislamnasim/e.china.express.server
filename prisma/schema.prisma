@@ -243,7 +243,6 @@ model Space {
   warehouseSpace    WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
   @@unique([warehouseSpaceId, type, spaceId])
-  @@unique([warehouseSpaceId, type, spaceNumber])
   @@index([warehouseSpaceId])
   @@index([type])
   @@map("spaces")
@@ -270,7 +269,6 @@ model Inventory {
 
 
   @@unique([warehouseSpaceId, type, code])
-  @@unique([warehouseSpaceId, type, spaceNumber])
   @@index([warehouseSpaceId])
   @@index([type])
   @@map("inventories")
