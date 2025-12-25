@@ -47,13 +47,15 @@ exports.default = new (class PoliciesRepository {
                 },
             });
         };
-        this.getPolicyTypesWithPagination = async ({ limit, offset }) => {
-            return (0, pagination_1.pagination)({ limit, offset }, async (limit, offset) => {
+        this.getPolicyTypesWithPagination = async (payload) => {
+            console.log("🚀 ~ policies.repository.ts:54 ~ payload:", payload);
+            // console.log("🚀 ~ policies.repository.ts:54 ~ offset:", offset)
+            // console.log("🚀 ~ policies.repository.ts:54 ~ limit:", limit)
+            return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
                 const [doc, totalDoc] = await Promise.all([
                     this.prisma.policyType.findMany({
                         skip: offset,
                         take: limit,
-                        orderBy: { createdAt: "desc" },
                     }),
                     this.prisma.policyType.count(),
                 ]);

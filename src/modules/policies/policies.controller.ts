@@ -32,14 +32,12 @@ export default new (class PoliciesController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-
   getSinglePolicyById = catchError(async (req: Request, res: Response) => {
     const id = req.params.id;
     const policy = await policiesService.getSinglePolicyById(id);
     const resDoc = responseHandler(200, "Policy fetched successfully.", policy);
     res.status(resDoc.statusCode).json(resDoc);
   });
-
 
   deletePolicyType = catchError(async (req: Request, res: Response) => {
     const slug = req.params.slug;
@@ -111,7 +109,7 @@ export default new (class PoliciesController {
   getPolicyTypesWithPagination = withTransaction(async (req: Request, res: Response, next: NextFunction) => {
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
-    console.log("🚀 ~ policies.controller.ts:114 ~ limit:", limit)
+    console.log("🚀 ~ policies.controller.ts:114 ~ limit:", limit);
 
     const data = await policiesService.getPolicyTypesWithPagination({ page, limit });
 

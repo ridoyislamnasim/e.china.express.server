@@ -100,6 +100,7 @@ exports.default = new (class PoliciesService {
             }
             try {
                 const policyExistWithCurrentType = await policies_repository_1.default.getPolicyByPolicyTypeIdRepository(policyType.id);
+                console.log("🚀 ~ policies.service.ts:108 ~ policyExistWithCurrentType:", policyExistWithCurrentType);
                 if (policyExistWithCurrentType) {
                     const error = new Error("Cannot delete policy type. Policies exist with this type.");
                     error.statusCode = 400;
@@ -130,7 +131,8 @@ exports.default = new (class PoliciesService {
                     }
                     const doc = await Promise.all(policies.map(async (policy) => {
                         var _a, _b;
-                        const policyType = await policies_repository_1.default.getPolicyTypeByIdRepository(policy.id);
+                        // policyType should be fetched by the policy's `policyTypeId`, not the policy's own id
+                        const policyType = await policies_repository_1.default.getPolicyTypeByIdRepository(policy.policyTypeId);
                         return {
                             id: policy.id,
                             title: policy.title,
@@ -165,8 +167,7 @@ exports.default = new (class PoliciesService {
         this.getPolicyTypesWithPagination = async (payload) => {
             console.log("🚀 ~ policies.service.ts:207 ~ payload:", payload);
             const { page, limit } = payload;
-            const offset = (page - 1) * limit;
-            const policyTypes = await policies_repository_1.default.getPolicyTypesWithPagination({ limit, offset });
+            const policyTypes = await policies_repository_1.default.getPolicyTypesWithPagination({ limit, page });
             return policyTypes;
         };
         this.getAllPoliciesCount = async () => {
@@ -181,6 +182,7 @@ exports.default = new (class PoliciesService {
             }
         };
         this.createPolicy = async (payload) => {
+            console.log("🚀 ~ policies.service.ts:196 ~ payload:", payload);
             const { title, description, policyTypeId } = payload;
             if (!title || !policyTypeId || !description) {
                 const missingFields = [];
@@ -215,6 +217,7 @@ exports.default = new (class PoliciesService {
             }
         };
         this.createPolicyType = async (payload) => {
+            console.log("🚀 ~ policies.service.ts:236 ~ payload:", payload);
             const { title } = payload;
             if (!title) {
                 const missingFields = [];
@@ -276,6 +279,7 @@ exports.default = new (class PoliciesService {
             }
         };
         this.updatePolicy = async (slug, body) => {
+            console.log("🚀 ~ policies.service.ts:302 ~ body:", body);
             try {
                 const missingFields = [];
                 if (!body.title)
@@ -332,7 +336,6 @@ exports.default = new (class PoliciesService {
             }
         };
         this.addHelpfulCount = async (id) => {
-            console.log("🚀 ~ policies.service.ts:432 ~ id:", id);
             try {
                 if (!id) {
                     const error = new Error("Missing required field: id");
@@ -340,7 +343,6 @@ exports.default = new (class PoliciesService {
                     throw error;
                 }
                 const policy = await policies_repository_1.default.getPolicyByIdRepository(id);
-                console.log("🚀 ~ policies.service.ts:440 ~ policy:", policy);
                 if (!policy) {
                     const error = new Error(`Policy not found for id ${id}`);
                     error.statusCode = 404;
