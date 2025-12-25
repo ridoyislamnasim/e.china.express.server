@@ -171,12 +171,13 @@ export default new (class GuideService {
     }
   }
 
-  createGuideVideo = async (payload: { guideId: number; title: string; url: string; shortDes?: string; videoLength?: string; videoSerial: number; payloadFiles?: any }) => {
+  createGuideVideo = async (payload: { guideId: number; title: string; url: string; shortDes?: string; videoLength?: string; videoSerial: number }
+    , payloadFiles: any) => {
     if (!payload.title || !payload.url || !payload.guideId || !payload.videoSerial) {
       throw new Error("Title, URL, guideId, and videoSerial are required");
     }
 
-    const { payloadFiles } = payload;
+    console.log("🚀 ~ guide.service.ts:180 ~ payloadFiles:", payloadFiles)
     if (!payloadFiles) {
       throw new Error("Image is required");
     }
@@ -318,11 +319,59 @@ export default new (class GuideService {
       throw new NotFoundError(`Id ${id} not found for update.`);
     }
 
-    const isSameSerial = await guideRepository.getGuideVideo(id);
 
-    if (Object.keys(isSameSerial).length != 0 && isSameSerial.videoSerial === payload.videoSerial) {
-      throw new NotFoundError(`Change the video Serial.`);
+    if (files && files.length > 0) {
+      const images = await ImgUploader(files); // returns object { imgSrc: '...', thumbnail: '...' }
+      Object.assign(payload, images);
     }
+
+
+
+
+    const isSameSerial = await guideRepository.getGuideVideo(id);
+      if (payload.videoSerial !== isSameSerial.videoSerial) {
+
+        const allVideos = await guideRepository.findVideosByGuideId(payload.guideId);
+
+        const givenVideo = allVideos.filter((video:any) => video.id === id);
+          
+      if (givenVideo.videoSerial !== payload.videoSerial) {
+          allVideos.some((video:any) => {
+            if(video.videoSerial === payload.videoSerial ){
+              throw new NotFoundError(`Change the video Serial.`);
+            }
+          });
+      }
+
+        return
+    }
+    
+    
+    // console.log("🚀 ~ guide.service.ts:337 ~ updateGuideVideo ~ allVideos:", allVideos)
+    
+    // const serialExists = allVideos.some(
+    //   (video:any) => {
+    //     if(video.videoSerial !== payload.videoSerial ){
+    //       return video;
+    //     }
+    //   }
+    // );
+    // console.log("🚀 ~ guide.service.ts:340 ~ updateGuideVideo ~ payload.videoSerial:", payload.videoSerial)
+    // console.log("🚀 ~ guide.service.ts:340 ~ updateGuideVideo ~ video.videoSerial:", video.videoSerial)
+    // console.log("🚀 ~ guide.service.ts:344 ~ updateGuideVideo ~ serialExists:", serialExists)
+    // return 
+    // if (Object.keys(isSameSerial).length != 0 && isSameSerial.videoSerial === payload.videoSerial) {
+      //   throw new NotFoundError(`Change the video Serial.`);
+      // }
+
+
+
+
+
+ 
+
+
+
 
     try {
       const updatedGuide = await guideRepository.updateGuideVideoRepository(id, payload);

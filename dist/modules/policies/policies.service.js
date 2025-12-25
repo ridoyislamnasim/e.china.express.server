@@ -100,6 +100,7 @@ exports.default = new (class PoliciesService {
             }
             try {
                 const policyExistWithCurrentType = await policies_repository_1.default.getPolicyByPolicyTypeIdRepository(policyType.id);
+                console.log("🚀 ~ policies.service.ts:108 ~ policyExistWithCurrentType:", policyExistWithCurrentType);
                 if (policyExistWithCurrentType) {
                     const error = new Error("Cannot delete policy type. Policies exist with this type.");
                     error.statusCode = 400;
@@ -130,7 +131,8 @@ exports.default = new (class PoliciesService {
                     }
                     const doc = await Promise.all(policies.map(async (policy) => {
                         var _a, _b;
-                        const policyType = await policies_repository_1.default.getPolicyTypeByIdRepository(policy.id);
+                        // policyType should be fetched by the policy's `policyTypeId`, not the policy's own id
+                        const policyType = await policies_repository_1.default.getPolicyTypeByIdRepository(policy.policyTypeId);
                         return {
                             id: policy.id,
                             title: policy.title,

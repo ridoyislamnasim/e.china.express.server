@@ -71,8 +71,11 @@ export default new (class GuideController {
   createGuideVideo = catchError(async (req: Request, res: Response) => {
     const { guideId, title, url, shortDes, videoLength, videoSerial } = req.body;
 
-    const file = req.file;
-    console.log("🚀 ~ guide.controller.ts:97 ~ file:", file);
+
+    console.log("🚀 ~ guide.controller.ts:76 ~ req.files:", req.files)
+    const payloadFiles = { files: req.files };
+
+    // console.log("🚀 ~ guide.controller.ts:97 ~ file:", file);
 
     const payload = {
       guideId: Number(guideId),
@@ -80,11 +83,10 @@ export default new (class GuideController {
       url,
       shortDes,
       videoLength,
-      videoSerial: Number(videoSerial),
-      file,
+      videoSerial: Number(videoSerial)
     };
 
-    const result = await guideService.createGuideVideo(payload);
+    const result = await guideService.createGuideVideo(payload,payloadFiles);
 
     res.status(201).json({
       status: "success",

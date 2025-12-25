@@ -25,12 +25,11 @@ export default new (class PoliciesRepository {
     return { allPolicies, allPolicyTypes };
   };
 
-
   getSinglePolicyByIdRepository = async (id: string) => {
     const policyId = parseInt(id, 10);
     const policy = await this.prisma.policies.findUnique({
       where: { id: policyId },
-    }); 
+    });
     return policy;
   };
 
@@ -51,7 +50,7 @@ export default new (class PoliciesRepository {
   };
 
   getPolicyTypesWithPagination = async (payload: any): Promise<any> => {
-    console.log("🚀 ~ policies.repository.ts:54 ~ payload:", payload)
+    console.log("🚀 ~ policies.repository.ts:54 ~ payload:", payload);
     // console.log("🚀 ~ policies.repository.ts:54 ~ offset:", offset)
     // console.log("🚀 ~ policies.repository.ts:54 ~ limit:", limit)
     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
@@ -66,11 +65,6 @@ export default new (class PoliciesRepository {
       return { doc, totalDoc };
     });
   };
-
-
-
-
-
 
   getAllPolicyRepository = async ({ limit, offset, order = "desc" }: { limit: number; offset: number; order?: "asc" | "desc" }) => {
     return this.prisma.policies.findMany({

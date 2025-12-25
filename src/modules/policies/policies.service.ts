@@ -38,16 +38,13 @@ export default new (class PoliciesService {
     }
   };
 
-
-
-
   getSinglePolicyById = async (id: string) => {
     try {
       if (!id) {
         const error = new Error("Policy ID is missing.");
         (error as any).statusCode = 400;
         throw error;
-      } 
+      }
       const policy = await policiesRepository.getSinglePolicyByIdRepository(id);
       if (!policy) {
         const error = new Error(`No policy found for ID ${id}`);
@@ -60,8 +57,6 @@ export default new (class PoliciesService {
       throw error;
     }
   };
-
-
 
   updatePolicyType = async (slug: string, body: { title: string; id: number }) => {
     let policyType;
@@ -105,6 +100,7 @@ export default new (class PoliciesService {
 
     try {
       const policyExistWithCurrentType = await policiesRepository.getPolicyByPolicyTypeIdRepository(policyType.id);
+      console.log("🚀 ~ policies.service.ts:108 ~ policyExistWithCurrentType:", policyExistWithCurrentType);
       if (policyExistWithCurrentType) {
         const error = new Error("Cannot delete policy type. Policies exist with this type.");
         (error as any).statusCode = 400;
@@ -133,11 +129,10 @@ export default new (class PoliciesService {
         if (!policies || policies.length === 0) {
           return { doc: [], totalDoc };
         }
-
         const doc = await Promise.all(
           policies.map(async (policy) => {
-            const policyType = await policiesRepository.getPolicyTypeByIdRepository(policy.id);
-
+            // policyType should be fetched by the policy's `policyTypeId`, not the policy's own id
+            const policyType = await policiesRepository.getPolicyTypeByIdRepository(policy.policyTypeId);
             return {
               id: policy.id,
               title: policy.title,
@@ -192,7 +187,7 @@ export default new (class PoliciesService {
   };
 
   createPolicy = async (payload: CreatePolicyRequestDTO): Promise<any> => {
-    console.log("🚀 ~ policies.service.ts:196 ~ payload:", payload)
+    console.log("🚀 ~ policies.service.ts:196 ~ payload:", payload);
     const { title, description, policyTypeId } = payload;
 
     if (!title || !policyTypeId || !description) {
@@ -200,8 +195,6 @@ export default new (class PoliciesService {
       if (!title) missingFields.push("title");
       if (!policyTypeId) missingFields.push("policyTypeId");
       if (!description) missingFields.push("description");
-
-      
 
       const error = new Error(`Missing required field(s): ${missingFields.join(", ")}`);
       (error as any).statusCode = 400;
@@ -232,7 +225,7 @@ export default new (class PoliciesService {
   };
 
   createPolicyType = async (payload: CreatePolicyTypeRequestDTO): Promise<any> => {
-    console.log("🚀 ~ policies.service.ts:236 ~ payload:", payload)
+    console.log("🚀 ~ policies.service.ts:236 ~ payload:", payload);
     const { title } = payload;
 
     if (!title) {
@@ -299,7 +292,7 @@ export default new (class PoliciesService {
   };
 
   updatePolicy = async (slug: string, body: Partial<PolicyRequestDTO>) => {
-    console.log("🚀 ~ policies.service.ts:302 ~ body:", body)
+    console.log("🚀 ~ policies.service.ts:302 ~ body:", body);
     try {
       const missingFields: string[] = [];
       if (!body.title) missingFields.push("title");
