@@ -1,25 +1,90 @@
 import { Router } from "express";
 import controller from "../../modules/blog/blog.controller";
-// import { upload } from "../../middleware/upload/upload";
+import { upload } from "../../middleware/upload/upload";
+import jwtAuth from "../../middleware/auth/jwtAuth";
 // import jwtAuth from "../../middleware/auth/jwtAuth";
 
 const BlogRoute = Router();
-// BlogRoute.use(jwtAuth());
 
-//done
-BlogRoute.route("/").post( controller.createBlog);
-BlogRoute.route("/create-tag").post(controller.createBlogTag);
-BlogRoute.route("/").get(controller.getAllBlogs);
-BlogRoute.route("/blog-tags").post(controller.getAllBlogTags);
-BlogRoute.get("/:slug", controller.getSingleBlog);
-BlogRoute.patch("/:slug", controller.updateBlogBySlug);
-BlogRoute.patch("/blog-tags/:slug", controller.updateBlogTagBySlug);
-BlogRoute.delete("/:slug", controller.deleteBlogBySlug);
-BlogRoute.delete("/blog-tags/:slug", controller.deleteBlogTagBySlug);
+// ==============================
+// topic  CRUD
+// ==============================
+BlogRoute
+.route("/topics")
+.post(controller.createTopic)
+.get(controller.getAllTopics);
 
-//todo
-BlogRoute.get("/pagination", controller.getBlogWithPagination);
-BlogRoute.route("/:slug").put( controller.updateBlog);
-BlogRoute.delete("/:slug", controller.deleteBlog);
+BlogRoute.get("/topics/pagination", controller.getAllTopicByPagination);
+
+BlogRoute
+  .route("/topics/:id")
+  .get(controller.getSingleTopic)
+  .patch(controller.updateTopic)
+  .delete(controller.deleteTopic);
+
+
+// ==============================
+// Blog Industrie CRUD
+// ==============================
+BlogRoute
+  .route("/industrie")
+  .post(controller.createIndustries)
+  .get(controller.getAllIndustriess);
+
+BlogRoute.get("/industries/pagination", controller.getAllIndustriesByPagination);
+
+
+BlogRoute
+  .route("/industrie/:id")
+  .get(controller.getSingleIndustries)
+  .patch(controller.updateIndustries)
+  .delete(controller.deleteIndustries);
+
+
+  // ==============================
+// Blog Tags
+// ==============================
+BlogRoute
+  .route("/tag")
+  .post(controller.createBlogTag)
+  .get(controller.getAllBlogTags);
+
+BlogRoute.get("/tags/pagination", controller.getAllTagsByPagination);
+
+
+BlogRoute
+  .route("/tag/:id")
+  .get(controller.getSingleBlogTag)
+  .patch(controller.updateTag)
+  .delete(controller.deleteTag);
+
+  
+
+// ==============================
+// Blogs
+// ==============================
+
+
+BlogRoute
+  .route("/")
+  .post( upload.any(), controller.createBlog)
+  .get(controller.getAllBlogs);
+
+
+BlogRoute.get("/pagination", controller.getAllBlogsByPagination);
+BlogRoute.get("/trending-content", controller.getAllTrendingContent);
+BlogRoute.get("/featured", controller.getAllFeaturedContent);
+
+BlogRoute
+  .route("/:slug")
+  .get(controller.getSingleBlog)
+  .patch(upload.any(), controller.updateBlog)
+  .delete(controller.deleteBlogBySlug);
+
+BlogRoute
+  .route("/get-blog-by-tag")
+  .post(controller.getBlogsByTags);
+
+
 
 export default BlogRoute;

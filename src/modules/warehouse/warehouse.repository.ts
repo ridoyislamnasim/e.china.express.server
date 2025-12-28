@@ -67,13 +67,20 @@ export class WarehouseRepository {
 
     return await this.prisma.warehouse.findMany({
       where,
-      include: {
-        managerRef: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        country: true,
+        phone: true,
+        email: true,
+        warehouseSpaces: {
+          include:{
+            spaces: true, inventories: true
           }
         },
         countryRef: {
@@ -81,6 +88,14 @@ export class WarehouseRepository {
             id: true,
             name: true,
             isoCode: true,
+          }
+        },
+         managerRef: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
           }
         },
       },

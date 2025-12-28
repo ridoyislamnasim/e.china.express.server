@@ -13,6 +13,7 @@ export interface BlogResponseDto {
 }
 
 export interface UpdateBlogRequestDto {
+  user?: string;
   image?: string;
   title?: string;
   slug?: string;
@@ -21,7 +22,13 @@ export interface UpdateBlogRequestDto {
   tags?: string[];
   files?: string[];
   status?: boolean;
+  featured?: boolean;
+  trendingContent?: boolean;
+  industryId: number;
+  topicId?: number;
+    tagIds?: number[];
 }
+
 
 export interface CreateBlogRequestDto {
   image?: string;
@@ -35,17 +42,22 @@ export interface CreateBlogRequestDto {
 }
 
 export interface BlogI {
-  id: number;
+  id?: number;
   image: string | null;
   title: string | null;
   slug: string | null;
   author: string | null;
   details: string | null;
-  tags: string[];
   status: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  topicId?: number;
+  industryId?: number;
+  tagIds?: number[];
+  tags?: string[];
   files?: any;
+  featured?: boolean;
+  trendingContent?: boolean;
 }
 
 export interface CreateBlogTagRequestDto {
@@ -101,3 +113,12 @@ export interface UpdateTopicRequestDto {
   slug?: string;
 }
 
+
+
+export interface IIndustries {
+  id?: number;
+  title: string;
+  slug?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}

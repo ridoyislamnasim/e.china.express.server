@@ -14,6 +14,7 @@ CartRoute.use((0, jwtAuth_1.default)());
 CartRoute.route("/")
     .post(cart_controller_1.default.createCartItem);
 //   .get(controller.getAllCartByUser);
+CartRoute.post("/confirm", (0, jwtAuth_1.default)(), cart_controller_1.default.cartProductConfirm);
 CartRoute.get("/user-cart/product/:id", (0, jwtAuth_1.default)(), cart_controller_1.default.getUserCartByProductId);
 CartRoute.get("/user-cart", (0, jwtAuth_1.default)(), cart_controller_1.default.getUserAllCart);
 // /cart/product/:productId

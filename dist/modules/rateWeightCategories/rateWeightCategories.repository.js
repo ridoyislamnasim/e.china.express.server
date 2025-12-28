@@ -17,6 +17,13 @@ class RateWeightCategoriesRepository {
         });
         return newRateShippingMethod;
     }
+    async updateRateWeightCategories(id, payload) {
+        const updatedCategory = await this.prisma.rateWeightCategorie.update({
+            where: { id: Number(id) },
+            data: payload
+        });
+        return updatedCategory;
+    }
     async getAllRateWeightCategories() {
         const rateWeightCategories = await this.prisma.rateWeightCategorie.findMany({
             orderBy: {
@@ -24,6 +31,12 @@ class RateWeightCategoriesRepository {
             }
         });
         return rateWeightCategories;
+    }
+    async deleteRateWeightCategories(id) {
+        const deletedCategory = await this.prisma.rateWeightCategorie.delete({
+            where: { id: Number(id) }
+        });
+        return deletedCategory;
     }
 }
 exports.RateWeightCategoriesRepository = RateWeightCategoriesRepository;

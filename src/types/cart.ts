@@ -34,5 +34,27 @@ export interface TCartProductVariant {
 	shippingRateId?: number | null;
 }
 
+export interface ProductShippingPayload {
+            cartId: number;
+            rateId: number;
+            cartProductId: number;
+            userId: number;
+            fromCountryId: number;
+            toCountryId: number;
+            totalQuantity: number;
+            approxWeight: number;
+            weightRange?: string;
+            shippingMethodId?: number;
+            totalCost: number;
+            customDuty?: number;
+            vat?: number;
+            handlingFee?: number;
+            packagingFee?: number;
+            discount?: number;
+            finalPayable?: number;
+            estDeliveryDays?: number;
+            shippingStatus: string;
+        }
+
 export type CartPayload = TCart & { products?: TCartProduct[] };
 

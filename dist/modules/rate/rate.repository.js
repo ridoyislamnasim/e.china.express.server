@@ -50,6 +50,24 @@ class RateRepository {
         });
         return newRateShippingMethod;
     }
+    async findRateByTId(id) {
+        const rate = await this.prisma.rate.findUnique({
+            where: { id },
+            include: {
+                countryCombination: {
+                    select: {
+                        id: true,
+                        importCountryId: true,
+                        exportCountryId: true,
+                    }
+                },
+                weightCategory: true,
+                shippingMethod: true,
+                category1688: true
+            }
+        });
+        return rate;
+    }
     async updateRate(rateId, payload, tx) {
         const client = tx || this.prisma;
         const updatedRate = await client.rate.update({

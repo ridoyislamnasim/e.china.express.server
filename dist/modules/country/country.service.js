@@ -43,6 +43,7 @@ class CountryService {
     }
     async getAllCountries(payload) {
         const countries = await this.repository.getAllCountries();
+        console.log("Fetched Countries: ", countries);
         return countries;
     }
     async getCountryWithPagination(payload, tx) {

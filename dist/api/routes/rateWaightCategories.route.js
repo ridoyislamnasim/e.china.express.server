@@ -20,10 +20,10 @@ rateWeightCategoriesRoute.route("/")
 // countryRoute.route("/track").get(controller.orderTracking);
 // countryRoute.get("/pagination", controller.getOrderWithPagination);
 // countryRoute.get("/incomplete/pagination", controller.getIncompleteOrderWithPagination);
-// countryRoute.route(":id")
-//     .get(controller.getSingleOrder)
-//     .put(upload.any(), controller.updateOrder)
-//     .delete(controller.deleteOrder);
+rateWeightCategoriesRoute.route("/:id")
+    // .get(controller.getSingleOrder)
+    .put(rateWeightCategories_controller_1.default.updateRateWeightCategories)
+    .delete(rateWeightCategories_controller_1.default.deleteRateWeightCategories);
 // countryRoute.put("/status/:id", controller.updateOrderStatus);
 // countryRoute.put("/couriersend/:id", controller.isCourierSending);
 exports.default = rateWeightCategoriesRoute;

@@ -21,10 +21,10 @@ rateWeightCategoriesRoute.route("/")
 // countryRoute.get("/pagination", controller.getOrderWithPagination);
 // countryRoute.get("/incomplete/pagination", controller.getIncompleteOrderWithPagination);
 
-// countryRoute.route(":id")
-//     .get(controller.getSingleOrder)
-//     .put(upload.any(), controller.updateOrder)
-//     .delete(controller.deleteOrder);
+rateWeightCategoriesRoute.route("/:id")
+    // .get(controller.getSingleOrder)
+    .put( controller.updateRateWeightCategories)
+    .delete(controller.deleteRateWeightCategories);
 
 // countryRoute.put("/status/:id", controller.updateOrderStatus);
 // countryRoute.put("/couriersend/:id", controller.isCourierSending);

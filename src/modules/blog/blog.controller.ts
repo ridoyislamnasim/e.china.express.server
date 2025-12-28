@@ -3,10 +3,14 @@ import catchError from "../../middleware/errors/catchError";
 import { responseHandler } from "../../utils/responseHandler";
 import withTransaction from "../../middleware/transactions/withTransaction";
 import BlogService from "./blog.service";
-import { BlogI, CreateBlogRequestDto, TopicI, UpdateBlogRequestDto, UpdateBlogTagRequestDto } from "../../types/blog";
+import { BlogI, CreateBlogRequestDto, IIndustries, TopicI, UpdateBlogRequestDto, UpdateBlogTagRequestDto } from "../../types/blog";
+import { string } from "zod";
 
 export class BlogController {
-  //done
+
+  // ==============================
+  //  Blog
+  // ==============================
 
   async getAllBlogs(req: Request, res: Response, next: NextFunction) {
     try {
@@ -21,34 +25,45 @@ export class BlogController {
   }
 
   async getAllBlogTags(req: Request, res: Response, next: NextFunction) {
-    try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const resDoc = await BlogService.getAllBlogTags(page, limit);
-      const result = responseHandler(200, "Blog tags fetched successfully", resDoc);
-      res.status(result.statusCode).json(result);
-    } catch (error) {
-      next(error);
-    }
+
+    const resDoc = await BlogService.getAllBlogTags();
+    const result = responseHandler(200, "Blog tags fetched successfully", resDoc);
+    res.status(result.statusCode).json(result);
+
   }
 
+
+  // getAllBlogsByPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+  //   let payload = {
+  //     page: req.query.page,
+  //     limit: req.query.limit,
+  //     order: req.query.order,
+  //   };
+  //   const blog = await BlogService.getAllBlogsByPagination(payload);
+  //   const resDoc = responseHandler(200, "Blogs get successfully", blog);
+  //   res.status(resDoc.statusCode).json(resDoc);
+  // });
+
+
   createBlog = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+    const user = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const payloadFiles = {
       files: req.files,
     };
-    const { image, title, slug, author, details, tags, status, createdAt, updatedAt, files }: BlogI = req.body;
+
+    const { title, details, tagIds, industryId, topicId, status, trendingContent, featured }: BlogI = req.body;
 
     const payload = {
-      image,
+      user,
       title,
-      slug,
-      author,
       details,
-      tags,
+      tagIds,
+      industryId,
+      topicId,
       status,
-      createdAt,
-      updatedAt,
-      files,
+      trendingContent,
+      featured,
+
     };
 
     const blogResult = await BlogService.createBlog(payloadFiles, payload, tx);
@@ -56,45 +71,82 @@ export class BlogController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  createBlogTag = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const title = req.body.title;
+  updateBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const slug = req.params.slug;
+    const payloadFiles = {
+      files: req.files,
+    };
+    const { title, details, tagIds, industryId, topicId, status, featured, trendingContent }: BlogI = req.body;
 
-    const result = await BlogService.createBlogTag(title);
-    const resDoc = responseHandler(201, "Blog Created successfully", result);
+    const payload = {
+      user,
+      title: title ?? undefined,
+      details: details ?? undefined,
+      tagIds,
+      industryId: industryId ?? 0,
+      topicId: topicId ?? 0,
+      status,
+      featured,
+      trendingContent,
+    };
+    const blogResult = await BlogService.updateBlog(slug, payloadFiles, payload);
+    const resDoc = responseHandler(201, "Blog Update successfully", blogResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  getSingleBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
+   getSingleBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const slug = req.params.slug;
     const blogResult = await BlogService.getSingleBlog(slug);
     const resDoc = responseHandler(201, "Single Blog successfully", blogResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  updateBlogBySlug = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const slugStr = req.params.slug;
-    const { image, title, slug, author, details, tags, status, files }: UpdateBlogRequestDto = req.body;
-    const payload = { image, title, slug, author, details, tags, status, files };
-    const blogResult = await BlogService.updateBlog(slugStr, payload);
-    const resDoc = responseHandler(201, "Blog Status Update successfully", blogResult);
+  deleteBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const slug = req.params.slug;
+    const blogResult = await BlogService.deleteBlog(slug);
+    const resDoc = responseHandler(200, "Blog Deleted successfully");
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  updateBlogTagBySlug = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const slugStr = req.params.slug;
-    const { title, slug }: UpdateBlogTagRequestDto = req.body;
-    const payload = { title, slug };
-    const blogResult = await BlogService.updateBlogTag(slugStr, payload);
-    const resDoc = responseHandler(201, "Blog Status Update successfully", blogResult);
+
+  getSingleBlogWithSlug = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const slug = req.params.slug;
+    const blogResult = await BlogService.getSingleBlogWithSlug(slug);
+    const resDoc = responseHandler(201, "Single Blog successfully", blogResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  deleteBlogTagBySlug = catchError(async (req: Request, res: Response) => {
-    const slugStr = req.params.slug;
+  getAllBlogsByPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    // Parse industryIds and topicIds as integer arrays
+    const parseIds = (value: any): number[] | undefined => {
+      if (!value) return undefined;
+      const arr = Array.isArray(value) ? value : [value];
+      return arr.map(id => parseInt(id as string, 10)).filter(id => !isNaN(id));
+    };
 
-    const result = await BlogService.deleteBlogTagBySlug(slugStr);
+    let payload = {
+      page: req.query.page,
+      limit: req.query.limit,
+      order: req.query.order,
+      industryIds: parseIds(req.query.industryIds),
+      topicIds: parseIds(req.query.topicIds),
+    };
+    const blog = await BlogService.getAllBlogsByPagination(payload);
+    const resDoc = responseHandler(200, "Blogs get successfully", blog);
+    res.status(resDoc.statusCode).json(resDoc);
+  }); 
 
-    const resDoc = responseHandler(200, "Blog tag deleted successfully", result);
+  getAllTrendingContent = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const blog = await BlogService.getAllTrendingContent();
+    const resDoc = responseHandler(200, "Trending Content fetched successfully", blog);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
+  getAllFeaturedContent = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const blog = await BlogService.getAllFeaturedContent();
+    const resDoc = responseHandler(200, "Featured Content fetched successfully", blog);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
@@ -104,6 +156,50 @@ export class BlogController {
     const result = await BlogService.deleteBlogBySlug(slugStr);
 
     const resDoc = responseHandler(200, "Blog deleted successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+
+
+
+
+
+  // ==============================
+  //  Tag
+  // ==============================
+
+  createBlogTag = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const title = req.body.title;
+
+    const result = await BlogService.createBlogTag(title);
+    const resDoc = responseHandler(201, "Blog Created successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+ 
+
+  getSingleBlogTag = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const tagId = Number(req.params.id);
+    const blogResult = await BlogService.getSingleBlogTag(tagId);
+    const resDoc = responseHandler(201, "single tag successfully", blogResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  updateTag = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const id = Number(req.params.id);
+    const { title }: UpdateBlogTagRequestDto = req.body;
+    const payload = { title };
+    const blogResult = await BlogService.updateBlogTag(id, payload);
+    const resDoc = responseHandler(201, "Blog Status Update successfully", blogResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  deleteTag = catchError(async (req: Request, res: Response) => {
+    const slugStr = req.params.slug;
+
+    const result = await BlogService.deleteTag(slugStr);
+
+    const resDoc = responseHandler(200, "Blog tag deleted successfully", result);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
@@ -123,89 +219,38 @@ export class BlogController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  //todo
 
-  getSingleBlogWithSlug = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const slug = req.params.slug;
-    const blogResult = await BlogService.getSingleBlogWithSlug(slug);
-    const resDoc = responseHandler(201, "Single Blog successfully", blogResult);
-    res.status(resDoc.statusCode).json(resDoc);
-  });
-
-  getBlogWithPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+  getAllTagsByPagination = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     let payload = {
       page: req.query.page,
       limit: req.query.limit,
       order: req.query.order,
     };
-    const blog = await BlogService.getBlogWithPagination(payload);
-    const resDoc = responseHandler(200, "Blogs get successfully", blog);
+    const blog = await BlogService.getAllTagsByPagination(payload);
+    const resDoc = responseHandler(200, "Tags get successfully", blog);
     res.status(resDoc.statusCode).json(resDoc);
-  });
-
-  getNavBar = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    console.log("Fetching Navbar Data...");
-    const navBarResult = await BlogService.getNavBar();
-    const resDoc = responseHandler(201, "Navbar successfully", navBarResult);
-    res.status(resDoc.statusCode).json(resDoc);
-  });
-
-  updateBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const slug = req.params.slug;
-    const payloadFiles = {
-      files: req.files,
-    };
-    const payload = {
-      title: req.body.title,
-      details: req.body.details,
-    };
-    const blogResult = await BlogService.updateBlog(slug, payload);
-    const resDoc = responseHandler(201, "Blog Update successfully", blogResult);
-    res.status(resDoc.statusCode).json(resDoc);
-  });
-
-  deleteBlog = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const slug = req.params.slug;
-    const blogResult = await BlogService.deleteBlog(slug);
-    const resDoc = responseHandler(200, "Blog Deleted successfully");
-    res.status(resDoc.statusCode).json(resDoc);
-  });
+  })
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  // ==============================
+  //  Topic
+  // ==============================
 
 
   createTopic = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
 
-    const { title }:TopicI = req.body;
+    const { title }: TopicI = req.body;
 
     const payload = {
       title,
     };
 
-    const result = await BlogService.createTopic(payload,tx);
+    const result = await BlogService.createTopic(payload, tx);
 
     const resDoc = responseHandler(201, "Topic created successfully", result);
     res.status(resDoc.statusCode).json(resDoc);
   });
-
 
   getAllTopics = catchError(async (req: Request, res: Response, next: NextFunction) => {
 
@@ -228,12 +273,12 @@ export class BlogController {
   updateTopic = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const topicId = Number(req.params.id);
 
-    const {  title } :TopicI = req.body;
+    const { title }: TopicI = req.body;
 
     const payload = {
-      
+
       title
-   
+
     };
 
     const result = await BlogService.updateTopic(topicId, payload);
@@ -241,7 +286,7 @@ export class BlogController {
     const resDoc = responseHandler(200, "Topic updated successfully", result);
     res.status(resDoc.statusCode).json(resDoc);
   });
-  
+
   deleteTopic = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const topicId = Number(req.params.id);
 
@@ -250,7 +295,7 @@ export class BlogController {
     const resDoc = responseHandler(200, "Topic deleted successfully", result);
     res.status(resDoc.statusCode).json(resDoc);
   });
-  
+
   getAllTopicByPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const payload = {
       page: req.query.page || 1,
@@ -270,14 +315,82 @@ export class BlogController {
 
 
 
+  // ==============================
+  //  Industries
+  // ==============================
+
+  createIndustries = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+
+    const { title }: IIndustries = req.body;
+
+    const payload = {
+      title,
+    };
+
+    const result = await BlogService.createIndustries(payload, tx);
+
+    const resDoc = responseHandler(201, "Industries created successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getAllIndustriess = catchError(async (req: Request, res: Response, next: NextFunction) => {
 
 
+    const result = await BlogService.getAllIndustriess();
+
+    const resDoc = responseHandler(200, "Industriess fetched successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getSingleIndustries = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const topicId = Number(req.params.id);
+
+    const result = await BlogService.getSingleIndustries(topicId);
+
+    const resDoc = responseHandler(200, "Industries fetched successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  updateIndustries = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const topicId = Number(req.params.id);
+
+    const { title }: IIndustries = req.body;
+
+    const payload = {
+
+      title
+
+    };
+
+    const result = await BlogService.updateIndustries(topicId, payload);
+
+    const resDoc = responseHandler(200, "Industries updated successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  deleteIndustries = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const topicId = Number(req.params.id);
+
+    const result = await BlogService.deleteIndustries(topicId);
+
+    const resDoc = responseHandler(200, "Industries deleted successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getAllIndustriesByPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const payload = {
+      page: req.query.page || 1,
+      limit: req.query.limit || 10,
+      order: req.query.order || "asc",
+    };
+    console.log("🚀 ~ blog.controller.ts:272 ~ BlogController ~ payload:", payload)
 
 
+    const result = await BlogService.getAllIndustriesByPagination(payload);
 
-
-
-
+    const resDoc = responseHandler(200, "Industriess fetched successfully", result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 
 
 

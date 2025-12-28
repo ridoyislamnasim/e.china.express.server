@@ -39,8 +39,8 @@ app.use("/public", express.static(path.join(__dirname, "..", "uploads")));
 const allowedOrigins = [
   'http://localhost:3010',
   'http://localhost:3012',
-  'https://e-china-express-customer.vercel.app',
-  'https://e-china-express.vercel.app',
+  'https://echinaexpress.com',
+  'https://admin.echinaexpress.com',
 ];
 app.use(
   cors({

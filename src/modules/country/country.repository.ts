@@ -72,22 +72,37 @@ export class CountryRepository {
     });
   }
 
- async getCountryWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
+//  async getCountryWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
+    async getCountryWithPagination(payload: any, tx: any) {
     const { limit, offset } = payload;
-    const prismaClient: PrismaClient = tx || this.prisma;
-    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
-        const [doc, totalDoc] = await Promise.all([
-        this.prisma.country.findMany({
-          where: {  },
-          skip: offset,
-          take: limit,
-          // orderBy: sortOrder,
-          include: { ports: true, warehouses: true },
-        }),
-        prisma.country.count({ where: {  } }),
-      ]);
-      return { doc, totalDoc };
-    });
+    // const prismaClient: PrismaClient = tx || this.prisma;
+    console.log("Pagination Payload: ", payload);
+    // return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+    //     const [doc, totalDoc] = await Promise.all([
+    //     this.prisma.country.findMany({
+    //       where: {  },
+    //       skip: offset,
+    //       take: limit,
+    //       // orderBy: sortOrder,
+    //       include: { ports: true, warehouses: true },
+    //     }),
+    //     prisma.country.count({ where: {  } }),
+    //   ]);
+    //   return { doc, totalDoc };
+    // });
+
+        return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+          const [doc, totalDoc] = await Promise.all([
+            await  this.prisma.country.findMany({
+              skip: payload.offset,
+              take: payload.limit,
+              orderBy: { createdAt: sortOrder },
+              include: { ports: true, warehouses: true },
+            }),
+            await  this.prisma.country.count(),
+          ]);
+          return { doc, totalDoc };
+        });
  }
 
 //  update 

@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "node dist/server.js", 
     "dev": "nodemon src/server.ts",
     "build": "tsc",
-    "db:backup": "npx ts-node scripts/backup.ts",
-    "db:restore": "npx ts-node scripts/restore.ts"
+    "db:backup": "npx ts-node src/scripts/backup.ts",
+    "db:restore": "npx ts-node src/scripts/restore.ts"
   },
   "keywords": [],
   "author": "",
