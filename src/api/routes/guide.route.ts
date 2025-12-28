@@ -1,5 +1,6 @@
 import { Router } from "express";
 import guideController from "../../modules/guide/guide.controller";
+import { upload } from "../../middleware/upload/upload";
 
 const guideRoute = Router();
 
