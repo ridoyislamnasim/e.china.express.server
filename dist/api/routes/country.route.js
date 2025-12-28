@@ -7,7 +7,7 @@ const express_1 = require("express");
 // import controller from "../../modules/order/order.controller";
 const country_controller_1 = __importDefault(require("../../modules/country/country.controller"));
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-const upload_1 = require("../../middleware/upload/upload");
+// import { upload } from "../../middleware/upload/upload";
 const countryRoute = (0, express_1.Router)();
 // OrderRoute.use(jwtAuth());
 countryRoute.route("/")
@@ -21,7 +21,7 @@ countryRoute.get("/pagination", country_controller_1.default.getCountryWithPagin
 // countryRoute.get("/incomplete/pagination", controller.getIncompleteOrderWithPagination);
 countryRoute.route("/:id")
     // .get(controller.getSingleOrder)
-    .patch(upload_1.upload.any(), country_controller_1.default.updateCountry)
+    .patch(country_controller_1.default.updateCountry)
     .delete(country_controller_1.default.deleteCountry);
 // countryRoute.put("/status/:id", controller.updateOrderStatus);
 // countryRoute.put("/couriersend/:id", controller.isCourierSending);

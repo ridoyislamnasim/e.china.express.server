@@ -8,7 +8,7 @@ import path from 'path';
 
 import { idGenerate } from '../../utils/IdGenerator';
 
-import { AuthUserSignUpPayload } from '../../types/auth/auth.types';
+import { AuthUserSignUpPayload } from '../../types/auth';
 import { BaseRepository } from '../base/base.repository';
 import Email from '../../utils/Email';
 import { generateOTP } from '../../utils/OTPGenerate';

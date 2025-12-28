@@ -1,90 +1,25 @@
 import { Router } from "express";
 import controller from "../../modules/blog/blog.controller";
-import { upload } from "../../middleware/upload/upload";
+// import { upload } from "../../middleware/upload/upload";
 // import jwtAuth from "../../middleware/auth/jwtAuth";
 
 const BlogRoute = Router();
 // BlogRoute.use(jwtAuth());
 
-// ==============================
-// Blog CRUD
-// ==============================
-// BlogRoute
-//   .route("/")
-//   .post(upload.any(), controller.createBlog)
-//   .get(controller.getAllBlogs);
+//done
+BlogRoute.route("/").post( controller.createBlog);
+BlogRoute.route("/create-tag").post(controller.createBlogTag);
+BlogRoute.route("/").get(controller.getAllBlogs);
+BlogRoute.route("/blog-tags").post(controller.getAllBlogTags);
+BlogRoute.get("/:slug", controller.getSingleBlog);
+BlogRoute.patch("/:slug", controller.updateBlogBySlug);
+BlogRoute.patch("/blog-tags/:slug", controller.updateBlogTagBySlug);
+BlogRoute.delete("/:slug", controller.deleteBlogBySlug);
+BlogRoute.delete("/blog-tags/:slug", controller.deleteBlogTagBySlug);
 
-
-
-
-
-
-
-
-// ==============================
-// topic  CRUD
-// ==============================
-BlogRoute
-.route("/topics")
-.post(controller.createTopic)
-.get(controller.getAllTopics);
-
-BlogRoute.get("/topics/pagination", controller.getAllTopicByPagination);
-
-BlogRoute
-  .route("/topics/:id")
-  .get(controller.getSingleTopic)
-  .patch(controller.updateTopic)
-  .delete(controller.deleteTopic);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-BlogRoute
-  .route("/:slug")
-  .get(controller.getSingleBlog)
-  .patch(controller.updateBlogBySlug)
-  .put(upload.any(), controller.updateBlog)
-  .delete(controller.deleteBlogBySlug);
-
-// ==============================
-// Blog Tags
-// ==============================
-BlogRoute
-  .route("/blog-tags")
-  .get(controller.getAllBlogTags);
-
-BlogRoute
-  .route("/blog-tags/:slug")
-  .patch(controller.updateBlogTagBySlug)
-  .delete(controller.deleteBlogTagBySlug);
-
-BlogRoute
-  .route("/create-tag")
-  .post(controller.createBlogTag);
-
-// ==============================
-// Filters & Queries
-// ==============================
-BlogRoute
-  .route("/get-blog-by-tag")
-  .post(controller.getBlogsByTags);
-
-BlogRoute
-  .route("/pagination")
-  .get(controller.getBlogWithPagination);
-
+//todo
+BlogRoute.get("/pagination", controller.getBlogWithPagination);
+BlogRoute.route("/:slug").put( controller.updateBlog);
+BlogRoute.delete("/:slug", controller.deleteBlog);
 
 export default BlogRoute;

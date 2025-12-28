@@ -3,7 +3,7 @@ import { Router } from "express";
 import controller from "../../modules/country/country.controller";
 
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-import { upload } from "../../middleware/upload/upload";
+// import { upload } from "../../middleware/upload/upload";
 
 const countryRoute = Router();
 // OrderRoute.use(jwtAuth());
@@ -22,7 +22,7 @@ countryRoute.get("/pagination", controller.getCountryWithPagination);
 
 countryRoute.route("/:id")
     // .get(controller.getSingleOrder)
-    .patch(upload.any(), controller.updateCountry)
+    .patch( controller.updateCountry)
     .delete(controller.deleteCountry);
 
 // countryRoute.put("/status/:id", controller.updateOrderStatus);

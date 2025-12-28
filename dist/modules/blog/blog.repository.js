@@ -10,13 +10,13 @@ class BlogRepository extends base_repository_1.BaseRepository {
         this.prisma = prisma;
     }
     async createBlog(payload, tx) {
-        return await this.prisma.blog.create({ data: payload });
+        return await prismadatabase_1.default.blog.create({ data: payload });
     }
     async createBlogTag(payload) {
-        return await this.prisma.blogTag.create({ data: payload });
+        return await prismadatabase_1.default.blogTag.create({ data: payload });
     }
     async findSlug(slug) {
-        const result = await this.prisma.blog.findFirst({
+        const result = await prismadatabase_1.default.blog.findFirst({
             where: {
                 slug: slug,
             },
@@ -26,30 +26,28 @@ class BlogRepository extends base_repository_1.BaseRepository {
     // Get all tags (with optional pagination)
     async findAllBlogs(offset = 0, limit = 10) {
         const [blogs, total] = await Promise.all([
-            this.prisma.blog.findMany({
+            prismadatabase_1.default.blog.findMany({
                 skip: offset,
                 take: limit,
                 orderBy: { createdAt: "desc" },
             }),
-            this.prisma.blog.count(),
+            prismadatabase_1.default.blog.count(),
         ]);
         return { blogs, total };
     }
     async findAllBlogTags(offset = 0, limit = 10) {
-        var _a, _b;
-        const [blogTags, totalResult] = await Promise.all([
-            this.prisma.blogTag.findMany({
+        const [blogTags, total] = await Promise.all([
+            prismadatabase_1.default.blogTag.findMany({
                 skip: offset,
                 take: limit,
                 orderBy: { createdAt: "desc" },
             }),
-            this.prisma.$queryRaw `SELECT COUNT(*)::int AS count FROM "BlogTag"`,
+            prismadatabase_1.default.blogTag.count(),
         ]);
-        const total = (_b = (_a = totalResult[0]) === null || _a === void 0 ? void 0 : _a.count) !== null && _b !== void 0 ? _b : 0;
         return { blogTags, total };
     }
     async findBlogSlugTag(slug) {
-        const result = await this.prisma.blogTag.findFirst({
+        const result = await prismadatabase_1.default.blogTag.findFirst({
             where: {
                 slug: slug,
             },
@@ -57,10 +55,10 @@ class BlogRepository extends base_repository_1.BaseRepository {
         return result;
     }
     async getAllBlog() {
-        return await this.prisma.blog.findMany({ orderBy: { createdAt: "desc" } });
+        return await prismadatabase_1.default.blog.findMany({ orderBy: { createdAt: "desc" } });
     }
     async getNavBar() {
-        return await this.prisma.blog.findMany({
+        return await prismadatabase_1.default.blog.findMany({
             orderBy: { createdAt: "desc" },
         });
     }
@@ -76,23 +74,23 @@ class BlogRepository extends base_repository_1.BaseRepository {
         });
     }
     async deleteBlogById(id) {
-        return await this.prisma.blog.delete({
+        return await prismadatabase_1.default.blog.delete({
             where: { id },
         });
     }
     async deleteBlogTagById(id) {
-        return await this.prisma.blogTag.delete({
+        return await prismadatabase_1.default.blogTag.delete({
             where: { id },
         });
     }
     async updateBlogTag(id, payload) {
-        return await this.prisma.blogTag.update({
+        return await prismadatabase_1.default.blogTag.update({
             where: { id: id },
             data: payload,
         });
     }
     async findBlogTagBySlug(slug) {
-        return this.prisma.blogTag.findFirst({ where: { slug } });
+        return prismadatabase_1.default.blogTag.findFirst({ where: { slug } });
     }
     async deleteBlog(slug) {
         return await this.prisma.blog.delete({

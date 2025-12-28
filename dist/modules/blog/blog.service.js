@@ -147,10 +147,6 @@ class BlogService {
         const deleted = await this.repository.deleteBlogTagById(existing.id);
         return deleted;
     }
-    async getBlogsByTags(tags, tx) {
-        const blogs = await blog_repository_1.default.getBlogsByTags(tags, tx);
-        return blogs;
-    }
     //todo
     async getBlogWithPagination(payload) {
         return await this.repository.getBlogWithPagination(payload);

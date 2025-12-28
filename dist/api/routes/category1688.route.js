@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const category_1688_controller_1 = __importDefault(require("../../modules/category1688/category.1688.controller"));
+// import jwtAuth from "../../middleware/auth/jwtAuth";
+// import { upload } from "../../middleware/upload/upload";
 const Category1688Router = (0, express_1.Router)();
 // Category1688Router.use(jwtAuth());
 // Category1688Router.get("/navbar", controller.getNavBar);

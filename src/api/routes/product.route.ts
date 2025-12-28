@@ -1,7 +1,7 @@
 import { Router } from "express";
 import controller from "../../modules/product/product.controller";
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-import { upload } from "../../middleware/upload/upload";
+// import { upload } from "../../middleware/upload/upload";
 
 const ProductRoute = Router();
 // ProductRoute.use(jwtAuth());

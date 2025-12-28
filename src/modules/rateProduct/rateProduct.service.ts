@@ -1,5 +1,5 @@
 // import RateProductPayload from "../../types/rateProduct";
-import RateProductPayload from "../../types/auth/rateProduct";
+import RateProductPayload from "../../types/rateProduct";
 import ratePorductRepository, { RatePorductRepository } from "./rateProduct.repository";
 
 

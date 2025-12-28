@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const product_controller_1 = __importDefault(require("../../modules/product/product.controller"));
+// import jwtAuth from "../../middleware/auth/jwtAuth";
+// import { upload } from "../../middleware/upload/upload";
 const ProductRoute = (0, express_1.Router)();
 // ProductRoute.use(jwtAuth());
 // 1688 API Routes

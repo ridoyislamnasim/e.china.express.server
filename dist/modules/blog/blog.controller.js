@@ -72,17 +72,6 @@ class BlogController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Blog deleted successfully", result);
             res.status(resDoc.statusCode).json(resDoc);
         });
-        this.getBlogsByTags = (0, withTransaction_1.default)(async (req, res, next, tx) => {
-            const { tags } = req.body; // expect array of strings from checkboxes
-            if (!tags || !Array.isArray(tags) || tags.length === 0) {
-                return res.status(400).json((0, responseHandler_1.responseHandler)(400, "Tags array is required"));
-            }
-            console.log("Filtering blogs by tags:", tags);
-            // call service with tx (optional, in case you want transaction for complex logic)
-            const blogs = await blog_service_1.default.getBlogsByTags(tags, tx);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, "Blogs fetched successfully", blogs);
-            res.status(resDoc.statusCode).json(resDoc);
-        });
         //todo
         this.getSingleBlogWithSlug = (0, catchError_1.default)(async (req, res, next) => {
             const slug = req.params.slug;
@@ -172,6 +161,30 @@ class BlogController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Topics fetched successfully", result);
             res.status(resDoc.statusCode).json(resDoc);
         });
+    }
+    async getAllBlogs(req, res, next) {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const resDoc = await blog_service_1.default.getAllBlogs(page, limit);
+            const result = (0, responseHandler_1.responseHandler)(200, "Blogs fetched successfully", resDoc);
+            res.status(result.statusCode).json(result);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async getAllBlogTags(req, res, next) {
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const resDoc = await blog_service_1.default.getAllBlogTags(page, limit);
+            const result = (0, responseHandler_1.responseHandler)(200, "Blog tags fetched successfully", resDoc);
+            res.status(result.statusCode).json(result);
+        }
+        catch (error) {
+            next(error);
+        }
     }
     async getAllBlogs(req, res, next) {
         try {

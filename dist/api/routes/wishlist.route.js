@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const wishlist_controller_1 = __importDefault(require("../../modules/wishlist/wishlist.controller"));
 const jwtAuth_1 = __importDefault(require("../../middleware/auth/jwtAuth"));
+// import { upload } from "../../middleware/upload/upload";
 const WishlistRoute = (0, express_1.Router)();
 // WishlistRoute.use(jwtAuth());
 WishlistRoute.route("/")

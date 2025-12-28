@@ -5,6 +5,13 @@
     "module": "commonjs",
     "target": "es2019",
     "esModuleInterop": true,
-    "strict": true
-  }
+    "strict": true,
+    "typeRoots": ["./src/types", "./node_modules/@types"], 
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node", 
+    "lib": ["es2019"] 
+    
+  },
+  "include": ["src"]
 }

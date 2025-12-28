@@ -1,7 +1,7 @@
 
 import prisma from '../../config/prismadatabase';
 import { PrismaClient } from '@prisma/client';
-import { AuthUserSignUpPayload } from '../../types/auth/auth.types';
+import { AuthUserSignUpPayload } from '../../types/auth';
 import { hashOTP } from '../../utils/OTPGenerate';
 
 export class AuthRepository {
