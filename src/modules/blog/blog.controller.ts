@@ -51,6 +51,7 @@ export class BlogController {
     };
 
     const { title, details, tagIds, industryId, topicId, status, trendingContent, featured }: BlogI = req.body;
+    console.log("-------------------------blog create body----------------------", req.body);
 
     const payload = {
       user,
