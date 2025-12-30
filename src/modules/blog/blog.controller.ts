@@ -4,7 +4,6 @@ import { responseHandler } from "../../utils/responseHandler";
 import withTransaction from "../../middleware/transactions/withTransaction";
 import BlogService from "./blog.service";
 import { BlogI, CreateBlogRequestDto, IIndustries, TopicI, UpdateBlogRequestDto, UpdateBlogTagRequestDto } from "../../types/blog";
-import { string } from "zod";
 
 export class BlogController {
 
@@ -60,7 +59,7 @@ export class BlogController {
       tagIds,
       industryId,
       topicId,
-      status,
+      status: Boolean(status),
       trendingContent,
       featured,
 
@@ -86,7 +85,7 @@ export class BlogController {
       tagIds,
       industryId: industryId ?? 0,
       topicId: topicId ?? 0,
-      status,
+      status: Boolean(status),
       featured,
       trendingContent,
     };

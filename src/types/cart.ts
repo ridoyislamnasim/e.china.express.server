@@ -35,17 +35,17 @@ export interface TCartProductVariant {
 }
 
 export interface ProductShippingPayload {
-            cartId: number;
-            rateId: number;
-            cartProductId: number;
-            userId: number;
-            fromCountryId: number;
-            toCountryId: number;
-            totalQuantity: number;
-            approxWeight: number;
+            cartId?: number;
+            rateId?: number;
+            cartProductId?: number;
+            userId?: number;
+            fromCountryId?: number;
+            toCountryId?: number;
+            totalQuantity?: number;
+            approxWeight?: number;
             weightRange?: string;
             shippingMethodId?: number;
-            totalCost: number;
+            totalCost?: number;
             customDuty?: number;
             vat?: number;
             handlingFee?: number;
@@ -53,8 +53,31 @@ export interface ProductShippingPayload {
             discount?: number;
             finalPayable?: number;
             estDeliveryDays?: number;
-            shippingStatus: string;
+            shippingStatus?: string;
         }
 
 export type CartPayload = TCart & { products?: TCartProduct[] };
+
+export interface TPriceRange {
+	startQuantity: number;
+ 	price: string | number;
+}
+
+export interface TUnitInfo {
+ 	unit?: string;
+ 	transUnit?: string;
+}
+
+export interface TFenxiaoSaleInfo {
+ 	onePieceFreePostage?: boolean;
+ 	startQuantity?: number;
+}
+
+export interface TSaleInfo {
+ 	amountOnSale?: number;
+ 	priceRangeList?: TPriceRange[];
+ 	quoteType?: number;
+ 	unitInfo?: TUnitInfo;
+ 	fenxiaoSaleInfo?: TFenxiaoSaleInfo;
+}
 

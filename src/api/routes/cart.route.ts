@@ -8,6 +8,8 @@ CartRoute.use(jwtAuth());
 // cart
 CartRoute.route("/")
   .post(controller.createCartItem)
+CartRoute.route("/cart-update")
+  .post(controller.updateCartItem)
 //   .get(controller.getAllCartByUser);
 CartRoute.post("/confirm", jwtAuth(), controller.cartProductConfirm);
 CartRoute.get("/user-cart/product/:id", jwtAuth(), controller.getUserCartByProductId);

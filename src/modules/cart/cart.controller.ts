@@ -35,6 +35,32 @@ class CartController {
 
   })
 
+    updateCartItem = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+    // Zschema validation can be added here if needed
+    console.log("Request Body: ", req.body);
+    const payload = cartSchema.parse(req.body);
+    // attach authenticated user id to payload items safely
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    if (Array.isArray(payload)) {
+      // payload is an array of items - add userRef to each
+      (payload as any[]).forEach((p) => {
+        (p as any).userRef = userRef;
+      });
+    } else {
+      // single object payload
+      (payload as any).userRef = userRef;
+    }
+
+    // এখন payload safe
+    console.log("Validated Payload: ", payload);
+
+    const cartServiceResult = await CartService.updateCartItem(payload, tx);
+    const resDoc = responseHandler(200, "Cart updated", cartServiceResult);
+    res.status(resDoc.statusCode).json(resDoc);
+
+
+  })
+
   cartProductConfirm = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     // Zschema validation can be added here if needed
     console.log("Request Body: ", req.body);

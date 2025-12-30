@@ -13,6 +13,8 @@ CartRoute.use((0, jwtAuth_1.default)());
 // cart
 CartRoute.route("/")
     .post(cart_controller_1.default.createCartItem);
+CartRoute.route("/cart-update")
+    .post(cart_controller_1.default.updateCartItem);
 //   .get(controller.getAllCartByUser);
 CartRoute.post("/confirm", (0, jwtAuth_1.default)(), cart_controller_1.default.cartProductConfirm);
 CartRoute.get("/user-cart/product/:id", (0, jwtAuth_1.default)(), cart_controller_1.default.getUserCartByProductId);

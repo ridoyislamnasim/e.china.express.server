@@ -830,7 +830,7 @@ model CartProduct {
 
   cartId  Int
   cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  confirm Boolean @default(false)
+  confirm Boolean @default(false) // confirm that the product into cart
 
   quantity        Int   @default(1)
   totalPrice      Float @default(0)
@@ -849,6 +849,7 @@ model CartProductPriceRange {
 
   startQuantity Int
   price         Decimal @db.Decimal(10, 2)
+  // amountOnSale quoteType  Number;
 
   cartProductId Int
   cartProduct   CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
@@ -872,6 +873,8 @@ model CartProductVariant {
 
   quantity     Int  @default(1)
   amountOnSale Int?
+  
+  // isConfirmedToCart Boolean @default(false) // confirm that this variant is added to cart
 
   attributeName       String?
   attributeNameSecond String?
