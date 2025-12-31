@@ -20,6 +20,7 @@ export class BlogRepository extends BaseRepository<Blog> {
     const { title, details, slug, industryId, topicId, status, image, tagsArray, trendingContent, featured } = payload;
     const client = tx || this.prisma;
     console.log('Creating blog with tagsArray:', tagsArray);
+        console.log("-------------------------blog create payload----------------------", payload);
 
     // Blog create with tags
     const blog = await client.blog.create({

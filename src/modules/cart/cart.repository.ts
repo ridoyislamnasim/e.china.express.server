@@ -2,7 +2,7 @@ import { PrismaClient, Cart, CartProduct, CartProductVariant } from '@prisma/cli
 import { pagination } from '../../utils/pagination';
 import { BaseRepository } from '../base/base.repository';
 import { NotFoundError } from '../../utils/errors';
-import { TCart, TCartProduct, TCartProductVariant } from '../../types/cart';
+import { ProductShippingPayload, TCart, TCartProduct, TCartProductVariant, TSaleInfo } from '../../types/cart';
 
 export class CartRepository extends BaseRepository<Cart> {
   private prisma: PrismaClient;
@@ -11,6 +11,32 @@ export class CartRepository extends BaseRepository<Cart> {
     super(prisma.cart);
     this.prisma = prisma;
   }
+
+
+  // ------------------------------------------- common methods  ----------------------------
+  async findConfirmVariantsByTCartProductId(cartProductId: number, tx?: any) {
+    const client = tx || this.prisma;
+    return await client.cartProduct.findMany({
+      where: {
+         id: cartProductId,
+         confirm: true
+         },
+      include: {
+        variants: true,
+        productShipping:{
+          include: {
+            rate: true,
+            fromCountry: true,
+            toCountry: true,
+            shippingMethod: true
+          }
+        }
+
+      },
+    });
+  }
+
+  // ------------------------------------------ common methods End ----------------------------
 
   async createCart(payload: TCart, tx?: any) {
     const client = tx || this.prisma;
@@ -33,7 +59,7 @@ export class CartRepository extends BaseRepository<Cart> {
     }
   }
 
-  async createCartProduct(payload: TCartProduct, tx?: any) {
+  async createCartProduct(payload: TCartProduct, saleInfo?: TSaleInfo,  tx?: any) {
     const client = tx || this.prisma;
     console.log("Creating Cart Product with payload: ", payload);
     // try to find existing cartProduct for same cart and same product id (any of the id fields)
@@ -65,7 +91,24 @@ export class CartRepository extends BaseRepository<Cart> {
     }
 
     // no existing product -> create new
-    return await client.cartProduct.create({ data: payload as any });
+    const cartProductCreate = await client.cartProduct.create({ data: payload as any });
+    if (cartProductCreate) {
+      // than create CartProductPriceRange entries if priceRanges provided
+      if (saleInfo && Array.isArray(saleInfo.priceRangeList)) {
+        for (const pr of saleInfo.priceRangeList) {
+          await client.cartProductPriceRange.create({
+            data: {
+              cartProductId: cartProductCreate.id,
+              startQuantity: pr.startQuantity,
+              price: pr.price,
+            }
+          });
+        }
+      }
+    }
+    return cartProductCreate;
+
+
   }
 
 
@@ -284,6 +327,17 @@ export class CartRepository extends BaseRepository<Cart> {
     return await client.cartProductShipping.create({ data: payload });
   }
 
+  async updateCartProductShipping(id: number, cartProductShippingPayload: ProductShippingPayload, tx?: any) {
+    const client = tx || this.prisma;
+
+    return await client.cartProductShipping.update({
+      where: {
+        id: Number(id),
+      },
+      data: cartProductShippingPayload,
+    });
+  }
+
 
   async updateCartProductShippingConfirm(cartProductId: string | number, tx?: any) {
     const client = tx || this.prisma;
@@ -305,13 +359,29 @@ export class CartRepository extends BaseRepository<Cart> {
       include: {
         products: {
           where: { confirm: true },
-          include: {
-            variants: true,
-            productShipping: true,
-            // shipping: true,
-            // cartProductShipping: true,
+          // include: {
+          //   variants: true,
+          //    productShipping: {
+          //     productShipping:true
+          //   },
+          //   // productShipping: true,
+          //   // cartProductShipping: true,
 
-          },
+          // },
+           include: {
+          variants: true,
+          priceRanges: true,
+          productShipping: {
+            include: {
+              rate: true,
+              fromCountry: true,
+              toCountry: true,
+              shippingMethod: true
+              // country: true,
+              // productShipping: true,
+            }
+          }
+        },
         },
       },
     });

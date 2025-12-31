@@ -37,7 +37,7 @@ class BlogController {
                 tagIds,
                 industryId,
                 topicId,
-                status,
+                status: Boolean(status),
                 trendingContent,
                 featured,
             };
@@ -60,7 +60,7 @@ class BlogController {
                 tagIds,
                 industryId: industryId !== null && industryId !== void 0 ? industryId : 0,
                 topicId: topicId !== null && topicId !== void 0 ? topicId : 0,
-                status,
+                status: Boolean(status),
                 featured,
                 trendingContent,
             };

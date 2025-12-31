@@ -38,7 +38,8 @@ export class BlogService {
     const { title, details, tagIds, industryId, topicId, status, trendingContent, featured } = payload;
     const { files } = payloadFiles;
     if (!files) throw new Error('image is required');
-    console.log('Creating blog with files:', files);
+    // console.log('Creating blog with files:', files);
+    console.log('Creating blog with payload:', payload);
     const images = await ImgUploader(files);
     for (const key in images) {
       payload[key] = images[key];

@@ -22,7 +22,7 @@ function buildFinalUrl(apiBaseUrl, uriPath, signature) {
     return `${apiBaseUrl}${uriPath}?_aop_signature=${signature}`;
 }
 async function call168822(apiBaseUrl, uriPath, params, appSecret) {
-    var _a, _b, _c, _d;
+    var _a, _b;
     const signature = generateAopSignature(uriPath, params, appSecret);
     const finalUrl = buildFinalUrl(apiBaseUrl, uriPath, signature);
     // Build URL-encoded body (1688 expects form-urlencoded)
@@ -35,8 +35,8 @@ async function call168822(apiBaseUrl, uriPath, params, appSecret) {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
     });
-    console.log('1688 response data:', (_b = (_a = response.data) === null || _a === void 0 ? void 0 : _a.result) === null || _b === void 0 ? void 0 : _b.result);
-    return (_d = (_c = response.data) === null || _c === void 0 ? void 0 : _c.result) === null || _d === void 0 ? void 0 : _d.result;
+    // console.log('1688 response data:', response.data?.result?.result);
+    return (_b = (_a = response.data) === null || _a === void 0 ? void 0 : _a.result) === null || _b === void 0 ? void 0 : _b.result;
 }
 exports.default = {
     generateAopSignature,

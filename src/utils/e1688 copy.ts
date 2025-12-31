@@ -29,7 +29,7 @@ export async function call168822(apiBaseUrl: string, uriPath: string, params: Re
       'Content-Type': 'application/x-www-form-urlencoded',
     },
   });
-  console.log('1688 response data:', response.data?.result?.result);
+  // console.log('1688 response data:', response.data?.result?.result);
   return response.data?.result?.result;
 }
 
