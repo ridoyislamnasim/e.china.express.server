@@ -30,6 +30,7 @@ class BlogController {
                 files: req.files,
             };
             const { title, details, tagIds, industryId, topicId, status, trendingContent, featured } = req.body;
+            console.log("-------------------------blog create body----------------------", req.body);
             const payload = {
                 user,
                 title,

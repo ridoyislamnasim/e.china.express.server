@@ -10,11 +10,11 @@ const ImgUploder_1 = __importDefault(require("../../middleware/upload/ImgUploder
 exports.default = new (class GuideService {
     constructor() {
         //done
-        this.createGuideVideo = async (payload) => {
+        this.createGuideVideo = async (payload, payloadFiles) => {
             if (!payload.title || !payload.url || !payload.guideId || !payload.videoSerial) {
                 throw new Error("Title, URL, guideId, and videoSerial are required");
             }
-            const { payloadFiles } = payload;
+            console.log("🚀 ~ guide.service.ts:180 ~ payloadFiles:", payloadFiles);
             if (!payloadFiles) {
                 throw new Error("Image is required");
             }
@@ -274,10 +274,38 @@ exports.default = new (class GuideService {
         if (!existingGuide) {
             throw new errors_1.NotFoundError(`Id ${id} not found for update.`);
         }
-        const isSameSerial = await guide_repository_1.default.getGuideVideo(id);
-        if (Object.keys(isSameSerial).length != 0 && isSameSerial.videoSerial === payload.videoSerial) {
-            throw new errors_1.NotFoundError(`Change the video Serial.`);
+        if (files && files.length > 0) {
+            const images = await (0, ImgUploder_1.default)(files); // returns object { imgSrc: '...', thumbnail: '...' }
+            Object.assign(payload, images);
         }
+        const isSameSerial = await guide_repository_1.default.getGuideVideo(id);
+        if (payload.videoSerial !== isSameSerial.videoSerial) {
+            const allVideos = await guide_repository_1.default.findVideosByGuideId(payload.guideId);
+            const givenVideo = allVideos.filter((video) => video.id === id);
+            if (givenVideo.videoSerial !== payload.videoSerial) {
+                allVideos.some((video) => {
+                    if (video.videoSerial === payload.videoSerial) {
+                        throw new errors_1.NotFoundError(`Change the video Serial.`);
+                    }
+                });
+            }
+            return;
+        }
+        // console.log("🚀 ~ guide.service.ts:337 ~ updateGuideVideo ~ allVideos:", allVideos)
+        // const serialExists = allVideos.some(
+        //   (video:any) => {
+        //     if(video.videoSerial !== payload.videoSerial ){
+        //       return video;
+        //     }
+        //   }
+        // );
+        // console.log("🚀 ~ guide.service.ts:340 ~ updateGuideVideo ~ payload.videoSerial:", payload.videoSerial)
+        // console.log("🚀 ~ guide.service.ts:340 ~ updateGuideVideo ~ video.videoSerial:", video.videoSerial)
+        // console.log("🚀 ~ guide.service.ts:344 ~ updateGuideVideo ~ serialExists:", serialExists)
+        // return 
+        // if (Object.keys(isSameSerial).length != 0 && isSameSerial.videoSerial === payload.videoSerial) {
+        //   throw new NotFoundError(`Change the video Serial.`);
+        // }
         try {
             const updatedGuide = await guide_repository_1.default.updateGuideVideoRepository(id, payload);
             return {

@@ -35,7 +35,8 @@ class BlogService {
         const { files } = payloadFiles;
         if (!files)
             throw new Error('image is required');
-        console.log('Creating blog with files:', files);
+        // console.log('Creating blog with files:', files);
+        console.log('Creating blog with payload:', payload);
         const images = await (0, ImgUploder_1.default)(files);
         for (const key in images) {
             payload[key] = images[key];
