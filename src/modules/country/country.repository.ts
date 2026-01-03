@@ -38,9 +38,10 @@ export class CountryRepository {
     });
   }
 
-  async getCountryForShipping(condition: any): Promise<any> {
+  async getCountryWithCondition(condition: any): Promise<any> {
     return await this.prisma.country.findMany({
       where: condition,
+      include: { ports: true, warehouses: true, countryHsCodes: true },
     });
   }
 

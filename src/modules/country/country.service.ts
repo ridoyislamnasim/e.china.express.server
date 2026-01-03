@@ -1,5 +1,6 @@
 // AuthService (TypeScript version)
 // import CountryPayload from '../../types/country.type';
+import { is } from 'zod/v4/locales';
 import CountryPayload from '../../types/country.type';
 import countryRepository, { CountryRepository } from './country.repository';
 
@@ -66,10 +67,14 @@ export class CountryService {
   }
 
   async getCountryForShipping(): Promise<any> {
-    const country = await this.repository.getCountryForShipping({ isShippingCountry: false });
+    const country = await this.repository.getCountryWithCondition({ isShippingCountry: false });
     return country;
   }
 
+  async exportCountryData(): Promise<any> {
+    const countries = await this.repository.getCountryWithCondition({isShippingCountry: true});
+    return countries;
+  }
   async updateCountry(id: number, payload: CountryPayload, tx: any): Promise<any> {
     const { name, status, isoCode, ports, zone, isShippingCountry } = payload;
     if (isShippingCountry) {
