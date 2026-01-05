@@ -3,10 +3,10 @@ import jwtAuth from "../../middleware/auth/jwtAuth";
 import packageController from "../../modules/package/package.controller";
 
 const PackageRoute = Router();
-PackageRoute.use(jwtAuth());
+// PackageRoute.use(jwtAuth());
 
 PackageRoute.route("/")
-  .post(jwtAuth(), packageController.createPackage)
+  .post( packageController.createPackage)
   .get(packageController.getAllPackages);
 
 PackageRoute.get("/pagination", packageController.getPackagesWithPagination);

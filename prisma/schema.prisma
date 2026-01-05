@@ -326,8 +326,8 @@ enum WarehouseType {
 }
 
 model Package {
-  id        String            @id @default(cuid())
-  type      PackageStatus
+  id        String   @id @default(cuid())
+  type      PackageType        
   image     String
   name      String?
   
@@ -348,6 +348,14 @@ model Package {
   
   @@index([status])
   @@index([type, status])
+  @@index([createdAt])
+}
+
+enum PackageType {
+  WOODEN_BOX
+  POLITHIN
+  CARTOON
+  PACKING
 }
 
 enum PackageStatus {

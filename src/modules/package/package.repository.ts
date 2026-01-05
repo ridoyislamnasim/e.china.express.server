@@ -1,4 +1,5 @@
-import { PrismaClient, PackageStatus } from '@prisma/client';
+// package.repository.ts
+import { PrismaClient, PackageType, PackageStatus } from '@prisma/client';
 import { pagination } from '../../utils/pagination';
 
 const prisma = new PrismaClient();
@@ -6,10 +7,10 @@ const prisma = new PrismaClient();
 class PackageRepository {
   async createPackage(payload: any) {
     const data: any = {
-      type: payload.type,
+      type: payload.type as PackageType, // Cast to PackageType enum
       image: payload.image,
       price: payload.price,
-      status: payload.status || 'ACTIVE',
+      status: (payload.status || 'ACTIVE') as PackageStatus, // Cast to PackageStatus enum
     };
 
     // Add optional fields only if they exist
@@ -33,11 +34,11 @@ class PackageRepository {
     const query: any = {};
 
     if (type) {
-      query.type = type;
+      query.type = type as PackageType; // Cast to PackageType
     }
 
     if (status) {
-      query.status = status as PackageStatus;
+      query.status = status as PackageStatus; // Cast to PackageStatus
     }
 
     if (search) {
@@ -61,11 +62,11 @@ class PackageRepository {
       const query: any = {};
 
       if (type) {
-        query.type = type;
+        query.type = type as PackageType; // Cast to PackageType
       }
 
       if (status) {
-        query.status = status as PackageStatus;
+        query.status = status as PackageStatus; // Cast to PackageStatus
       }
 
       if (search) {
@@ -100,10 +101,10 @@ class PackageRepository {
 
   async getPackagesByType(payload: any) {
     const { type, status } = payload;
-    const query: any = { type };
+    const query: any = { type: type as PackageType }; // Cast to PackageType
 
     if (status) {
-      query.status = status as PackageStatus;
+      query.status = status as PackageStatus; // Cast to PackageStatus
     }
 
     return await prisma.package.findMany({
@@ -114,7 +115,7 @@ class PackageRepository {
 
   async getPackagesByStatus(status: string) {
     return await prisma.package.findMany({
-      where: { status: status as PackageStatus },
+      where: { status: status as PackageStatus }, // Cast to PackageStatus
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -129,7 +130,7 @@ class PackageRepository {
     const data: any = {};
 
     // Update only provided fields
-    if (payload.type !== undefined) data.type = payload.type;
+    if (payload.type !== undefined) data.type = payload.type as PackageType;
     if (payload.image !== undefined) data.image = payload.image;
     if (payload.name !== undefined) data.name = payload.name;
     if (payload.size !== undefined) data.size = payload.size;
@@ -141,7 +142,7 @@ class PackageRepository {
     if (payload.episodes !== undefined) data.episodes = payload.episodes;
     if (payload.metadata !== undefined) data.metadata = payload.metadata;
     if (payload.price !== undefined) data.price = payload.price;
-    if (payload.status !== undefined) data.status = payload.status;
+    if (payload.status !== undefined) data.status = payload.status as PackageStatus;
 
     return await prisma.package.update({
       where: { id },
@@ -152,7 +153,7 @@ class PackageRepository {
   async updatePackageStatus(id: string, status: string) {
     return await prisma.package.update({
       where: { id },
-      data: { status: status as PackageStatus },
+      data: { status: status as PackageStatus }, // Cast to PackageStatus
     });
   }
 
