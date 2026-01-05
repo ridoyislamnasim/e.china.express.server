@@ -325,6 +325,37 @@ enum WarehouseType {
   CROSS_DOCK
 }
 
+model Package {
+  id        String            @id @default(cuid())
+  type      PackageStatus
+  image     String
+  name      String?
+  
+  size      String?
+  weight    String?
+  volume    String?
+  cbm       String?
+  thin      String?        // for Polithin
+  category  String?        // for Cartoon
+  episodes  String?        // for Cartoon
+  
+  metadata  Json?
+  
+  price     String
+  status    PackageStatus  @default(ACTIVE)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  
+  @@index([status])
+  @@index([type, status])
+}
+
+enum PackageStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
 model SubChildCategory {
   id                 Int            @id @default(autoincrement())
   name               String?
