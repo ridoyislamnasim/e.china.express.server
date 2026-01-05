@@ -20,6 +20,7 @@ import warehouseRoute from "./routes/warehouse.route";
 import policiesRoute from "./routes/policies.route";
 import guideRoute from "./routes/guide.route";
 import warehouseSpaceRoute from "./routes/warehouseSpace.route";
+import PackageRoute from "./routes/package.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -52,7 +53,7 @@ rootRouter.use('/rate', rateRoute);
 rootRouter.use('/warehouses', warehouseRoute);
 rootRouter.use('/warehouse-spaces', warehouseSpaceRoute);
 
-
+rootRouter.use('/packages', PackageRoute);
 
 //done by rafi
 rootRouter.use("/policies",policiesRoute ); // policies routes
