@@ -97,6 +97,11 @@ export class Category1688Service {
     return await this.repository.getCategoriesForRateCalculation();
   }
 
+  async findCategory1688(payload: any): Promise<any> {
+    const { query } = payload;
+    return await this.repository.findCategory1688(query);
+  }
+
   // HS Code Entry Services
   async createHsCodeEntryByCategoryId(payload: any): Promise<any> {
     const { id, globalHsCodes, chinaHsCodes, globalMaterialComment, countryHsCode } = payload;

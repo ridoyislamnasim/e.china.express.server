@@ -18,6 +18,7 @@ Category1688Router.get('/agent/category/:categoryId', controller.getCategoryIdBy
 Category1688Router.get('/category/:categoryId', controller.getCategoryIdBySubcategory);
 Category1688Router.get('/rate', controller.getAllCategory1688ForRateCalculation);
 Category1688Router.post('/:categoryId/rate-calculation', controller.addCategoryForRateCalculation);
+Category1688Router.get('/find', controller.findCategory1688);
 
 Category1688Router.route("/hs-code/:id")
    .post(controller.createHsCodeEntryByCategoryId)

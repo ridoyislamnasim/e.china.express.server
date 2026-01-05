@@ -40,7 +40,6 @@ export class Category1688Repository {
     return roots;
   }
 
-
   async createOrUpdateCategory1688From1688Data(  result: any) {
     const { categoryId, translatedName, leaf, level, parentCateId } = result;
        const finalParentId = (!parentCateId || Number(parentCateId) === 0)
@@ -75,11 +74,26 @@ export class Category1688Repository {
       where: { categoryId },
     });
   }
+
   async getCategoryById(id: number): Promise<any> {
     return await prisma.category1688.findUnique({
       where: { id },
     });
   }
+
+ async findCategory1688(query: string): Promise<any> {
+    return await prisma.category1688.findMany({
+      where: {
+        translatedName: {
+          contains: query,
+          mode: 'insensitive',
+        },
+      },
+      orderBy: [{ level: "asc" }, { translatedName: "asc" }],
+      take: 100, 
+    });
+  }
+
   async updateCategoryRateFlagToggle(categoryId: number, isRateCategory: boolean): Promise<any> {
     console.log('Updating categoryId:', categoryId, 'to isRateCategory:', isRateCategory);
     return await prisma.category1688.update({

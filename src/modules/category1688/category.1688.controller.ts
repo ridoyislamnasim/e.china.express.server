@@ -65,6 +65,17 @@ export class Category1688Controller {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+  findCategory1688 = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const { query } = req.query;
+   const payload ={
+      query: String(query)
+   }
+   console.log('Received query in controller:', query);
+   const category1688Result = await Category1688Service.findCategory1688(payload);
+    const resDoc = responseHandler(200, 'Find Category1688', category1688Result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
 
     // HS Code Entry Handlers
   createHsCodeEntryByCategoryId = catchError(async (req: Request, res: Response, next: NextFunction) => {
