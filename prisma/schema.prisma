@@ -364,6 +364,83 @@ enum PackageStatus {
   ARCHIVED
 }
 
+enum BandingType {
+  PLASTIC
+  STEEL
+  PAPER
+  NYLON
+  POLYESTER
+  COTTON
+}
+
+enum BandingCategory {
+  TYPE_A      
+  TYPE_B      
+  TYPE_C     
+  TYPE_D      
+  TYPE_E    
+}
+
+enum PackagingType {
+  ROLL
+  SHEET
+  STRAP
+  COIL
+  BUNDLE
+  BOX
+}
+
+enum BandingStatus {
+  ACTIVE  
+  INACTIVE     
+  ARCHIVED     
+
+}
+
+model Banding {
+  id               String         @id @default(uuid())
+  brandingName     String         
+  slug             String         @unique
+  image            String
+  material         String
+  width            String
+  thickness        String?        
+  length           String?        
+  strength         String
+  tensileStrength  String?       
+  color            String
+  brand            String
+  logo             String
+  type             BandingType
+  category         BandingCategory
+  packaging        PackagingType
+  status           BandingStatus  @default(ACTIVE)
+  price            Decimal        @db.Decimal(10, 2)
+  priceCurrency    String         @default("USD")
+  costPrice        Decimal?       @db.Decimal(10, 2) 
+  discountPercent  Decimal?       @db.Decimal(5, 2)  
+  
+
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  publishedAt      DateTime?      
+  createdBy        String?
+  updatedBy        String?
+
+  @@index([brandingName])
+  @@index([slug])
+  @@index([type])
+  @@index([category])
+  @@index([brand])
+  @@index([status])
+  @@index([price])
+  @@index([createdAt])
+  @@index([updatedAt])
+ 
+  @@map("bandings")
+}
+
 model SubChildCategory {
   id                 Int            @id @default(autoincrement())
   name               String?
