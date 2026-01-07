@@ -73,6 +73,18 @@ class Category1688Repository {
             where: { id },
         });
     }
+    async findCategory1688(query) {
+        return await prismadatabase_1.default.category1688.findMany({
+            where: {
+                translatedName: {
+                    contains: query,
+                    mode: 'insensitive',
+                },
+            },
+            orderBy: [{ level: "asc" }, { translatedName: "asc" }],
+            take: 100,
+        });
+    }
     async updateCategoryRateFlagToggle(categoryId, isRateCategory) {
         console.log('Updating categoryId:', categoryId, 'to isRateCategory:', isRateCategory);
         return await prismadatabase_1.default.category1688.update({
@@ -149,6 +161,38 @@ class Category1688Repository {
     async getCategoryIdExit(category1688Id) {
         return await prismadatabase_1.default.category1688.findUnique({
             where: { categoryId: category1688Id },
+        });
+    }
+    async getCategoryByIdWithChildren(id) {
+        return await prismadatabase_1.default.category1688.findUnique({
+            where: { id },
+            include: {
+                children: {
+                    select: {
+                        id: true,
+                        categoryId: true,
+                        translatedName: true,
+                    },
+                },
+                parent: {
+                    select: {
+                        id: true,
+                        categoryId: true,
+                        level: true,
+                        translatedName: true,
+                        isRateCategory: true,
+                        parent: {
+                            select: {
+                                id: true,
+                                level: true,
+                                categoryId: true,
+                                translatedName: true,
+                                isRateCategory: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
     }
     async geSubCategoryIdExit(subCategory1688Id) {

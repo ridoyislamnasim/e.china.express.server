@@ -13,6 +13,7 @@ rateRoute.route("/")
     .post(rate_controller_1.default.createRate)
     .get(rate_controller_1.default.getAllRate);
 rateRoute.route("/find").get(rate_controller_1.default.findRateByCriteria);
+rateRoute.route("/find/booking-shipping-rate").post(rate_controller_1.default.findBookingShippingRate);
 rateRoute.route("/method-wise-rate").get(rate_controller_1.default.countryMethodWiseRate);
 // rate/bulk-adjust
 rateRoute.route("/bulk-adjust").post(rate_controller_1.default.bulkAdjustRate);

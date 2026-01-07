@@ -14,6 +14,7 @@ rateRoute.route("/")
     .get(controller.getAllRate);
 
 rateRoute.route("/find").get(controller.findRateByCriteria);
+rateRoute.route("/find/booking-shipping-rate").post(controller.findBookingShippingRate);
 rateRoute.route("/method-wise-rate").get(controller.countryMethodWiseRate);
 // rate/bulk-adjust
 rateRoute.route("/bulk-adjust").post(controller.bulkAdjustRate);

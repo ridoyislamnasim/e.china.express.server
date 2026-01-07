@@ -49,6 +49,16 @@ class CountryController {
                 next(error);
             }
         };
+        this.exportCountryData = async (req, res, next) => {
+            try {
+                const exportResult = await countryService.exportCountryData();
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Country data exported successfully', exportResult);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
         this.getCountryWithPagination = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             const page = parseInt(req.query.page, 10) || 1;
             const limit = parseInt(req.query.limit, 10) || 10;

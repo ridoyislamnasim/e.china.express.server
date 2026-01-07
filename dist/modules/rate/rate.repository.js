@@ -63,7 +63,24 @@ class RateRepository {
                 },
                 weightCategory: true,
                 shippingMethod: true,
-                category1688: true
+                category1688: {
+                    select: {
+                        categoryId: true,
+                        translatedName: true,
+                        parent: {
+                            select: {
+                                categoryId: true,
+                                translatedName: true,
+                            }
+                        },
+                        children: {
+                            select: {
+                                categoryId: true,
+                                translatedName: true,
+                            }
+                        }
+                    }
+                }
             }
         });
         return rate;
@@ -82,6 +99,7 @@ class RateRepository {
     }
     async findRateByCriteria(payload, tx) {
         const { countryCombinationId, weightCategoryId, shippingMethodId, category1688Id } = payload;
+        console.log("payload in repo", payload);
         const client = tx || this.prisma;
         const rates = await client.rate.findMany({
             where: {
@@ -126,8 +144,16 @@ class RateRepository {
                 },
                 category1688: {
                     select: {
+                        id: true,
                         categoryId: true,
-                        translatedName: true
+                        translatedName: true,
+                        parent: {
+                            select: {
+                                id: true,
+                                categoryId: true,
+                                translatedName: true,
+                            }
+                        },
                     }
                 }
             }

@@ -181,6 +181,39 @@ export class Category1688Repository {
         });
     }
 
+  async getCategoryByIdWithChildren(id: number): Promise<any> {
+    return await prisma.category1688.findUnique({
+      where: { id },
+      include: {
+        children: {
+          select: {
+            id: true,
+            categoryId: true,
+            translatedName: true,
+          },
+        },
+        parent: {
+          select: {
+            id: true,
+            categoryId: true,
+            level: true,
+            translatedName: true,
+            isRateCategory: true,
+            parent: {
+              select: {
+                id: true,
+                level: true,
+                categoryId: true,
+                translatedName: true,
+                isRateCategory: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   
   async geSubCategoryIdExit(subCategory1688Id: number): Promise<any> {
     return await prisma.category1688.findUnique({

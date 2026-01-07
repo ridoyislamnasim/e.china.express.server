@@ -101,6 +101,67 @@ class RateService {
         const rate = await this.repository.findRateByCriteria(payloadWithCombinationId);
         return rate;
     }
+    async findBookingShippingRate(payload) {
+        const { importCountryId, exportCountryId, shippingMethodId, weight, category1688Id } = payload;
+        console.log("findBookingShippingRate payload", payload);
+        // all fields are required
+        if (!importCountryId || !exportCountryId || !shippingMethodId || !weight || !category1688Id) {
+            const error = new Error('importCountryId, exportCountryId, shippingMethodId, weight and category1688Id are required');
+            error.statusCode = 400;
+            throw error;
+        }
+        // find the country combination id first
+        const countryCombinationPayload = {
+            importCountryId,
+            exportCountryId
+        };
+        const existingCountryCombination = await this.repository.existingCountryConbination(countryCombinationPayload);
+        console.log("existingCountryCombination", existingCountryCombination);
+        if (!existingCountryCombination) {
+            // no rates found
+            return [];
+        }
+        // find weight category id based on weight
+        const weightCategory = await this.repository.findWeightCategoryByWeight(weight);
+        if (!weightCategory) {
+            // error send not found
+            const error = new Error('Weight category not found for the given weight');
+            error.statusCode = 404;
+            throw error;
+        }
+        // category1688Id check
+        const categoryExists = await this.category1688Repository.getCategoryByIdWithChildren(category1688Id);
+        if (!categoryExists) {
+            const error = new Error('Category not found for the given category1688Id');
+            error.statusCode = 404;
+            throw error;
+        }
+        let category1688IdToUse;
+        console.log("categoryExists", categoryExists);
+        if (categoryExists.level === 1) {
+            // use parent category id
+            category1688IdToUse = categoryExists.id;
+        }
+        else if (categoryExists.level === 2) {
+            if (categoryExists.parent.isRateCategory == true) {
+                category1688IdToUse = categoryExists.parent.id;
+            }
+            category1688IdToUse = categoryExists.parent.id;
+        }
+        else {
+            category1688IdToUse = categoryExists.parent.parent.id;
+        }
+        console.log("categoryExists", categoryExists);
+        const { id } = existingCountryCombination;
+        const payloadWithCombinationId = {
+            weightCategoryId: weightCategory.id,
+            shippingMethodId,
+            category1688Id: category1688IdToUse,
+            countryCombinationId: id
+        };
+        const rate = await this.repository.findRateByCriteria(payloadWithCombinationId);
+        return { rate, category1688Used: categoryExists };
+    }
     async countryMethodWiseRate(payload) {
         const { importCountryId, exportCountryId, shippingMethodId } = payload;
         // all fields are required

@@ -54,6 +54,20 @@ class RateController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rates retrieved successfully', rates);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.findBookingShippingRate = (0, catchError_1.default)(async (req, res, next) => {
+            console.log("req.body", req.body);
+            const { importCountryId, exportCountryId, weight, shippingMethodId, category1688Id } = req.body;
+            const payload = {
+                importCountryId,
+                exportCountryId,
+                weight,
+                shippingMethodId,
+                category1688Id
+            };
+            const rates = await rateService.findBookingShippingRate(payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rates retrieved successfully', rates);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         this.countryMethodWiseRate = (0, catchError_1.default)(async (req, res, next) => {
             const { importCountryId, exportCountryId, shippingMethodId } = req.query;
             const payload = {

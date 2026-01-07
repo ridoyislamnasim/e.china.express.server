@@ -19,6 +19,7 @@ Category1688Router.get('/agent/category/:categoryId', category_1688_controller_1
 Category1688Router.get('/category/:categoryId', category_1688_controller_1.default.getCategoryIdBySubcategory);
 Category1688Router.get('/rate', category_1688_controller_1.default.getAllCategory1688ForRateCalculation);
 Category1688Router.post('/:categoryId/rate-calculation', category_1688_controller_1.default.addCategoryForRateCalculation);
+Category1688Router.get('/find', category_1688_controller_1.default.findCategory1688);
 Category1688Router.route("/hs-code/:id")
     .post(category_1688_controller_1.default.createHsCodeEntryByCategoryId)
     .get(category_1688_controller_1.default.getHsCodeEntryByCategoryId);

@@ -14,7 +14,7 @@ countryRoute.route("/")
     .post(country_controller_1.default.createCountry)
     .get(country_controller_1.default.getAllCountry);
 countryRoute.route("/shipping").get(country_controller_1.default.getCountryForShipping);
-// countryRoute.route("/admin").post(controller.createAdminOrder);
+countryRoute.route("/export").get(country_controller_1.default.exportCountryData);
 // countryRoute.route("/user/:id").get(controller.getUserAllOrder);
 // countryRoute.route("/track").get(controller.orderTracking);
 countryRoute.get("/pagination", country_controller_1.default.getCountryWithPagination);

@@ -53,8 +53,12 @@ class CountryService {
         return countries;
     }
     async getCountryForShipping() {
-        const country = await this.repository.getCountryForShipping({ isShippingCountry: false });
+        const country = await this.repository.getCountryWithCondition({ isShippingCountry: false });
         return country;
+    }
+    async exportCountryData() {
+        const countries = await this.repository.getCountryWithCondition({ isShippingCountry: true });
+        return countries;
     }
     async updateCountry(id, payload, tx) {
         const { name, status, isoCode, ports, zone, isShippingCountry } = payload;

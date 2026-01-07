@@ -58,6 +58,16 @@ class Category1688Controller {
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Category added for rate calculation', category1688Result);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.findCategory1688 = (0, catchError_1.default)(async (req, res, next) => {
+            const { query } = req.query;
+            const payload = {
+                query: String(query)
+            };
+            console.log('Received query in controller:', query);
+            const category1688Result = await category_1688_service_1.default.findCategory1688(payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Find Category1688', category1688Result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
         // HS Code Entry Handlers
         this.createHsCodeEntryByCategoryId = (0, catchError_1.default)(async (req, res, next) => {
             const { id } = req.params;

@@ -21,6 +21,7 @@ import policiesRoute from "./routes/policies.route";
 import guideRoute from "./routes/guide.route";
 import warehouseSpaceRoute from "./routes/warehouseSpace.route";
 import PackageRoute from "./routes/package.route";
+import AirBookingRouter from "./routes/air.booking.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -47,6 +48,11 @@ rootRouter.use('/rate/weightcategories', rateWeightCategoriesRoute);
 rootRouter.use('/rate/product', rateProductRoute);
 rootRouter.use('/rate', rateRoute);
 
+// booking 
+rootRouter.use("/booking/air", AirBookingRouter); 
+rootRouter.use("/booking/sea", WishlistRouter); 
+rootRouter.use("/booking/express", WishlistRouter);
+rootRouter.use("/booking/inventory", WishlistRouter);
 
 
 // WarehouseSpace masud
