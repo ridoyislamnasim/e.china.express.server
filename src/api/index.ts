@@ -22,6 +22,7 @@ import guideRoute from "./routes/guide.route";
 import warehouseSpaceRoute from "./routes/warehouseSpace.route";
 import PackageRoute from "./routes/package.route";
 import AirBookingRouter from "./routes/air.booking.route";
+import BandingRoute from "./routes/banding.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -60,6 +61,7 @@ rootRouter.use('/warehouses', warehouseRoute);
 rootRouter.use('/warehouse-spaces', warehouseSpaceRoute);
 
 rootRouter.use('/packages', PackageRoute);
+rootRouter.use('/banding', BandingRoute);
 
 //done by rafi
 rootRouter.use("/policies",policiesRoute ); // policies routes
