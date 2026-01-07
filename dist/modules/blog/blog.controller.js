@@ -87,7 +87,6 @@ class BlogController {
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getAllBlogsByPagination = (0, catchError_1.default)(async (req, res, next) => {
-            // Parse industryIds and topicIds as integer arrays
             const parseIds = (value) => {
                 if (!value)
                     return undefined;

@@ -24,6 +24,8 @@ const warehouse_route_1 = __importDefault(require("./routes/warehouse.route"));
 const policies_route_1 = __importDefault(require("./routes/policies.route"));
 const guide_route_1 = __importDefault(require("./routes/guide.route"));
 const warehouseSpace_route_1 = __importDefault(require("./routes/warehouseSpace.route"));
+const companyContact_route_1 = __importDefault(require("./routes/companyContact.route"));
+const teamManagement_route_1 = __importDefault(require("./routes/teamManagement.route"));
 // import other routers here
 const rootRouter = (0, express_1.Router)();
 rootRouter.use("/example", example_route_1.default);
@@ -46,7 +48,9 @@ rootRouter.use('/rate', rate_route_1.default);
 rootRouter.use('/warehouses', warehouse_route_1.default);
 rootRouter.use('/warehouse-spaces', warehouseSpace_route_1.default);
 //done by rafi
-rootRouter.use("/policies", policies_route_1.default); // policies routes
+rootRouter.use("/policies", policies_route_1.default);
 rootRouter.use("/blog", blog_route_1.default);
 rootRouter.use("/guide", guide_route_1.default);
+rootRouter.use("/contact-us", companyContact_route_1.default);
+rootRouter.use("/team-management", teamManagement_route_1.default);
 exports.default = rootRouter;

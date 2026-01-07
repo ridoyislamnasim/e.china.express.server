@@ -20,6 +20,8 @@ import warehouseRoute from "./routes/warehouse.route";
 import policiesRoute from "./routes/policies.route";
 import guideRoute from "./routes/guide.route";
 import warehouseSpaceRoute from "./routes/warehouseSpace.route";
+import contactUsRoute from "./routes/companyContact.route";
+import teamManagementRoute from "./routes/teamManagement.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -55,9 +57,12 @@ rootRouter.use('/warehouse-spaces', warehouseSpaceRoute);
 
 
 //done by rafi
-rootRouter.use("/policies",policiesRoute ); // policies routes
+rootRouter.use("/policies",policiesRoute ); 
 rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/guide", guideRoute);
+rootRouter.use("/contact-us", contactUsRoute); 
+rootRouter.use("/team-management", teamManagementRoute); 
+
 
 
 export default rootRouter;

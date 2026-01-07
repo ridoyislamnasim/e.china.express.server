@@ -1166,6 +1166,64 @@ enum ShippingStatus {
   RETURNED
 }
 
+
+
+
+
+model TeamMember {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  avatar       String?  // optional, like interface
+  rating       Float
+  origin       String
+  location     String
+  language     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+
+
+
+model CompanyContacts {
+  id               Int      @id @default(autoincrement())
+  phones           String[]          // array of phone numbers
+  email            String            @unique
+  businessHourStart String
+  businessHourEnd   String
+  emergencyHotlines String[]          // array of hotlines
+  facebook         String?           // optional
+  twitter          String?           // optional
+  linkedin         String?           // optional
+  instagram        String?           // optional
+  youtube        String?           // optional
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?      // optional
+  subject   String?      // optional
+  message   String
+  isChecked Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+
+
+
+
+
+
+
+
+
+
 // model Payment {
 //   id Int @id @default(autoincrement())
 
