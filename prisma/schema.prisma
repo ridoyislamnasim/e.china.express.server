@@ -1188,16 +1188,19 @@ model TeamMember {
 
 model CompanyContacts {
   id               Int      @id @default(autoincrement())
-  phones           String[]          // array of phone numbers
-  email            String            @unique
+  
+  phones           String          // array of phone numbers
+  emergencyHotlines String       // array of hotlines
+
+  email            String           
   businessHourStart String
   businessHourEnd   String
-  emergencyHotlines String[]          // array of hotlines
   facebook         String?           // optional
   twitter          String?           // optional
   linkedin         String?           // optional
   instagram        String?           // optional
   youtube        String?           // optional
+  tiktok  String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

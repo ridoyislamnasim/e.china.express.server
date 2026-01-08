@@ -2,19 +2,20 @@
 
 
 export interface CompanyContacts {
-  phones: string[];
+  phones: string;
   email: string;
-
+id:number
   businessHourStart: string; // "08:00"
   businessHourEnd: string;   // "18:00"
 
-  emergencyHotlines: string[];
+  emergencyHotlines: string;
 
   facebook?: string;
   twitter?: string;
   linkedin?: string;
   instagram?: string;
   youtube? : string;
+  tiktok? : string;
 }
 
 

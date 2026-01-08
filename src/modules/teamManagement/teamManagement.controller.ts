@@ -12,7 +12,7 @@ class TeamManagementController {
   ================================ */
   createTeamMember = catchError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, email, rating, origin, location, language } = req.body;
+      const { name, email, rating,  location, language } = req.body;
 
       if (!name || !email) {
         return res.status(400).json({
@@ -25,7 +25,7 @@ class TeamManagementController {
         email,
         avatar: req.file?.path,
         rating: Number(rating) || 0,
-        origin,
+        
         location,
         language,
       };

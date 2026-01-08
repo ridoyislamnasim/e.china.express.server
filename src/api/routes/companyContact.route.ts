@@ -5,6 +5,7 @@ const contactUsRoute = Router();
 
 contactUsRoute
   .route("/create-company-contacts")
+  .get(contactUsController.getCompanyContact)
   .put(contactUsController.createCompanyContact);
 
 
