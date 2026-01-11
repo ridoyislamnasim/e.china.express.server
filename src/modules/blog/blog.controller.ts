@@ -118,7 +118,6 @@ export class BlogController {
   });
 
   getAllBlogsByPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    // Parse industryIds and topicIds as integer arrays
     const parseIds = (value: any): number[] | undefined => {
       if (!value) return undefined;
       const arr = Array.isArray(value) ? value : [value];

@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const product_controller_1 = __importDefault(require("../../modules/product/product.controller"));
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-// import { upload } from "../../middleware/upload/upload";
+const upload_1 = require("../../middleware/upload/upload");
 const ProductRoute = (0, express_1.Router)();
 // ProductRoute.use(jwtAuth());
 // 1688 API Routes
@@ -17,7 +17,7 @@ ProductRoute.get("/1688/product/filter", product_controller_1.default.get1688Pro
 ProductRoute.get("/agent/1688/details/:productId", product_controller_1.default.get1688ProductDetailsForAgent); // for production use
 ProductRoute.get("/1688/details/:productId", product_controller_1.default.get1688ProductDetails); // for production agent
 ProductRoute.get("/1688/details/test/:productId", product_controller_1.default.get1688ProductDetailsTest);
-ProductRoute.get("/1688/search", product_controller_1.default.get1688Products); // for production use
+ProductRoute.get("/1688/image-search", upload_1.upload.any(), product_controller_1.default.get1688ProductImageSearch); // for production use
 // ProductRoute.route("/")
 //   // .post(upload.any(), controller.createProduct)
 //   .get(controller.getAllProduct);

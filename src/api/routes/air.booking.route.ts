@@ -1,20 +1,20 @@
 import { Router } from "express";
 import controller from "../../modules/airBooking/air.booking.controller";
-// import { upload } from "../../middleware/upload/upload";
-// import jwtAuth from "../../middleware/auth/jwtAuth";
+import { upload } from "../../middleware/upload/upload";
+import jwtAuth from "../../middleware/auth/jwtAuth";
 
 const AirBookingRouter = Router();
 // AirBookingRouter.use(jwtAuth());
 
 AirBookingRouter.route("/")
-  .post( controller.createAirBooking)
-  .get(controller.getAllAirBooking);
+  .post(upload.any(), jwtAuth(), controller.createAirBooking)
+  .get(jwtAuth(), controller.getAllAirBookingByFilterWithPagination);
 
-AirBookingRouter.get("/pagination", controller.getAirBookingWithPagination);
+AirBookingRouter.get("/pagination", jwtAuth(), controller.getAirBookingWithPagination);
 
 AirBookingRouter.route("/:id")
-  .get(controller.getSingleAirBooking)
-  .put( controller.updateAirBooking)
-  .delete(controller.deleteAirBooking);
+  .get(jwtAuth(), controller.getSingleAirBooking)
+  .put(jwtAuth(), controller.updateAirBooking)
+  .delete(jwtAuth(), controller.deleteAirBooking);
 
 export default AirBookingRouter;

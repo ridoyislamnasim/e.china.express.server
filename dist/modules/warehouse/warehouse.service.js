@@ -55,6 +55,9 @@ class WarehouseService {
     async getAllWarehouses(filter = {}) {
         return await this.repository.getAllWarehouses(filter);
     }
+    async getWarehousesForClient() {
+        return await this.repository.getWarehousesForClient();
+    }
     async getWarehouseById(id) {
         const warehouse = await this.repository.getWarehouseById(id);
         if (!warehouse) {

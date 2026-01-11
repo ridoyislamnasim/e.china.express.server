@@ -37,6 +37,16 @@ class WarehouseController {
                 next(error);
             }
         };
+        this.getWarehousesForClient = async (req, res, next) => {
+            try {
+                const warehouses = await warehouseService.getWarehousesForClient();
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouses retrieved successfully', warehouses);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
         this.getWarehouseById = async (req, res, next) => {
             try {
                 const { id } = req.params;

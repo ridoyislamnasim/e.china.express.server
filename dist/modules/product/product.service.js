@@ -11,6 +11,7 @@ const e1688_copy_1 = __importDefault(require("../../utils/e1688 copy"));
 const _1688Processedata_1 = __importDefault(require("../../utils/1688Processedata"));
 const _1688ProcessedataTest_1 = require("../../utils/1688ProcessedataTest");
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
+const fs_1 = __importDefault(require("fs"));
 class ProductService {
     constructor(repository) {
         this.repository = repository;
@@ -221,6 +222,126 @@ class ProductService {
         }
         catch (error) {
             // console.error("❌ Error fetching 1688 product details:", error.message);
+            throw error;
+        }
+    }
+    async get1688ProductImageSearch(payload, payloadFiles) {
+        var _a, _b, _c, _d, _e;
+        try {
+            // Accept multiple shapes for uploaded files: array, single file, or payload fallback
+            let imageBuffer;
+            if (Array.isArray(payloadFiles) && payloadFiles.length > 0) {
+                const file = payloadFiles.find((f) => (f === null || f === void 0 ? void 0 : f.fieldname) === 'image') || payloadFiles[0];
+                if (file === null || file === void 0 ? void 0 : file.buffer)
+                    imageBuffer = file.buffer;
+            }
+            else if ((payloadFiles === null || payloadFiles === void 0 ? void 0 : payloadFiles.files) && Array.isArray(payloadFiles.files) && payloadFiles.files.length > 0) {
+                const file = payloadFiles.files.find((f) => (f === null || f === void 0 ? void 0 : f.fieldname) === 'image') || payloadFiles.files[0];
+                if (file === null || file === void 0 ? void 0 : file.buffer)
+                    imageBuffer = file.buffer;
+            }
+            else if ((_a = payloadFiles === null || payloadFiles === void 0 ? void 0 : payloadFiles.image) === null || _a === void 0 ? void 0 : _a.buffer) {
+                imageBuffer = payloadFiles.image.buffer;
+            }
+            else if (payloadFiles === null || payloadFiles === void 0 ? void 0 : payloadFiles.buffer) {
+                imageBuffer = payloadFiles.buffer;
+            }
+            const imageInput = imageBuffer !== null && imageBuffer !== void 0 ? imageBuffer : payload === null || payload === void 0 ? void 0 : payload.image;
+            if (!imageInput) {
+                const error = new Error("Provide an image via files array, single file object, or payload.image");
+                error.statusCode = 400;
+                throw error;
+            }
+            let base64;
+            if (Buffer.isBuffer(imageInput)) {
+                base64 = imageInput.toString('base64');
+            }
+            else if (typeof imageInput === 'object' && imageInput && imageInput.buffer) {
+                base64 = Buffer.from(imageInput.buffer).toString('base64');
+            }
+            else if (typeof imageInput === 'string') {
+                if (/^data:\w+\/[a-zA-Z0-9+.-]+;base64,/.test(imageInput)) {
+                    base64 = imageInput.replace(/^data:\w+\/[a-zA-Z0-9+.-]+;base64,/, '');
+                }
+                else if (fs_1.default.existsSync(imageInput)) {
+                    const bin = fs_1.default.readFileSync(imageInput);
+                    base64 = Buffer.from(bin).toString('base64');
+                }
+                else {
+                    base64 = imageInput; // assume already a raw base64 string
+                }
+            }
+            if (!base64 || base64.length === 0) {
+                const error = new Error("Unable to derive base64 from provided image input");
+                error.statusCode = 400;
+                throw error;
+            }
+            const appSecret = config_1.default.e1688AppSecret || '';
+            const access_token = config_1.default.e1688AccessToken || '';
+            const apiBaseUrl = config_1.default.e1688ApiBaseUrl || 'https://gw.open.1688.com/openapi/';
+            const uriPath = 'param2/1/com.alibaba.fenxiao.crossborder/product.image.upload/9077165';
+            const uploadImageParamObj = {
+                imageBase64: String(base64),
+            };
+            const uploadImageParam = JSON.stringify(uploadImageParamObj);
+            const params = {
+                access_token,
+                uploadImageParam,
+                _aop_timestamp: String(Date.now()),
+            };
+            const uploadResp = await e1688_1.default.call1688(apiBaseUrl, uriPath, params, appSecret);
+            const imageId = ((uploadResp === null || uploadResp === void 0 ? void 0 : uploadResp.result) && (uploadResp.result.result || uploadResp.result.imageId))
+                ? String(uploadResp.result.result || uploadResp.result.imageId)
+                : undefined;
+            if (!imageId) {
+                const error = new Error("Image upload did not return an imageId");
+                error.statusCode = 500;
+                throw error;
+            }
+            const beginPage = Number((_b = payload === null || payload === void 0 ? void 0 : payload.beginPage) !== null && _b !== void 0 ? _b : 1);
+            const pageSize = Number((_c = payload === null || payload === void 0 ? void 0 : payload.pageSize) !== null && _c !== void 0 ? _c : 20);
+            const country = String((_d = payload === null || payload === void 0 ? void 0 : payload.country) !== null && _d !== void 0 ? _d : 'en');
+            const offerQueryParamObj = {
+                beginPage,
+                country,
+                pageSize,
+                userId: Number((_e = payload === null || payload === void 0 ? void 0 : payload.userId) !== null && _e !== void 0 ? _e : 0),
+            };
+            if (payload === null || payload === void 0 ? void 0 : payload.imageAddress) {
+                offerQueryParamObj.imageAddress = String(payload.imageAddress);
+            }
+            // Include imageId inside offerQueryParam as well for API variants
+            offerQueryParamObj.imageId = imageId;
+            const offerQueryParam = JSON.stringify(offerQueryParamObj);
+            const imageQueryParams = {
+                access_token,
+                offerQueryParam,
+                imageId,
+                beginPage: String(beginPage),
+                pageSize: String(pageSize),
+                country,
+                _aop_timestamp: String(Date.now()),
+            };
+            // Optional filters
+            if ((payload === null || payload === void 0 ? void 0 : payload.priceStart) !== undefined) {
+                imageQueryParams.priceStart = String(payload.priceStart);
+            }
+            if ((payload === null || payload === void 0 ? void 0 : payload.priceEnd) !== undefined) {
+                imageQueryParams.priceEnd = String(payload.priceEnd);
+            }
+            if ((payload === null || payload === void 0 ? void 0 : payload.categoryId) !== undefined) {
+                imageQueryParams.categoryId = String(payload.categoryId);
+            }
+            if ((payload === null || payload === void 0 ? void 0 : payload.sort) !== undefined) {
+                const sortVal = typeof payload.sort === 'string' ? payload.sort : JSON.stringify(payload.sort);
+                imageQueryParams.sort = sortVal;
+            }
+            console.log('Image Query Params:', imageQueryParams);
+            const imageQueryUriPath = 'param2/1/com.alibaba.fenxiao.crossborder/product.search.imageQuery/9077165';
+            const searchData = await e1688_1.default.call1688(apiBaseUrl, imageQueryUriPath, imageQueryParams, appSecret);
+            return searchData;
+        }
+        catch (error) {
             throw error;
         }
     }

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import controller from "../../modules/product/product.controller";
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-// import { upload } from "../../middleware/upload/upload";
+import { upload } from "../../middleware/upload/upload";
 
 const ProductRoute = Router();
 // ProductRoute.use(jwtAuth());
@@ -14,7 +14,7 @@ ProductRoute.get("/1688/product/filter", controller.get1688ProductFilter); //for
 ProductRoute.get("/agent/1688/details/:productId", controller.get1688ProductDetailsForAgent); // for production use
 ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails); // for production agent
 ProductRoute.get("/1688/details/test/:productId", controller.get1688ProductDetailsTest);
-ProductRoute.get("/1688/search", controller.get1688Products); // for production use
+ProductRoute.get("/1688/image-search", upload.any(), controller.get1688ProductImageSearch); // for production use
 
 // ProductRoute.route("/")
 //   // .post(upload.any(), controller.createProduct)

@@ -5,41 +5,54 @@ import withTransaction from "../../middleware/transactions/withTransaction";
 import AirBookingService from "./air.booking.service";
 
 class AirBookingController {
-  createAirBooking = withTransaction(async (req: Request, res: Response, next: NextFunction, session: any) => {
+  createAirBooking = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     const payloadFiles = {
       files: req.files,
     };
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const payload = {
+      shippingDate: new Date(req.body.shippingDate),
+      cartonQuantity: req.body.cartonQuantity,
       shippingRateId: req.body.shippingRateId,
+      bookerName: req.body.bookerName,
+      bookerPhone: req.body.bookerPhone,
+      bookerEmail: req.body.bookerEmail,
+      bookerAddress: req.body.bookerAddress,
+      importCountryId: req.body.importCountryId,
+      exportCountryId: req.body.exportCountryId,
+      shippingMethodId: req.body.shippingMethodId,
+      category1688Id: req.body.category1688Id,
+      weight: req.body.weight,
+      rateId: req.body.rateId,
+      categoryId: req.body.categoryId,
+      subCategoryId: req.body.subCategoryId,
       userRef: userRef,
       warehouseImportId: req.body.warehouseImportId,
       warehouseExportId: req.body.warehouseExportId,
       packingId: req.body.packingId,
       brandingId: req.body.brandingId,
-      bookingDate: new Date(req.body.bookingDate),
       arrivalDate: req.body.arrivalDate ? new Date(req.body.arrivalDate) : null,
       countryExportId: req.body.countryExportId,
       countryImportId: req.body.countryImportId,
-      weight: req.body.weight,
       productQuantity: req.body.productQuantity,
     };
-    const airBookingResult = await AirBookingService.createAirBooking(payload, payloadFiles, session);
+    console.log("AirBooking Create request body:", payload);
+    console.log("AirBooking Create request files:", payloadFiles);
+    const airBookingResult = await AirBookingService.createAirBooking(payload, payloadFiles, tx);
     const resDoc = responseHandler(201, "AirBooking Created successfully", airBookingResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  getAllAirBooking = catchError(async (req: Request, res: Response, next: NextFunction) => {
-    console.log("AirBooking Get All request body:", req);
-    // ip address logging
-    const ip = (typeof req.headers["x-forwarded-for"] === "string" ? req.headers["x-forwarded-for"].split(",")[0] : Array.isArray(req.headers["x-forwarded-for"]) ? req.headers["x-forwarded-for"][0] : req.socket.remoteAddress || req.ip || "").replace(/^.*:/, ""); // Clean IPv6 prefix if present
-
-    console.log("Extracted IP -------------- :", ip);
-
-    let payload = {
-      airBookingType: req.query.airBookingType,
+  getAllAirBookingByFilterWithPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const payload = {
+      userRef: userRef,
+      airBookingStatus: req.query.airBookingStatus as string,
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 10,
+      sortOrder: req.query.sortOrder === 'asc' ? 'asc' : 'desc',
     };
-    const airBookingResult = await AirBookingService.getAllAirBooking(payload);
+    const airBookingResult = await AirBookingService. getAllAirBookingByFilterWithPagination(payload);
     const resDoc = responseHandler(200, "Get All AirBookings", airBookingResult);
     res.status(resDoc.statusCode).json(resDoc);
   });

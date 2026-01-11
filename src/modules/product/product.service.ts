@@ -16,6 +16,7 @@ import call168822 from '../../utils/e1688 copy';
 import process1688ProductDetail from '../../utils/1688Processedata';
 import { process1688ProductDetailTest } from '../../utils/1688ProcessedataTest';
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
+import fs from 'fs';
 
 export class ProductService {
   private repository: typeof productRepository;
@@ -255,6 +256,135 @@ export class ProductService {
       throw error;
     }
 
+  }
+
+
+
+
+  async get1688ProductImageSearch(payload: any, payloadFiles: any) {
+    try {
+      // Accept multiple shapes for uploaded files: array, single file, or payload fallback
+      let imageBuffer: Buffer | undefined;
+
+      if (Array.isArray(payloadFiles) && payloadFiles.length > 0) {
+        const file = payloadFiles.find((f: any) => f?.fieldname === 'image') || payloadFiles[0];
+        if (file?.buffer) imageBuffer = file.buffer as Buffer;
+      } else if (payloadFiles?.files && Array.isArray(payloadFiles.files) && payloadFiles.files.length > 0) {
+        const file = payloadFiles.files.find((f: any) => f?.fieldname === 'image') || payloadFiles.files[0];
+        if (file?.buffer) imageBuffer = file.buffer as Buffer;
+      } else if (payloadFiles?.image?.buffer) {
+        imageBuffer = payloadFiles.image.buffer as Buffer;
+      } else if (payloadFiles?.buffer) {
+        imageBuffer = payloadFiles.buffer as Buffer;
+      }
+
+      const imageInput = imageBuffer ?? payload?.image;
+      if (!imageInput) {
+        const error = new Error("Provide an image via files array, single file object, or payload.image");
+        (error as any).statusCode = 400;
+        throw error;
+      }
+
+      let base64: string | undefined;
+      if (Buffer.isBuffer(imageInput)) {
+        base64 = imageInput.toString('base64');
+      } else if (typeof imageInput === 'object' && imageInput && (imageInput as any).buffer) {
+        base64 = Buffer.from((imageInput as any).buffer).toString('base64');
+      } else if (typeof imageInput === 'string') {
+        if (/^data:\w+\/[a-zA-Z0-9+.-]+;base64,/.test(imageInput)) {
+          base64 = imageInput.replace(/^data:\w+\/[a-zA-Z0-9+.-]+;base64,/, '');
+        } else if (fs.existsSync(imageInput)) {
+          const bin = fs.readFileSync(imageInput);
+          base64 = Buffer.from(bin).toString('base64');
+        } else {
+          base64 = imageInput; // assume already a raw base64 string
+        }
+      }
+
+      if (!base64 || base64.length === 0) {
+        const error = new Error("Unable to derive base64 from provided image input");
+        (error as any).statusCode = 400;
+        throw error;
+      }
+
+      const appSecret = config.e1688AppSecret || '';
+      const access_token = config.e1688AccessToken || '';
+      const apiBaseUrl = config.e1688ApiBaseUrl || 'https://gw.open.1688.com/openapi/';
+      const uriPath = 'param2/1/com.alibaba.fenxiao.crossborder/product.image.upload/9077165';
+
+      const uploadImageParamObj: Record<string, string> = {
+        imageBase64: String(base64),
+      };
+
+      const uploadImageParam = JSON.stringify(uploadImageParamObj);
+
+      const params: Record<string, string> = {
+        access_token,
+        uploadImageParam,
+        _aop_timestamp: String(Date.now()),
+      };
+
+      const uploadResp = await e1688.call1688(apiBaseUrl, uriPath, params, appSecret);
+
+      const imageId = (uploadResp?.result && (uploadResp.result.result || uploadResp.result.imageId))
+        ? String(uploadResp.result.result || uploadResp.result.imageId)
+        : undefined;
+
+      if (!imageId) {
+        const error = new Error("Image upload did not return an imageId");
+        (error as any).statusCode = 500;
+        throw error;
+      }
+
+      const beginPage = Number(payload?.beginPage ?? 1);
+      const pageSize = Number(payload?.pageSize ?? 20);
+      const country = String(payload?.country ?? 'en');
+
+      const offerQueryParamObj: Record<string, any> = {
+        beginPage,
+        country,
+        pageSize,
+        userId: Number(payload?.userId ?? 0),
+      };
+      if (payload?.imageAddress) {
+        offerQueryParamObj.imageAddress = String(payload.imageAddress);
+      }
+      // Include imageId inside offerQueryParam as well for API variants
+      offerQueryParamObj.imageId = imageId;
+
+      const offerQueryParam = JSON.stringify(offerQueryParamObj);
+
+      const imageQueryParams: Record<string, string> = {
+        access_token,
+        offerQueryParam,
+        imageId,
+        beginPage: String(beginPage),
+        pageSize: String(pageSize),
+        country,
+        _aop_timestamp: String(Date.now()),
+      };
+      // Optional filters
+      if (payload?.priceStart !== undefined) {
+        imageQueryParams.priceStart = String(payload.priceStart);
+      }
+      if (payload?.priceEnd !== undefined) {
+        imageQueryParams.priceEnd = String(payload.priceEnd);
+      }
+      if (payload?.categoryId !== undefined) {
+        imageQueryParams.categoryId = String(payload.categoryId);
+      }
+      if (payload?.sort !== undefined) {
+        const sortVal = typeof payload.sort === 'string' ? payload.sort : JSON.stringify(payload.sort);
+        imageQueryParams.sort = sortVal;
+      }
+      console.log('Image Query Params:', imageQueryParams);
+
+      const imageQueryUriPath = 'param2/1/com.alibaba.fenxiao.crossborder/product.search.imageQuery/9077165';
+      const searchData = await e1688.call1688(apiBaseUrl, imageQueryUriPath, imageQueryParams, appSecret);
+      return searchData;
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**

@@ -103,6 +103,41 @@ export class WarehouseRepository {
     });
   }
 
+
+  async getWarehousesForClient(): Promise<any> {
+    return await this.prisma.warehouse.findMany({
+      where: {  },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        address: true,
+        city: true,
+        state: true,
+        zipCode: true,
+        country: true,
+        phone: true,
+        email: true,
+        countryRef: {
+          select: {
+            id: true,
+            name: true,
+            isoCode: true,
+          }
+        },
+         managerRef: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          }
+        },
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
   async getWarehousesWithPagination(filter: WarehouseFilter, tx?: any): Promise<any> {
     const { page = 1, limit = 10, status, type, countryId, search } = filter;
     const offset = (page - 1) * limit;

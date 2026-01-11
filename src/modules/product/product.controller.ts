@@ -138,14 +138,24 @@ class ProductController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  get1688Products = catchError(async (req: Request, res: Response) => {
-    const payload = {
-      q: typeof req.query.q === 'string' ? req.query.q : String(req.query.q ?? ''),
-      page: typeof req.query.page === 'string' ? req.query.page : String(req.query.page ?? '1'),
-      limit: typeof req.query.limit === 'string' ? req.query.limit : String(req.query.limit ?? '20'),
+  get1688ProductImageSearch = catchError(async (req: Request, res: Response) => {
+    // image resived from req.file or req.files
+    console.log("Received files:", req.files);
+     const payloadFiles = {
+      files: req.files,
     };
-    // const result = await e1688Service.search1688Products(payload);
-    const resDoc = responseHandler(200, '1688 Products retrieved successfully',);
+
+    const payload = {
+      beginPage: typeof req.query.beginPage === 'string' ? req.query.beginPage : String(req.query.beginPage ?? '1'),
+      pageSize: typeof req.query.pageSize === 'string' ? req.query.pageSize : String(req.query.pageSize ?? '20'),
+      sort: typeof req.query.sort === 'string' ? req.query.sort : String(req.query.sort ?? ''),
+      priceStart: typeof req.query.priceStart === 'string' ? req.query.priceStart : String(req.query.priceStart ?? ''),
+      priceEnd: typeof req.query.priceEnd === 'string' ? req.query.priceEnd : String(req.query.priceEnd ?? ''),
+      categoryId: typeof req.query.categoryId === 'string' ? req.query.categoryId : String(req.query.categoryId ?? ''),
+    };
+
+    const result = await ProductService.get1688ProductImageSearch(payload, payloadFiles);
+    const resDoc = responseHandler(200, '1688 Products retrieved successfully', result?.result?.result ?? []);
     res.status(resDoc.statusCode).json(resDoc);
   });
 

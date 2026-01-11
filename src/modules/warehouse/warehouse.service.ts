@@ -80,6 +80,10 @@ export class WarehouseService {
     return await this.repository.getAllWarehouses(filter);
   }
 
+    async getWarehousesForClient(): Promise<any> {
+    return await this.repository.getWarehousesForClient();
+  }
+
   async getWarehouseById(id: string): Promise<any> {
     const warehouse = await this.repository.getWarehouseById(id);
     if (!warehouse) {

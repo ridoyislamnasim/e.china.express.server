@@ -14,18 +14,76 @@ export interface AirBookingDoc {
 }
 
 class AirBookingRepository {
-  async createAirBooking(payload: Prisma.ShipmentBookingCreateInput) {
-    const newAirBooking = await prisma.shipmentBooking.create({
-      data: payload,
+    private prisma = prisma;
+  async createAirBooking(airBookingPayload: any, tx?: any) {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    const newAirBooking = await prismaClient.shipmentBooking.create({
+      data: airBookingPayload,
     });
     return newAirBooking;
+    // make tx than use tx
+
   }
 
-  async getAllAirBooking(filter: any) {
-    return await prisma.shipmentBooking.findMany({
-      where: filter,
-      orderBy: { createdAt: 'desc' },
-    });
+  async getAllAirBookingByFilterWithPagination(payload: any) {
+    const { airBookingStatus , userRef} = payload;
+    const filter: any = {};
+    if (airBookingStatus == "CUSTOMER_ALL"){
+      filter.warehouseReceivingStatus = { in: ["PENDING", "RECEIVED"] };
+    } else {
+      filter.warehouseReceivingStatus = airBookingStatus;
+    }
+    if (userRef) filter.customerId = Number(userRef);
+
+     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+          const [doc, totalDoc] = await Promise.all([
+            this.prisma.shipmentBooking.findMany({
+              where: filter,
+              skip: offset,
+              take: limit,
+              // orderBy: sortOrder,
+              include: {
+                rateRef: {
+                  include: {
+                    category1688: true,
+                    shippingMethod: true,
+                  },
+                },
+                // warehouseImportRef: {
+                //   select: {
+                //     id: true,
+                //     name: true,
+                //   },
+                // },
+                warehouseExportRef: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+                countryImportRef: {
+                  select: {
+                    id: true,
+                    name: true,
+                    isoCode: true,
+                    zone: true,
+                  },
+                },
+                countryExportRef: {
+                  select: {
+                    id: true,
+                    name: true,
+                    isoCode: true,
+                    zone: true,
+                  },
+                },
+                // customer: true,
+              },
+            }),
+            this.prisma.shipmentBooking.count({ where: filter }), // total count with filter
+          ]);
+          return { doc, totalDoc };
+        });
   }
 
   async getAirBookingWithPagination(payload: any) {

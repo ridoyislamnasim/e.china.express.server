@@ -120,15 +120,23 @@ class ProductController {
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Product Details Retrieved Successfully', productResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
-        this.get1688Products = (0, catchError_1.default)(async (req, res) => {
-            var _a, _b, _c;
-            const payload = {
-                q: typeof req.query.q === 'string' ? req.query.q : String((_a = req.query.q) !== null && _a !== void 0 ? _a : ''),
-                page: typeof req.query.page === 'string' ? req.query.page : String((_b = req.query.page) !== null && _b !== void 0 ? _b : '1'),
-                limit: typeof req.query.limit === 'string' ? req.query.limit : String((_c = req.query.limit) !== null && _c !== void 0 ? _c : '20'),
+        this.get1688ProductImageSearch = (0, catchError_1.default)(async (req, res) => {
+            var _a, _b, _c, _d, _e, _f;
+            // image resived from req.file or req.files
+            console.log("Received files:", req.files);
+            const payloadFiles = {
+                files: req.files,
             };
-            // const result = await e1688Service.search1688Products(payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, '1688 Products retrieved successfully');
+            const payload = {
+                beginPage: typeof req.query.beginPage === 'string' ? req.query.beginPage : String((_a = req.query.beginPage) !== null && _a !== void 0 ? _a : '1'),
+                pageSize: typeof req.query.pageSize === 'string' ? req.query.pageSize : String((_b = req.query.pageSize) !== null && _b !== void 0 ? _b : '20'),
+                sort: typeof req.query.sort === 'string' ? req.query.sort : String((_c = req.query.sort) !== null && _c !== void 0 ? _c : ''),
+                priceStart: typeof req.query.priceStart === 'string' ? req.query.priceStart : String((_d = req.query.priceStart) !== null && _d !== void 0 ? _d : ''),
+                priceEnd: typeof req.query.priceEnd === 'string' ? req.query.priceEnd : String((_e = req.query.priceEnd) !== null && _e !== void 0 ? _e : ''),
+                categoryId: typeof req.query.categoryId === 'string' ? req.query.categoryId : String((_f = req.query.categoryId) !== null && _f !== void 0 ? _f : ''),
+            };
+            const result = await product_service_1.default.get1688ProductImageSearch(payload, payloadFiles);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, '1688 Products retrieved successfully', result);
             res.status(resDoc.statusCode).json(resDoc);
         });
         // createProduct = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {

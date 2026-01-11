@@ -12,6 +12,7 @@ const warehouseRoute = (0, express_1.Router)();
 warehouseRoute.route("/")
     .post(warehouse_controller_1.default.createWarehouse)
     .get(warehouse_controller_1.default.getAllWarehouses);
+warehouseRoute.get("/client", warehouse_controller_1.default.getWarehousesForClient);
 warehouseRoute.get("/stats", warehouse_controller_1.default.getWarehouseStats);
 warehouseRoute.get("/available", warehouse_controller_1.default.getAvailableWarehouses);
 warehouseRoute.get("/search", warehouse_controller_1.default.searchWarehouses);

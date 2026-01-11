@@ -34,7 +34,37 @@ export class BlogService {
     return await blogRepository.findAllBlogTags();
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   async createBlog(payloadFiles: any, payload: any, tx?: any) {
+   
+   
     const { title, details, tagIds, industryId, topicId, status, trendingContent, featured } = payload;
     const { files } = payloadFiles;
     if (!files) throw new Error('image is required');
@@ -44,6 +74,9 @@ export class BlogService {
     for (const key in images) {
       payload[key] = images[key];
     }
+
+
+
     // both  are required
     if (!title || !details || !industryId || !topicId) throw new NotFoundError("Title, Details, Industry, and Topic are required.");
 
@@ -104,6 +137,49 @@ export class BlogService {
 
     return createdBlog;
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
 
   async updateBlog(slug: string, payloadFiles: any, payload: UpdateBlogRequestDto) {

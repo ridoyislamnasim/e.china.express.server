@@ -10,6 +10,7 @@ warehouseRoute.route("/")
     .post(controller.createWarehouse)
     .get(controller.getAllWarehouses);
 
+warehouseRoute.get("/client", controller.getWarehousesForClient);
 warehouseRoute.get("/stats", controller.getWarehouseStats);
 warehouseRoute.get("/available", controller.getAvailableWarehouses);
 warehouseRoute.get("/search", controller.searchWarehouses);
