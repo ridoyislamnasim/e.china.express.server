@@ -6,7 +6,7 @@ const servicesRoute = Router();
 
   servicesRoute
   .route("/helpful/counter/:slug")
-  .put(servicesController.addHelpfulCount);
+  .patch(servicesController.addHelpfulCount);
 
 
 

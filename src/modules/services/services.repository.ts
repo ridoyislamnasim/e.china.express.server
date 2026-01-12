@@ -124,13 +124,10 @@ export default new (class ServicesRepository {
 
   getAllServices = async () => {
     const allServices = await this.prisma.services.findMany({
-      select: {
-        id: true,
-        title: true,
-        servicesTypeId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      include: {
+        servicesType: true,
+      },  
+     
     });
     return allServices
   };
