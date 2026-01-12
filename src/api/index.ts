@@ -25,6 +25,7 @@ import AirBookingRouter from "./routes/air.booking.route";
 import BandingRoute from "./routes/banding.route";
 import contactUsRoute from "./routes/companyContact.route";
 import teamManagementRoute from "./routes/teamManagement.route";
+import servicesRoute from "./routes/services.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -67,6 +68,7 @@ rootRouter.use('/banding', BandingRoute);
 
 //done by rafi
 rootRouter.use("/policies",policiesRoute ); 
+rootRouter.use("/services",servicesRoute ); 
 rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/guide", guideRoute);
 rootRouter.use("/contact-us", contactUsRoute); 
