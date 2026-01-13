@@ -38,7 +38,7 @@ export interface ServiceRequestDTO {
 
 export interface CreateServiceRequestDTO {
   title: string;
-  slug?: string;
+  slug?: string | undefined;
   serviceTypeId: number;
   description: string;
 }

@@ -15,7 +15,7 @@ class TeamManagementService {
     }
 
     console.log('Creating team member with files:', files);
-    if (!payload.email || !payload.name || !payload.origin || !payload.location || !payload.language || !payload.rating) {
+    if (!payload.email || !payload.name || !payload.location || !payload.language || !payload.rating) {
       throw new Error("Required field needs to be full filled.")
     }
     
@@ -106,7 +106,7 @@ class TeamManagementService {
       }
     }
 
-    if (!payload.email || !payload.name || !payload.origin || !payload.location || !payload.language || !payload.rating) {
+    if (!payload.email || !payload.name || !payload.location || !payload.language || !payload.rating) {
       throw new Error("Required field needs to be full filled.")
     }
 

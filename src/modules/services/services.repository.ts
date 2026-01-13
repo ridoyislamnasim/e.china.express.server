@@ -111,11 +111,12 @@ export default new (class ServicesRepository {
   // ------------------------------------------------------------
 
   createService = async (servicePayload: CreateServiceRequestDTO): Promise<any> => {
+    const slug = servicePayload.slug ?? slugGenerate(servicePayload.title);
     return await this.prisma.services.create({
       data: {
         title: servicePayload.title,
-        slug: servicePayload.slug,
-        description: servicePayload.description,
+        slug: slug,
+        ...(servicePayload.description !== undefined && { description: servicePayload.description }),
         servicesTypeId: servicePayload.serviceTypeId,
       },
     });
@@ -137,10 +138,10 @@ export default new (class ServicesRepository {
     return await this.prisma.services.update({
       where: { slug: slug },
       data: {
-        title: body.title,
-        slug: body.slug,
-        description: body.description,
-        servicesTypeId: body.serviceTypeId,
+        ...(body.title !== undefined && { title: body.title }),
+        ...(body.slug !== undefined && { slug: body.slug }),
+        ...(body.description !== undefined && { description: body.description }),
+        ...(body.serviceTypeId !== undefined && { servicesTypeId: body.serviceTypeId }),
       },
     });
   };

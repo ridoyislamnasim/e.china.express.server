@@ -10,13 +10,54 @@ class CompanyContactService {
     payload.twitter = payload.twitter?.toLowerCase().trim();
     payload.linkedin = payload.linkedin?.toLowerCase().trim();
     payload.instagram = payload.instagram?.toLowerCase().trim();
-    payload.phones = payload.phones?.map((phone) => phone.trim());
-    payload.emergencyHotlines = payload.emergencyHotlines?.map((hotline) => hotline.trim());
+    payload.phones = payload.phones?.toLowerCase().trim();
+    payload.emergencyHotlines = payload.emergencyHotlines?.toLowerCase().trim();
+    payload.youtube = payload.youtube?.toLowerCase().trim();
+        payload.tiktok = payload.tiktok?.toLowerCase().trim();
+    payload.id = payload.id
 
-    const result = await await this.contactUsRepository.createCompanyContactRepo(payload);
+    const contact = await this.contactUsRepository.getCompanyContactInfoRepo();
+    if (contact.length==0) {
+      const result = await this.contactUsRepository.createCompanyContactRepo(payload);
+      return result
+    }else{
+      const result = await this.contactUsRepository.updateCompanyContactRepo(payload);
+      return result;
+    }
+    
 
-    return result;
   }
+
+
+
+
+    async getCompanyContactService() {
+
+    const contact = await this.contactUsRepository.getCompanyContactInfoRepo();
+
+    if (contact.length>0) {
+      return {
+          statusCode: 200,
+          success: true,
+          message: "Contact info fetched successfully",
+          data: contact[0],
+        };
+      }else{
+        return {
+        statusCode: 200,
+        success: true,
+        message: "Contact info fetched successfully",
+        data: {},
+      };
+    }
+
+
+  }
+
+
+
+
+
 
   async createContactUsRequest(payload: ContactMessage) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
