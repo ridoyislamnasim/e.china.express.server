@@ -7,7 +7,7 @@ const teamManagementRoute = Router();
 
 teamManagementRoute
   .route("/create-team-member")
-  .post(upload.any(), teamManagementController.createTeamMember);
+  .post(upload, teamManagementController.createTeamMember);
 
 
 teamManagementRoute
@@ -25,7 +25,7 @@ teamManagementRoute
 teamManagementRoute
   .route("/team-member/:id")
   .get(teamManagementController.getSingleTeamMemberById)
-  .put(upload.any(), teamManagementController.updateTeamMember)
+  .put(upload, teamManagementController.updateTeamMember)
   .delete(teamManagementController.deleteTeamMember);
 
 export default teamManagementRoute;

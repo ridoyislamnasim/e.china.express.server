@@ -16,7 +16,7 @@ warehouseSpaceRoute.get("/search", controller.searchSpaces);
 
 warehouseSpaceRoute.route("/:id")
     .get(controller.getWarehouseSpaceById)
-    .patch(upload.any(), controller.updateWarehouseSpace)
+    .patch(upload, controller.updateWarehouseSpace)
     .delete(controller.deleteWarehouseSpace);
 
 warehouseSpaceRoute.post("/spaces/:warehouseSpaceId", controller.createSpace);

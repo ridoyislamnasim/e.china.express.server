@@ -1,9 +1,9 @@
 import multer, { FileFilterCallback } from 'multer';
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
 const storage = multer.memoryStorage();
 
-export const upload = multer({
+const multerUpload = multer({
   storage,
   limits: {
     fileSize: 102400000,
@@ -29,4 +29,17 @@ export const upload = multer({
       cb(new Error('only .jpg, .png, .jpeg or .webp format allowed'));
     }
   },
-});
+}).any();
+
+export const upload = (req: Request, res: Response, next: NextFunction) => {
+  multerUpload(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File size too large. Maximum allowed size is 100MB.' });
+      }
+    } else if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+};

@@ -17,7 +17,7 @@ warehouseSpaceRoute.get("/available/:warehouseId", warehouseSpace_controller_1.d
 warehouseSpaceRoute.get("/search", warehouseSpace_controller_1.default.searchSpaces);
 warehouseSpaceRoute.route("/:id")
     .get(warehouseSpace_controller_1.default.getWarehouseSpaceById)
-    .patch(upload_1.upload.any(), warehouseSpace_controller_1.default.updateWarehouseSpace)
+    .patch(upload_1.upload, warehouseSpace_controller_1.default.updateWarehouseSpace)
     .delete(warehouseSpace_controller_1.default.deleteWarehouseSpace);
 warehouseSpaceRoute.post("/spaces/:warehouseSpaceId", warehouseSpace_controller_1.default.createSpace);
 warehouseSpaceRoute.post("/inventories/:warehouseSpaceId", warehouseSpace_controller_1.default.createInventory);

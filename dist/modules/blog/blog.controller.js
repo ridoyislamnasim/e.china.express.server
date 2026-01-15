@@ -25,12 +25,12 @@ class BlogController {
         // });
         this.createBlog = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             var _a, _b, _c, _d;
+            console.log("-------------------------blog create body----------------------", req.body);
             const user = (_d = (_c = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.user_info_encrypted) === null || _b === void 0 ? void 0 : _b.id) === null || _c === void 0 ? void 0 : _c.toString()) !== null && _d !== void 0 ? _d : null;
             const payloadFiles = {
                 files: req.files,
             };
             const { title, details, tagIds, industryId, topicId, status, trendingContent, featured } = req.body;
-            console.log("-------------------------blog create body----------------------", req.body);
             const payload = {
                 user,
                 title,

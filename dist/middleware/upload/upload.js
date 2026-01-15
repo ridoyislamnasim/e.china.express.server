@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.upload = void 0;
 const multer_1 = __importDefault(require("multer"));
 const storage = multer_1.default.memoryStorage();
-exports.upload = (0, multer_1.default)({
+const multerUpload = (0, multer_1.default)({
     storage,
     limits: {
         fileSize: 102400000,
@@ -32,4 +32,18 @@ exports.upload = (0, multer_1.default)({
             cb(new Error('only .jpg, .png, .jpeg or .webp format allowed'));
         }
     },
-});
+}).any();
+const upload = (req, res, next) => {
+    multerUpload(req, res, (err) => {
+        if (err instanceof multer_1.default.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'File size too large. Maximum allowed size is 100MB.' });
+            }
+        }
+        else if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        next();
+    });
+};
+exports.upload = upload;

@@ -67,8 +67,8 @@ BlogRoute
 
 BlogRoute
   .route("/")
-  .post( 
-    // upload.any(), 
+  .post(
+    upload,
     controller.createBlog)
   .get(controller.getAllBlogs);
 
@@ -80,7 +80,7 @@ BlogRoute.get("/featured", controller.getAllFeaturedContent);
 BlogRoute
   .route("/:slug")
   .get(controller.getSingleBlog)
-  .patch(upload.any(), controller.updateBlog)
+  .patch(upload, controller.updateBlog)
   .delete(controller.deleteBlogBySlug);
 
 BlogRoute

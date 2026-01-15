@@ -15,8 +15,8 @@ guideRoute
   .put("/:id",guideController.updateGuide)
 
 
-  .put("/video/:id",upload.any(), guideController.updateGuideVideo)
-  .post("/video",upload.any(),guideController.createGuideVideo)
+  .put("/video/:id",upload, guideController.updateGuideVideo)
+  .post("/video",upload,guideController.createGuideVideo)
 
 
   .delete("/video/:id", guideController.deleteGuideVideo);

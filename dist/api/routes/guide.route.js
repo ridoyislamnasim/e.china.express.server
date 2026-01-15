@@ -16,7 +16,7 @@ guideRoute
     .get("/:id", guide_controller_1.default.getGuideVideosById)
     .delete("/:id", guide_controller_1.default.deleteGuide)
     .put("/:id", guide_controller_1.default.updateGuide)
-    .put("/video/:id", upload_1.upload.any(), guide_controller_1.default.updateGuideVideo)
-    .post("/video", upload_1.upload.any(), guide_controller_1.default.createGuideVideo)
+    .put("/video/:id", upload_1.upload, guide_controller_1.default.updateGuideVideo)
+    .post("/video", upload_1.upload, guide_controller_1.default.createGuideVideo)
     .delete("/video/:id", guide_controller_1.default.deleteGuideVideo);
 exports.default = guideRoute;

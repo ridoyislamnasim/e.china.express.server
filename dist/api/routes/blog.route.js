@@ -52,7 +52,7 @@ BlogRoute
 // ==============================
 BlogRoute
     .route("/")
-    .post(upload_1.upload.any(), blog_controller_1.default.createBlog)
+    .post(upload_1.upload, blog_controller_1.default.createBlog)
     .get(blog_controller_1.default.getAllBlogs);
 BlogRoute.get("/pagination", blog_controller_1.default.getAllBlogsByPagination);
 BlogRoute.get("/trending-content", blog_controller_1.default.getAllTrendingContent);
@@ -60,7 +60,7 @@ BlogRoute.get("/featured", blog_controller_1.default.getAllFeaturedContent);
 BlogRoute
     .route("/:slug")
     .get(blog_controller_1.default.getSingleBlog)
-    .patch(upload_1.upload.any(), blog_controller_1.default.updateBlog)
+    .patch(upload_1.upload, blog_controller_1.default.updateBlog)
     .delete(blog_controller_1.default.deleteBlogBySlug);
 BlogRoute
     .route("/get-blog-by-tag")
