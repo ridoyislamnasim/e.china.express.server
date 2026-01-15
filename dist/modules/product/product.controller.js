@@ -121,7 +121,7 @@ class ProductController {
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.get1688ProductImageSearch = (0, catchError_1.default)(async (req, res) => {
-            var _a, _b, _c, _d, _e, _f;
+            var _a, _b, _c, _d, _e, _f, _g, _h;
             // image resived from req.file or req.files
             console.log("Received files:", req.files);
             const payloadFiles = {
@@ -136,7 +136,7 @@ class ProductController {
                 categoryId: typeof req.query.categoryId === 'string' ? req.query.categoryId : String((_f = req.query.categoryId) !== null && _f !== void 0 ? _f : ''),
             };
             const result = await product_service_1.default.get1688ProductImageSearch(payload, payloadFiles);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, '1688 Products retrieved successfully', result);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, '1688 Products retrieved successfully', (_h = (_g = result === null || result === void 0 ? void 0 : result.result) === null || _g === void 0 ? void 0 : _g.result) !== null && _h !== void 0 ? _h : []);
             res.status(resDoc.statusCode).json(resDoc);
         });
         // createProduct = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {

@@ -15,11 +15,11 @@ class RateController {
       const { price, weightCategoryId, shippingMethodId, category1688Id, importCountryId, exportCountryId } = req.body;
       const payload = {
         price: Number(price),
-         weightCategoryId: Number(weightCategoryId), 
-         shippingMethodId: Number(shippingMethodId), 
-         category1688Id: Number(category1688Id), 
-         importCountryId: Number(importCountryId), 
-         exportCountryId: Number(exportCountryId)
+        weightCategoryId: Number(weightCategoryId),
+        shippingMethodId: Number(shippingMethodId),
+        category1688Id: Number(category1688Id),
+        importCountryId: Number(importCountryId),
+        exportCountryId: Number(exportCountryId)
       };
       const shippingMethod = await rateService.createRate(payload);
       const resDoc = responseHandler(201, 'Rate created successfully', shippingMethod);
@@ -56,7 +56,7 @@ class RateController {
   })
 
 
-    findBookingShippingRate = catchError(async (req: Request, res: Response, next: NextFunction) => {
+  findBookingShippingRate = catchError(async (req: Request, res: Response, next: NextFunction) => {
     console.log("req.body", req.body);
     const { importCountryId, exportCountryId, weight, shippingMethodId, category1688Id } = req.body;
     const payload: any = {
@@ -102,7 +102,7 @@ class RateController {
 
   findShippingRateForProduct = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
-    const {  importCountryId, productId, topCategoryId, secondCategoryId } = req.body;
+    const { importCountryId, productId, topCategoryId, secondCategoryId } = req.body;
     const payload: any = {
       importCountryId,
       productId: Number(productId),

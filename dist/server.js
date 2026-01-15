@@ -34,9 +34,17 @@ const allowedOrigins = [
     'https://admin.echinaexpress.com',
 ];
 app.use((0, cors_1.default)({
-    origin: allowedOrigins,
-    credentials: true, // ✅ cookie পাঠানো এবং নেওয়া allow করবে
+    origin: function (origin, callback) {
+        if (!origin)
+            return callback(null, true); // Postman / server-to-server
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
 }));
+app.options('*', (0, cors_1.default)()); // 🔥 MUST
 // Mount all API routers at /api
 app.use("/api/v1", index_1.default);
 // Health check or welcome endpoint

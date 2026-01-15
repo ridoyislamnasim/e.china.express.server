@@ -12,7 +12,7 @@ class RateRepository {
         this.prisma = prismadatabase_1.default;
     }
     async existingCountryConbination(payload, tx) {
-        const { importCountryId, exportCountryId, route_name } = payload;
+        const { importCountryId, exportCountryId, } = payload;
         const client = tx || this.prisma;
         const CountryConbination = await client.countryCombination.findFirst({
             where: {

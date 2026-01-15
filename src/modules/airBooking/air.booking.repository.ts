@@ -61,7 +61,7 @@ class AirBookingRepository {
                     name: true,
                   },
                 },
-                countryImportRef: {
+                importCountryRef: {
                   select: {
                     id: true,
                     name: true,
@@ -69,7 +69,7 @@ class AirBookingRepository {
                     zone: true,
                   },
                 },
-                countryExportRef: {
+                exportCountryRef: {
                   select: {
                     id: true,
                     name: true,

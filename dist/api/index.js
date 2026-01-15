@@ -30,6 +30,7 @@ const air_booking_route_1 = __importDefault(require("./routes/air.booking.route"
 const banding_route_1 = __importDefault(require("./routes/banding.route"));
 const companyContact_route_1 = __importDefault(require("./routes/companyContact.route"));
 const teamManagement_route_1 = __importDefault(require("./routes/teamManagement.route"));
+const services_route_1 = __importDefault(require("./routes/services.route"));
 // import other routers here
 const rootRouter = (0, express_1.Router)();
 rootRouter.use("/example", example_route_1.default);
@@ -60,6 +61,7 @@ rootRouter.use('/packages', package_route_1.default);
 rootRouter.use('/banding', banding_route_1.default);
 //done by rafi
 rootRouter.use("/policies", policies_route_1.default);
+rootRouter.use("/services", services_route_1.default);
 rootRouter.use("/blog", blog_route_1.default);
 rootRouter.use("/guide", guide_route_1.default);
 rootRouter.use("/contact-us", companyContact_route_1.default);

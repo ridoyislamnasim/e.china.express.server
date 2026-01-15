@@ -13,11 +13,8 @@ class AirBookingController {
     const payload = {
       shippingDate: new Date(req.body.shippingDate),
       cartonQuantity: req.body.cartonQuantity,
+      
       shippingRateId: req.body.shippingRateId,
-      bookerName: req.body.bookerName,
-      bookerPhone: req.body.bookerPhone,
-      bookerEmail: req.body.bookerEmail,
-      bookerAddress: req.body.bookerAddress,
       importCountryId: req.body.importCountryId,
       exportCountryId: req.body.exportCountryId,
       shippingMethodId: req.body.shippingMethodId,
@@ -35,6 +32,7 @@ class AirBookingController {
       countryExportId: req.body.countryExportId,
       countryImportId: req.body.countryImportId,
       productQuantity: req.body.productQuantity,
+     
     };
     console.log("AirBooking Create request body:", payload);
     console.log("AirBooking Create request files:", payloadFiles);

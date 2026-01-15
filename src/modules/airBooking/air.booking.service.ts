@@ -6,6 +6,7 @@ import airBookingRepository from "./air.booking.repository";
 import ImgUploader from "../../middleware/upload/ImgUploder";
 import { idGenerate } from "../../utils/IdGenerator";
 import { Prisma, PrismaClient } from "@prisma/client";
+import rateRepository from "../rate/rate.repository";
 
 export class AirBookingService extends BaseService<typeof airBookingRepository> {
   private repository: typeof airBookingRepository;
@@ -23,12 +24,30 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
       }
     }
 
-    // shippingbookingItems BookingProduct[]
-    // shippingInfos ShippingInfo[]
+    // find shipping rate to get price
+    // find country combination
+    console.log("Payload received in AirBooking Service:", payload);
+    const countryCombination = await rateRepository.existingCountryConbination({
+      importCountryId: Number(payload.importCountryId),
+      exportCountryId: Number(payload.exportCountryId),
+    });
+    // findWeightCategoryByWeight
+    const weightCategory = await rateRepository.findWeightCategoryByWeight(Number(payload.weight));
+    console.log("Country Combination found in AirBooking Service:", countryCombination);
+    const rate = await rateRepository.findRateByCriteria({
+      countryCombinationId: countryCombination?.id,
+      weightCategoryId: weightCategory?.id,
+      shippingMethodId: Number(payload.shippingMethodId),
+      category1688Id: Number(payload.category1688Id)
+    });
+    console.log("Rate found in AirBooking Service:", rate);
+
+    const price = Number(rate[0].price) * (payload.weight ? Number(payload.weight) : 0);
+
 
     // Generate sequential order number using latest shipmentBooking.orderNumber
     const prisma = new PrismaClient();
-    const orderNumber = await idGenerate('EBK', 'orderNumber', (tx?.shipmentBooking ?? prisma.shipmentBooking));
+    const orderNumber = await idGenerate('ABK', 'orderNumber', (tx?.shipmentBooking ?? prisma.shipmentBooking));
 
     // shippingRateId: payload.shippingRateId,
     // bookerName: payload.bookerName,
@@ -43,25 +62,28 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
     const airBookingPayload = {
       rateRef: { connect: { id: Number(payload.rateId) } },
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
-      shippingDate: payload.shippingDate ? new Date(payload.shippingDate): undefined,
       orderNumber,
       warehouseReceivingStatus: "PENDING",
       customerRef: payload.userRef? { connect: { id: Number(payload.userRef) } }: undefined,
       // 🔥 REQUIRED RELATIONS
-      countryImportRef: {connect: { id: Number(payload.importCountryId) },},
-      countryExportRef: {connect: { id: Number(payload.exportCountryId) },},
-      warehouseRef: { connect: { id: String(payload.warehouseImportId) }, },
+      importCountryRef: {connect: { id: Number(payload.importCountryId) },},
+      exportCountryRef: {connect: { id: Number(payload.exportCountryId) },},
+      warehouseImportRef: {connect: { id: String(payload.warehouseImportId) }},
       warehouseExportRef: { connect: { id: String(payload.warehouseExportId) }, },
-      bookingNo: Math.floor(Date.now() / 1000),
+      bookingNo: Math.floor(Date.now() / 1000),   
       bookingDate: new Date(),
+      shippingDate: payload.shippingDate ? new Date(payload.shippingDate): undefined,
       arrivalDate: payload.arrivalDate ? new Date(payload.arrivalDate) : null,
-      originCountry: String(payload.exportCountryId),
-      destinationCountry: String(payload.importCountryId),
-      total_weight_kg: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
+      totalWeightkg: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       cartonQuantity: payload.cartonQuantity ? Number(payload.cartonQuantity) : undefined,
       productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
+      price: price ? new Prisma.Decimal(price) : undefined,
+      finalPrice: price ? new Prisma.Decimal(price) : undefined,
+      // totalProductCost: 
+      // price: rate
     };
     console.log("AirBooking Payload in Service:", airBookingPayload);
+    // return airBookingPayload;
     const airBookingData = await this.repository.createAirBooking(airBookingPayload, tx);
     return airBookingData;
   }

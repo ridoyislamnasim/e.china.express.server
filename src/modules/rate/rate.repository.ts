@@ -6,8 +6,8 @@ import { PrismaClient } from '@prisma/client';
 export class RateRepository {
   private prisma = prisma;
 
-  async existingCountryConbination(payload: any, tx?: PrismaClient): Promise<any> {
-    const { importCountryId, exportCountryId, route_name } = payload;
+  async existingCountryConbination(payload: { importCountryId: number; exportCountryId: number;}, tx?: PrismaClient): Promise<any> {
+    const { importCountryId, exportCountryId, } = payload;
     const client = tx || this.prisma;
     const CountryConbination = await client.countryCombination.findFirst({
       where: {
