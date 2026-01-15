@@ -50,7 +50,6 @@ export interface CreatePolicyTypeRequestDTO {
   slug: string;
   createdAt: Date;
   updatedAt: Date;
-
   // Relation: one PolicyType has many Policies
   policies?: String[];
 
