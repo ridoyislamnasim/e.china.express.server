@@ -67,7 +67,9 @@ BlogRoute
 
 BlogRoute
   .route("/")
-  .post( upload.any(), controller.createBlog)
+  .post( 
+    // upload.any(), 
+    controller.createBlog)
   .get(controller.getAllBlogs);
 
 
