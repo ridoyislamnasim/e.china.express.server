@@ -45,13 +45,13 @@ export class BlogController {
 
 
   createBlog = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+    console.log("-------------------------blog create body----------------------", req.body);
     const user = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const payloadFiles = {
       files: req.files,
     };
 
     const { title, details, tagIds, industryId, topicId, status, trendingContent, featured }: BlogI = req.body;
-    console.log("-------------------------blog create body----------------------", req.body);
 
     const payload = {
       user,
