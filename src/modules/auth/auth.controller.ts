@@ -91,9 +91,26 @@ export const authUserSignIn = async (req: Request, res: Response, next: NextFunc
 export const authUserSignOut = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Clear the authentication cookies
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/' });
-    res.status(200).json({ message: 'Sign out successfully' });
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    res.clearCookie('user', {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
+
+    res.status(200).json({ message: 'Logged out successfully' });
+
   } catch (error) {
     next(error);
   }
@@ -129,10 +146,10 @@ export const authForgetPassword = async (req: Request, res: Response, next: Next
     // console.log("AuthController - authForgetPassword - request payload:", req);
 
 
-        // Get request information including device details
+    // Get request information including device details
     const requestInfo = getRequestInfo(req);
     const { ip, browser, os, date, time, location: geoLocation } = requestInfo;
-    const payload ={
+    const payload = {
       email, phone,
       ip,
       browser,

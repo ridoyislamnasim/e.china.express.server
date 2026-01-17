@@ -48,26 +48,29 @@ exports.default = new (class PoliciesRepository {
             });
         };
         this.getPolicyTypesWithPagination = async (payload) => {
-            console.log("🚀 ~ policies.repository.ts:54 ~ payload:", payload);
-            // console.log("🚀 ~ policies.repository.ts:54 ~ offset:", offset)
-            // console.log("🚀 ~ policies.repository.ts:54 ~ limit:", limit)
-            return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
+            const result = await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
                 const [doc, totalDoc] = await Promise.all([
                     this.prisma.policyType.findMany({
                         skip: offset,
                         take: limit,
+                        orderBy: { createdAt: sortOrder },
                     }),
-                    this.prisma.policyType.count(),
+                    this.prisma.policyType.count({}),
                 ]);
                 return { doc, totalDoc };
             });
+            return result;
         };
         this.getAllPolicyRepository = async ({ limit, offset, order = "desc" }) => {
-            return this.prisma.policies.findMany({
+            const policies = await this.prisma.policies.findMany({
                 skip: offset,
                 take: limit,
                 orderBy: { createdAt: order },
             });
+            const mappedPolicies = policies.map((policy) => ({
+                ...policy,
+            }));
+            return mappedPolicies;
         };
         this.getPolicyTypeByIdRepository = async (id) => {
             const policyType = await this.prisma.policyType.findUnique({
@@ -122,7 +125,6 @@ exports.default = new (class PoliciesRepository {
             });
         };
         this.updatePolicyRepository = async (policyId, body) => {
-            console.log("🚀 ~ policies.repository.ts:132 ~ body:", body);
             return await this.prisma.policies.update({
                 where: { id: policyId },
                 data: {

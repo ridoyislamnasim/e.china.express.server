@@ -20,7 +20,6 @@ exports.default = new (class PoliciesService {
                 }
                 const transformedData = allPolicyTypes.map((policyType) => {
                     const relatedPolicies = allPolicies.filter((policy) => policy.policyTypeId === policyType.id);
-                    // console.log("🚀 ~ policies.service.ts:19 ~ relatedPolicies:", relatedPolicies);
                     return {
                         id: policyType.slug,
                         title: policyType.title,
@@ -165,7 +164,6 @@ exports.default = new (class PoliciesService {
             }
         };
         this.getPolicyTypesWithPagination = async (payload) => {
-            console.log("🚀 ~ policies.service.ts:207 ~ payload:", payload);
             const { page, limit } = payload;
             const policyTypes = await policies_repository_1.default.getPolicyTypesWithPagination({ limit, page });
             return policyTypes;
@@ -217,19 +215,21 @@ exports.default = new (class PoliciesService {
             }
         };
         this.createPolicyType = async (payload) => {
-            console.log("🚀 ~ policies.service.ts:236 ~ payload:", payload);
-            const { title } = payload;
-            if (!title) {
-                const missingFields = [];
-                if (!title)
-                    missingFields.push("title");
+            const missingFields = [];
+            if (!payload.title)
+                missingFields.push("title");
+            if (missingFields.length > 0) {
                 const error = new Error(`Missing required field(s): ${missingFields.join(", ")}`);
                 error.statusCode = 400;
                 throw error;
             }
+            const { title } = payload;
             const slug = (0, slugGenerate_1.slugGenerate)(title);
             try {
-                const policyType = await policies_repository_1.default.createPolicyTypeRepository({ title, slug });
+                const policyType = await policies_repository_1.default.createPolicyTypeRepository({
+                    title,
+                    slug,
+                });
                 return policyType;
             }
             catch (error) {
@@ -279,7 +279,6 @@ exports.default = new (class PoliciesService {
             }
         };
         this.updatePolicy = async (slug, body) => {
-            console.log("🚀 ~ policies.service.ts:302 ~ body:", body);
             try {
                 const missingFields = [];
                 if (!body.title)
@@ -288,7 +287,6 @@ exports.default = new (class PoliciesService {
                     missingFields.push("description");
                 if (!body.policyTypeId)
                     missingFields.push("policy Type Id");
-                // if (!body.policyTypeTitle) missingFields.push("policy Type Title");
                 if (missingFields.length > 0) {
                     const error = new Error(`Missing required field(s): ${missingFields.join(", ")}`);
                     error.statusCode = 400;

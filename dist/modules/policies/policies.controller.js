@@ -90,7 +90,6 @@ exports.default = new (class PoliciesController {
         this.getPolicyTypesWithPagination = (0, withTransaction_1.default)(async (req, res, next) => {
             const page = Math.max(1, Number(req.query.page) || 1);
             const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
-            console.log("🚀 ~ policies.controller.ts:114 ~ limit:", limit);
             const data = await policies_service_1.default.getPolicyTypesWithPagination({ page, limit });
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Policy types retrieved successfully with pagination.", data);
             res.status(resDoc.statusCode).json(resDoc);

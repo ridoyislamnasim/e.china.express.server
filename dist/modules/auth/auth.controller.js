@@ -84,9 +84,22 @@ exports.authUserSignIn = authUserSignIn;
 const authUserSignOut = async (req, res, next) => {
     try {
         // Clear the authentication cookies
-        res.clearCookie('accessToken', { path: '/' });
-        res.clearCookie('refreshToken', { path: '/' });
-        res.status(200).json({ message: 'Sign out successfully' });
+        res.clearCookie('accessToken', {
+            httpOnly: true,
+            sameSite: 'lax',
+            path: '/',
+        });
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            sameSite: 'lax',
+            path: '/',
+        });
+        res.clearCookie('user', {
+            httpOnly: true,
+            sameSite: 'lax',
+            path: '/',
+        });
+        res.status(200).json({ message: 'Logged out successfully' });
     }
     catch (error) {
         next(error);
