@@ -1,0 +1,58 @@
+model Policy {
+  id        Int      @id @default(autoincrement())
+  details   String?
+  type      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PolicyType {
+  id        Int      @id @default(autoincrement())
+  title     String   @unique @db.VarChar(150)
+  slug      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  policies Policies[]
+}
+
+model Policies {
+  id Int @id @default(autoincrement())
+
+  title        String
+  description  String?
+  policyTypeId Int
+
+  helpfulCount    Int      @default(0)
+  notHelpfulCount Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  policyType PolicyType @relation(fields: [policyTypeId], references: [id])
+}
+
+model ServicesType {
+  id        Int      @id @default(autoincrement())
+  title     String   @unique @db.VarChar(150)
+  slug      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  policies Services[]
+}
+
+model Services {
+  id   Int    @id @default(autoincrement())
+  slug String @unique @db.VarChar(150)
+
+  title          String
+  description    String?
+  servicesTypeId Int
+
+  helpfulCount    Int      @default(0)
+  notHelpfulCount Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  servicesType ServicesType @relation(fields: [servicesTypeId], references: [id])
+}

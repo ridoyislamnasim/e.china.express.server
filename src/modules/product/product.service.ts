@@ -279,6 +279,9 @@ export class ProductService {
       }
 
       const imageInput = imageBuffer ?? payload?.image;
+      console.log('Received image input for search:', imageInput ? 'Exists' : 'Not provided');
+      console.log('Type of image input:', imageInput);
+      console.log('Type of image input:', typeof imageInput);
       if (!imageInput) {
         const error = new Error("Provide an image via files array, single file object, or payload.image");
         (error as any).statusCode = 400;
@@ -330,6 +333,8 @@ export class ProductService {
         ? String(uploadResp.result.result || uploadResp.result.imageId)
         : undefined;
 
+        console.log('Uploaded Image ID:--------------------------', imageId);
+
       if (!imageId) {
         const error = new Error("Image upload did not return an imageId");
         (error as any).statusCode = 500;
@@ -349,6 +354,7 @@ export class ProductService {
       if (payload?.imageAddress) {
         offerQueryParamObj.imageAddress = String(payload.imageAddress);
       }
+      console.log('Offer Query Param Object before optional params:', offerQueryParamObj);
       // Include imageId inside offerQueryParam as well for API variants
       offerQueryParamObj.imageId = imageId;
 

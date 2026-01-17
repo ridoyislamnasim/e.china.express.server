@@ -128,6 +128,23 @@ export class Category1688Service {
     }
     return hsCodeEntry;
   }
+
+  async uploadCategoryImage(id: number, payloadFiles: any): Promise<any> {
+    const { files } = payloadFiles;
+    if (!files) throw new Error('image is required');
+    // console.log('Creating blog with files:', files);
+    console.log('Creating blog with payload:', payloadFiles);
+    const images = await ImgUploader(files);
+    let image = '';
+    for (const key in images) {
+      image = images[key];
+    }
+    const category = await this.repository.getCategoryById(id);
+    if (!category) {
+      throw new NotFoundError(`Category with id ${id} not found`);
+    }
+    return await this.repository.updateCategoryImage(id, image);
+  }
 }
 
 export default new Category1688Service(category1688Repository);

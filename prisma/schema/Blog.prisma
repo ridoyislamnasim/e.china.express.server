@@ -1,0 +1,59 @@
+model Industry {
+  id    Int    @id @default(autoincrement())
+  title String
+  slug  String @unique
+
+  blogs Blog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Topic {
+  id    Int    @id @default(autoincrement())
+  title String
+  slug  String @unique
+
+  blogs Blog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogTag {
+  id        Int             @id @default(autoincrement())
+  title     String?
+  slug      String?
+  blogs     BlogTagOnBlog[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model Blog {
+  id              Int             @id @default(autoincrement())
+  title           String
+  details         String
+  slug            String          @unique
+  image           String?
+  industry        Industry        @relation(fields: [industryId], references: [id])
+  industryId      Int
+  topic           Topic           @relation(fields: [topicId], references: [id])
+  topicId         Int
+  status          Boolean         @default(false)
+  featured        Boolean         @default(false)
+  trendingContent Boolean         @default(false)
+  tags            BlogTagOnBlog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogTagOnBlog {
+  id     Int     @id @default(autoincrement())
+  blogId Int
+  blog   Blog    @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  tagId  Int
+  tag    BlogTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([blogId, tagId])
+}

@@ -1,0 +1,128 @@
+enum SpaceType {
+  AIR
+  SEA
+  EXPRESS
+}
+
+enum InventoryType {
+  TYPE_X
+  TYPE_Y
+  TYPE_Z
+}
+
+enum WarehouseStatus {
+  OPERATIONAL
+  MAINTENANCE
+  CLOSED
+  CONSTRUCTION
+  ARCHIVE
+  OVERLOADED
+}
+
+enum WarehouseType {
+  DISTRIBUTION_CENTER
+  COLD_STORAGE
+  FULFILLMENT_CENTER
+  BONDED
+  MANUFACTURING
+  CROSS_DOCK
+}
+
+enum PackageType {
+  WOODEN_BOX
+  POLITHIN
+  CARTOON
+  PACKING
+}
+
+enum PackageStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum BandingType {
+  PLASTIC
+  STEEL
+  PAPER
+  NYLON
+  POLYESTER
+  COTTON
+}
+
+enum BandingCategory {
+  TYPE_A
+  TYPE_B
+  TYPE_C
+  TYPE_D
+  TYPE_E
+}
+
+enum PackagingType {
+  ROLL
+  SHEET
+  STRAP
+  COIL
+  BUNDLE
+  BOX
+}
+
+enum BandingStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum PortType {
+  Sea
+  Air
+  Land
+}
+
+enum ProductFor {
+  FROM1688
+  LOCAL
+  ALIBABA
+}
+
+enum WarehouseReceivingStatus {
+  PENDING
+  IN_TRANSIT
+  ARRIVED
+  RECEIVING
+  RECEIVED
+  PARTIALLY_RECEIVED
+  DAMAGED
+  REJECTED
+  RETURNED_TO_SUPPLIER
+  CANCELLED
+}
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ShippingStatus {
+  PENDING
+  CONFIRMED
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+}

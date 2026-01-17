@@ -1,0 +1,154 @@
+model AboutUs {
+  id          Int      @id @default(autoincrement())
+  header      String?
+  title       String?
+  description String?
+  image       String?
+  whatsapp    String?
+  email       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Banner {
+  id         Int      @id @default(autoincrement())
+  bannerType String?
+  image      String?
+  link       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Newsletter {
+  id        Int      @id @default(autoincrement())
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderBulk {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String?
+  phone        String
+  address      String?
+  companyName  String?
+  productType  String?
+  deliveryDate DateTime?
+  quantity     Int?
+  description  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Coupon {
+  id               Int          @id @default(autoincrement())
+  code             String?      @unique
+  discount         Float?
+  useLimit         Int?         @default(0)
+  used             Int?         @default(0)
+  startDate        DateTime?
+  expireDate       DateTime?
+  discountType     String?
+  brandRef         Brand?       @relation(fields: [brandRefId], references: [id])
+  brandRefId       Int?
+  categoryRef      Category?    @relation(fields: [categoryRefId], references: [id])
+  categoryRefId    Int?
+  subCategoryRef   SubCategory? @relation("SubCategoryToCoupon", fields: [subCategoryRefId], references: [id])
+  subCategoryRefId Int?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  campaigns Campaign[] @relation("CouponToCampaign")
+}
+
+model Campaign {
+  id          Int      @id @default(autoincrement())
+  name        String
+  couponRef   Coupon?  @relation("CouponToCampaign", fields: [couponRefId], references: [id])
+  couponRefId Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContactInfo {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  email     String?
+  phone     String?
+  subject   String?
+  message   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentServiceConfig {
+  id            Int      @id @default(autoincrement())
+  serviceMethod String?  @default("STEADFAST")
+  baseUrl       String?
+  userName      String?
+  apiKey        String?
+  secretKey     String?
+  clientKey     String?
+  clientId      String?
+  clientSecret  String?
+  email         String?
+  password      String?
+  grantType     String?
+  status        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ShippingMethod {
+  id             Int      @id @default(autoincrement())
+  shippingMethod String?
+  rate           Float?
+  status         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model TeamMember {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  avatar    String?
+  rating    Float
+  origin    String
+  location  String
+  language  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CompanyContacts {
+  id Int @id @default(autoincrement())
+
+  phones            String
+  emergencyHotlines String
+
+  email             String
+  businessHourStart String
+  businessHourEnd   String
+  facebook          String?
+  twitter           String?
+  linkedin          String?
+  instagram         String?
+  youtube           String?
+  tiktok            String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  isChecked Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

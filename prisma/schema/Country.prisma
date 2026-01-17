@@ -1,0 +1,63 @@
+model Country {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  isoCode             String
+  zone                String?
+  status              Boolean               @default(true)
+  createdAt           DateTime              @default(now())
+  isShippingCountry   Boolean               @default(false)
+  exportCombinations  CountryCombination[]  @relation("ExportCountry")
+  importCombinations  CountryCombination[]  @relation("ImportCountry")
+  ports               Ports[]
+  warehouses          Warehouse[]
+  countryHsCodes      CountryHsCode[]
+  productShipping     CartProductShipping[] @relation("FromCountry")
+  productShippingTo   CartProductShipping[] @relation("ToCountry")
+  ShippingFromCountry ShippingInfo[]        @relation("ShippingFromCountry")
+  ShippingToCountry   ShippingInfo[]        @relation("ShippingToCountry")
+
+  // shipment Booking
+  shipmentBookingsExport ShipmentBooking[] @relation("ShipmentExportCountry")
+  shipmentBookingsImport ShipmentBooking[] @relation("ShipmentImportCountry")
+
+  // shopping Booking
+  shoppingBookingsExport ShoppingBooking[] @relation("ShoppingBookingExportCountry")
+  shoppingBookingsImport ShoppingBooking[] @relation("ShoppingBookingImportCountry")
+
+  @@map("countries")
+}
+
+model Ports {
+  id         Int      @id @default(autoincrement())
+  portName   String   @db.VarChar(100)
+  portType   PortType @default(Sea)
+  created_at DateTime @default(now())
+
+  countryId Int
+  country   Country? @relation(fields: [countryId], references: [id])
+}
+
+model CountryCombination {
+  id              Int      @id @default(autoincrement())
+  exportCountryId Int
+  importCountryId Int
+  status          Boolean  @default(true)
+  exportCountry   Country  @relation("ExportCountry", fields: [exportCountryId], references: [id], onDelete: Cascade)
+  importCountry   Country  @relation("ImportCountry", fields: [importCountryId], references: [id], onDelete: Cascade)
+  created_at      DateTime @default(now())
+  rate            Rate[]
+}
+
+model CountryHsCode {
+  id        Int     @id @default(autoincrement())
+  countryId Int
+  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  hsCodes   String
+
+  category1688Id Int
+  category1688   Category1688 @relation(fields: [category1688Id], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

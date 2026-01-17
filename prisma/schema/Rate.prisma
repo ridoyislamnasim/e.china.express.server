@@ -1,0 +1,83 @@
+model RateShippingMethod {
+  id              Int                   @id @default(autoincrement())
+  name            String                @unique
+  description     String?
+  createdAt       DateTime              @default(now())
+  productShipping CartProductShipping[]
+  shippingInfos   ShippingInfo[]
+    rate        Rate[]
+}
+
+model RateWeightCategorie {
+  id         Int      @id @default(autoincrement())
+  label      String
+  min_weight Decimal
+  max_weight Decimal
+  created_at DateTime @default(now())
+  rate       Rate[]
+}
+
+model Rate {
+  id                   Int      @id @default(autoincrement())
+  countryCombinationId Int
+  category1688Id       Int
+  shippingMethodId     Int
+  weightCategoryId     Int
+  price                Decimal  @db.Decimal(10, 2)
+  created_at           DateTime @default(now())
+
+  // Relations
+  countryCombination CountryCombination    @relation(fields: [countryCombinationId], references: [id], onDelete: Cascade)
+  category1688       Category1688          @relation(fields: [category1688Id], references: [id])
+  shippingMethod     RateShippingMethod     @relation(fields: [shippingMethodId], references: [id])
+  weightCategory     RateWeightCategorie   @relation(fields: [weightCategoryId], references: [id])
+  cartProductVariant CartProductVariant[]
+  productShipping    CartProductShipping[]
+  ShipmentBookings   ShipmentBooking[]
+  // shopping bookings
+  ShoppingBookings   ShoppingBooking[]
+}
+
+model Category1688 {
+  id             Int     @id @default(autoincrement())
+  categoryId     Int     @unique
+  chineseName    String?
+  translatedName String?
+  language       String?
+  imageUrl       String?
+  status         Boolean @default(true)
+  leaf           Boolean @default(false)
+  level          Int     @default(0)
+  image          String?
+
+  isRateCategory Boolean @default(false)
+
+  // parent relation
+  parentCateId Int?
+  parent       Category1688? @relation("CategoryTree", fields: [parentCateId], references: [categoryId])
+
+  // children relation
+  children Category1688[] @relation("CategoryTree")
+  rate     Rate[]
+
+  // One-to-One HS Code Config
+  hsCodeConfig   HsCodeConfig?
+  hsCodeConfigId Int?          @unique
+
+  // Country specific HS codes (one-to-many)
+  countryHsCodes CountryHsCode[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HsCodeConfig {
+  id                    Int           @id @default(autoincrement())
+  globalHsCodes         String
+  chinaHsCodes          String
+  globalMaterialComment String?
+  category              Category1688? @relation(fields: [categoryId], references: [id])
+  categoryId            Int?          @unique
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}

@@ -1,0 +1,46 @@
+model Categorie {
+  id             Int             @id @default(autoincrement())
+  name           String
+  shCategoryCode String
+  description    String?
+  created_at     DateTime        @default(now())
+  subCategories  SubCategories[]
+  rateProduct    RateProduct[]
+}
+
+model SubCategories {
+  id                Int           @id @default(autoincrement())
+  categoryId        Int?
+  name              String
+  shSubCategoryCode String
+  description       String?
+  created_at        DateTime      @default(now())
+  categorie         Categorie?    @relation(fields: [categoryId], references: [id])
+  subHeadings       SubHeadings[]
+  rateProduct       RateProduct[]
+}
+
+model SubHeadings {
+  id               Int            @id @default(autoincrement())
+  subcategoryId    Int?
+  name             String
+  hsSubHeadingCode String
+  description      String?
+  created_at       DateTime       @default(now())
+  subCategoriesId  SubCategories? @relation(fields: [subcategoryId], references: [id])
+  rateProduct      RateProduct[]
+}
+
+model RateProduct {
+  id            Int            @id @default(autoincrement())
+  categoryId    Int?
+  subcategoryId Int?
+  subheadingId  Int?
+  name          String
+  shCode        String
+  status        Boolean        @default(true)
+  created_at    DateTime       @default(now())
+  categorie     Categorie?     @relation(fields: [categoryId], references: [id])
+  subCategories SubCategories? @relation(fields: [subcategoryId], references: [id])
+  subHeadings   SubHeadings?   @relation(fields: [subheadingId], references: [id])
+}

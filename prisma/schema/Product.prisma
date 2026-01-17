@@ -1,0 +1,132 @@
+model Product {
+  id                    Int               @id @default(autoincrement())
+  productId             String?
+  SKU                   String?           @unique
+  name                  String?
+  description           String?
+  isDiscounted          Boolean           @default(false)
+  discountType          String?
+  discount              Float?
+  costPrice             Float?
+  price                 Float?
+  mrpPrice              Float?
+  discountAmount        Float?
+  weight                Float?
+  thumbnailImage        String
+  backViewImage         String?
+  images                String[]
+  sizeChartImage        String?
+  videoUrl              String?
+  status                Boolean?          @default(true)
+  slug                  String?           @unique
+  freeShipping          Boolean           @default(false)
+  brandRef              Brand?            @relation(fields: [brandRefId], references: [id])
+  brandRefId            Int?
+  mainInventory         Int?
+  gender                String?
+  inventoryType         String?
+  categoryRef           Category?         @relation("CategoryToProduct", fields: [categoryRefId], references: [id])
+  categoryRefId         Int?
+  subCategoryRef        SubCategory?      @relation(fields: [subCategoryRefId], references: [id])
+  subCategoryRefId      Int?
+  childCategoryRef      ChildCategory?    @relation("ChildCategoryToProduct", fields: [childCategoryRefId], references: [id])
+  childCategoryRefId    Int?
+  subChildCategoryRef   SubChildCategory? @relation("SubChildCategoryToProduct", fields: [subChildCategoryRefId], references: [id])
+  subChildCategoryRefId Int?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  wishlists             Wishlist[]        @relation("ProductToWishlist")
+
+  productReviews       ProductReview[]
+  buyNowCarts          BuyNowCart[]     @relation("ProductToCart")
+  publishStatus        String?          @default("Publish")
+  viewProduct          Int?             @default(0)
+  cartProducts         CartProduct[]
+  shipmentBookingItems BookingProduct[]
+}
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String?
+  image         String?
+  vectorImage   String?
+  colorCode     String?
+  slug          String?       @unique
+  status        Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  subCategories SubCategory[]
+  products      Product[]     @relation("CategoryToProduct")
+  coupons       Coupon[]      @relation(fields: [], references: [])
+}
+
+model SubCategory {
+  id              Int             @id @default(autoincrement())
+  name            String?
+  image           String?
+  bannerImage     String?
+  slug            String?         @unique
+  status          Boolean         @default(true)
+  categoryRef     Category?       @relation(fields: [categoryRefId], references: [id])
+  categoryRefId   Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  childCategories ChildCategory[]
+  products        Product[]
+  coupons         Coupon[]        @relation("SubCategoryToCoupon")
+}
+
+model ChildCategory {
+  id                 Int                @id @default(autoincrement())
+  name               String?
+  image              String?
+  slug               String?
+  status             Boolean            @default(true)
+  subCategoryRef     SubCategory?       @relation(fields: [subCategoryRefId], references: [id])
+  subCategoryRefId   Int?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  subChildCategories SubChildCategory[]
+  products           Product[]          @relation("ChildCategoryToProduct")
+}
+
+model SubChildCategory {
+  id                 Int            @id @default(autoincrement())
+  name               String?
+  image              String?
+  slug               String?
+  status             Boolean        @default(true)
+  childCategoryRef   ChildCategory? @relation(fields: [childCategoryRefId], references: [id])
+  childCategoryRefId Int?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  products           Product[]      @relation("SubChildCategoryToProduct")
+}
+
+model Brand {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  image     String?
+  slug      String?
+  status    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+  coupons  Coupon[]  @relation(fields: [], references: [])
+}
+
+model ProductReview {
+  id           Int      @id @default(autoincrement())
+  image        String?
+  name         String?
+  rating       Int?
+  comment      String?
+  status       Boolean  @default(true)
+  userRef      User?    @relation(fields: [userRefId], references: [id])
+  userRefId    Int?
+  productRef   Product? @relation(fields: [productRefId], references: [id])
+  productRefId Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

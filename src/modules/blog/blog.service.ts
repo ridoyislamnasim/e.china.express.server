@@ -34,34 +34,6 @@ export class BlogService {
     return await blogRepository.findAllBlogTags();
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   async createBlog(payloadFiles: any, payload: any, tx?: any) {
    
    
@@ -138,48 +110,6 @@ export class BlogService {
     return createdBlog;
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
 
 
   async updateBlog(slug: string, payloadFiles: any, payload: UpdateBlogRequestDto) {

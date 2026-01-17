@@ -221,6 +221,13 @@ export class Category1688Repository {
     });
   }
 
+  async updateCategoryImage(id: number, image: string): Promise<any> {
+    return await prisma.category1688.update({
+      where: { id },
+      data: { image },
+    });
+  }
+
 }
 
 const category1688Repository = new Category1688Repository();

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import controller from "../../modules/category1688/category.1688.controller";
+import { upload } from "../../middleware/upload/upload";
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-// import { upload } from "../../middleware/upload/upload";
 
 const Category1688Router = Router();
 // Category1688Router.use(jwtAuth());
@@ -19,6 +19,9 @@ Category1688Router.get('/category/:categoryId', controller.getCategoryIdBySubcat
 Category1688Router.get('/rate', controller.getAllCategory1688ForRateCalculation);
 Category1688Router.post('/:categoryId/rate-calculation', controller.addCategoryForRateCalculation);
 Category1688Router.get('/find', controller.findCategory1688);
+
+// Image upload for category
+Category1688Router.post('/:id/image', upload, controller.uploadCategoryImage);
 
 Category1688Router.route("/hs-code/:id")
    .post(controller.createHsCodeEntryByCategoryId)

@@ -102,6 +102,17 @@ export class Category1688Controller {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+  uploadCategoryImage = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const payloadFiles = {
+      files: req.files,
+    };
+
+    const result = await Category1688Service.uploadCategoryImage(Number(id), payloadFiles || '');
+    const resDoc = responseHandler(200, 'Category image uploaded successfully', result);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
 
 
 

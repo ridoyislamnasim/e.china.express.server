@@ -1,0 +1,126 @@
+model User {
+  id                Int             @id @default(autoincrement())
+  email             String          @unique
+  phone             String?         @unique
+  password          String
+  name              String?
+  isVerified        Boolean         @default(false)
+  // Relations
+  wishlist          Wishlist[]
+  cart              Cart[]
+  productReviews    ProductReview[]
+  managedWarehouses Warehouse[]     @relation("UserManagedWarehouses")
+  createdWarehouses Warehouse[]     @relation("UserCreatedWarehouses")
+  updatedWarehouses Warehouse[]     @relation("UserUpdatedWarehouses")
+
+  bookingProductsAsAgent BookingProduct[] @relation("UserAgentBookingProducts")
+
+  // CustomerBookingProduct
+  bookingProductsAsCustomer BookingProduct[] @relation("CustomerBookingProduct")
+
+  roleId                     Int?
+  role                       Role?             @relation(fields: [roleId], references: [id])
+  addressId                  Int?
+  address                    Address?          @relation(fields: [addressId], references: [id])
+  buyNowCarts                BuyNowCart[]
+  otp                        OTP[]
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+  // shopping 
+  shoppingBookingsAsCustomer ShoppingBooking[] @relation("ShoppingBookingCustomer")
+  shoppingBookings           ShoppingBooking[] @relation("ShoppingBookingUser")
+
+  // shipping 
+
+  // inventory
+  inventoryBookings           InventoryBooking[]
+  inventoryBookingsAsCustomer InventoryBooking[] @relation("InventoryBookingCustomer")
+
+  // Shipment
+  shipmentBookingsAsCustomer ShipmentBooking[] @relation("ShipmentCustomer")
+
+  cartProductShippings CartProductShipping[] @relation("CartProductShippingUser")
+}
+
+model Role {
+  id           Int         @id @default(autoincrement())
+  role         String      @unique
+  permissionId Int?
+  permission   Permission? @relation(fields: [permissionId], references: [id])
+  users        User[]
+  text         String?
+  text2        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Permission {
+  id Int @id @default(autoincrement())
+
+  // aboutUs permissions
+  aboutUsAccess Boolean @default(false)
+  aboutUsCreate Boolean @default(false)
+  aboutUsUpdate Boolean @default(false)
+  aboutUsDelete Boolean @default(false)
+
+  // banner permissions
+  bannerAccess Boolean @default(false)
+  bannerCreate Boolean @default(false)
+  bannerUpdate Boolean @default(false)
+  bannerDelete Boolean @default(false)
+
+  // category permissions
+  categoryAccess Boolean @default(false)
+  categoryCreate Boolean @default(false)
+  categoryUpdate Boolean @default(false)
+  categoryDelete Boolean @default(false)
+
+  // subCategory permissions
+  subCategoryAccess Boolean @default(false)
+  subCategoryCreate Boolean @default(false)
+  subCategoryUpdate Boolean @default(false)
+  subCategoryDelete Boolean @default(false)
+
+  // chilsCategory permissions (kept existing name)
+  chilsCategoryAccess Boolean @default(false)
+  chilsCategoryCreate Boolean @default(false)
+  chilsCategoryUpdate Boolean @default(false)
+  chilsCategoryDelete Boolean @default(false)
+
+  // order permissions
+  orderAccess Boolean @default(false)
+  orderCreate Boolean @default(false)
+  orderUpdate Boolean @default(false)
+  orderDelete Boolean @default(false)
+
+  // user permissions
+  userAccess Boolean @default(false)
+  userCreate Boolean @default(false)
+  userUpdate Boolean @default(false)
+  userDelete Boolean @default(false)
+
+  roles Role[]
+}
+
+model Address {
+  id      Int    @id @default(autoincrement())
+  street  String
+  city    String
+  state   String
+  country String
+  zipCode String
+  users   User[]
+
+  @@map("addresses")
+}
+
+model OTP {
+  id        Int      @id @default(autoincrement())
+  userRef   User?    @relation(fields: [userRefId], references: [id])
+  userRefId Int?
+  otpHash   String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

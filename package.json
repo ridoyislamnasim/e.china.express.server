@@ -2,6 +2,9 @@
   "name": "server_type",
   "version": "1.0.0",
   "main": "index.js",
+  "prisma": {
+    "schema": "./prisma/schema"
+  },
   "scripts": {
     "start": "node dist/server.js", 
     "dev": "nodemon src/server.ts",
