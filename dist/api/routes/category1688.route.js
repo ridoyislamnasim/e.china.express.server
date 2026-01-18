@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const category_1688_controller_1 = __importDefault(require("../../modules/category1688/category.1688.controller"));
+const upload_1 = require("../../middleware/upload/upload");
 // import jwtAuth from "../../middleware/auth/jwtAuth";
-// import { upload } from "../../middleware/upload/upload";
 const Category1688Router = (0, express_1.Router)();
 // Category1688Router.use(jwtAuth());
 // Category1688Router.get("/navbar", controller.getNavBar);
@@ -20,6 +20,8 @@ Category1688Router.get('/category/:categoryId', category_1688_controller_1.defau
 Category1688Router.get('/rate', category_1688_controller_1.default.getAllCategory1688ForRateCalculation);
 Category1688Router.post('/:categoryId/rate-calculation', category_1688_controller_1.default.addCategoryForRateCalculation);
 Category1688Router.get('/find', category_1688_controller_1.default.findCategory1688);
+// Image upload for category
+Category1688Router.post('/:id/image', upload_1.upload, category_1688_controller_1.default.uploadCategoryImage);
 Category1688Router.route("/hs-code/:id")
     .post(category_1688_controller_1.default.createHsCodeEntryByCategoryId)
     .get(category_1688_controller_1.default.getHsCodeEntryByCategoryId);

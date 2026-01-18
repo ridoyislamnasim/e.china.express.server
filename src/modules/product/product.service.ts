@@ -354,6 +354,19 @@ export class ProductService {
       if (payload?.imageAddress) {
         offerQueryParamObj.imageAddress = String(payload.imageAddress);
       }
+      // Add optional filters to offerQueryParamObj (1688 API expects these inside offerQueryParam)
+      if (payload?.priceStart !== undefined && payload?.priceStart !== null && payload?.priceStart !== '') {
+        offerQueryParamObj.priceStart = payload.priceStart;
+      }
+      if (payload?.priceEnd !== undefined && payload?.priceEnd !== null && payload?.priceEnd !== '') {
+        offerQueryParamObj.priceEnd = payload.priceEnd;
+      }
+      if (payload?.categoryId !== undefined && payload?.categoryId !== null && payload?.categoryId !== '') {
+        offerQueryParamObj.categoryId = String(payload.categoryId);
+      }
+      if (payload?.sort !== undefined && payload?.sort !== null && payload?.sort !== '') {
+        offerQueryParamObj.sort = payload.sort;
+      }
       console.log('Offer Query Param Object before optional params:', offerQueryParamObj);
       // Include imageId inside offerQueryParam as well for API variants
       offerQueryParamObj.imageId = imageId;

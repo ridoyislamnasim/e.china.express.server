@@ -92,6 +92,15 @@ class Category1688Controller {
             const resDoc = (0, responseHandler_1.responseHandler)(200, 'Get HS Code Entry by Category ID', hsCodeEntryResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
+        this.uploadCategoryImage = (0, catchError_1.default)(async (req, res, next) => {
+            const { id } = req.params;
+            const payloadFiles = {
+                files: req.files,
+            };
+            const result = await category_1688_service_1.default.uploadCategoryImage(Number(id), payloadFiles || '');
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Category image uploaded successfully', result);
+            res.status(resDoc.statusCode).json(resDoc);
+        });
     }
 }
 exports.Category1688Controller = Category1688Controller;

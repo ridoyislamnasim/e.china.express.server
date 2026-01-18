@@ -17,7 +17,7 @@ ProductRoute.get("/1688/product/filter", product_controller_1.default.get1688Pro
 ProductRoute.get("/agent/1688/details/:productId", product_controller_1.default.get1688ProductDetailsForAgent); // for production use
 ProductRoute.get("/1688/details/:productId", product_controller_1.default.get1688ProductDetails); // for production agent
 ProductRoute.get("/1688/details/test/:productId", product_controller_1.default.get1688ProductDetailsTest);
-ProductRoute.get("/1688/image-search", upload_1.upload, product_controller_1.default.get1688ProductImageSearch); // for production use
+ProductRoute.post("/1688/image-search", upload_1.upload, product_controller_1.default.get1688ProductImageSearch); // for production use - POST for file upload
 // ProductRoute.route("/")
 //   // .post(upload.any(), controller.createProduct)
 //   .get(controller.getAllProduct);

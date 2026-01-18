@@ -123,7 +123,7 @@ class ProductController {
         this.get1688ProductImageSearch = (0, catchError_1.default)(async (req, res) => {
             var _a, _b, _c, _d, _e, _f, _g, _h;
             // image resived from req.file or req.files
-            console.log("Received files:", req.files);
+            console.log("Received files:--", req.files);
             const payloadFiles = {
                 files: req.files,
             };

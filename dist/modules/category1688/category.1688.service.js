@@ -7,6 +7,7 @@ exports.Category1688Service = void 0;
 const errors_1 = require("../../utils/errors");
 // import { BaseService } from '../base/base.service';
 const category_1688_repository_1 = __importDefault(require("./category.1688.repository"));
+const ImgUploder_1 = __importDefault(require("../../middleware/upload/ImgUploder"));
 const e1688Category_1 = __importDefault(require("../../utils/e1688Category"));
 const config_1 = __importDefault(require("../../config/config"));
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
@@ -111,6 +112,23 @@ class Category1688Service {
             throw new errors_1.NotFoundError(`HS Code Entry for Category ID ${id} not found`);
         }
         return hsCodeEntry;
+    }
+    async uploadCategoryImage(id, payloadFiles) {
+        const { files } = payloadFiles;
+        if (!files)
+            throw new Error('image is required');
+        // console.log('Creating blog with files:', files);
+        console.log('Creating blog with payload:', payloadFiles);
+        const images = await (0, ImgUploder_1.default)(files);
+        let image = '';
+        for (const key in images) {
+            image = images[key];
+        }
+        const category = await this.repository.getCategoryById(id);
+        if (!category) {
+            throw new errors_1.NotFoundError(`Category with id ${id} not found`);
+        }
+        return await this.repository.updateCategoryImage(id, image);
     }
 }
 exports.Category1688Service = Category1688Service;

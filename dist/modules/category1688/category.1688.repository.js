@@ -200,6 +200,12 @@ class Category1688Repository {
             where: { categoryId: subCategory1688Id, isRateCategory: true },
         });
     }
+    async updateCategoryImage(id, image) {
+        return await prismadatabase_1.default.category1688.update({
+            where: { id },
+            data: { image },
+        });
+    }
 }
 exports.Category1688Repository = Category1688Repository;
 const category1688Repository = new Category1688Repository();

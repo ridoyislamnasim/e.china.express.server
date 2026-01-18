@@ -247,6 +247,9 @@ class ProductService {
                 imageBuffer = payloadFiles.buffer;
             }
             const imageInput = imageBuffer !== null && imageBuffer !== void 0 ? imageBuffer : payload === null || payload === void 0 ? void 0 : payload.image;
+            console.log('Received image input for search:', imageInput ? 'Exists' : 'Not provided');
+            console.log('Type of image input:', imageInput);
+            console.log('Type of image input:', typeof imageInput);
             if (!imageInput) {
                 const error = new Error("Provide an image via files array, single file object, or payload.image");
                 error.statusCode = 400;
@@ -293,6 +296,7 @@ class ProductService {
             const imageId = ((uploadResp === null || uploadResp === void 0 ? void 0 : uploadResp.result) && (uploadResp.result.result || uploadResp.result.imageId))
                 ? String(uploadResp.result.result || uploadResp.result.imageId)
                 : undefined;
+            console.log('Uploaded Image ID:--------------------------', imageId);
             if (!imageId) {
                 const error = new Error("Image upload did not return an imageId");
                 error.statusCode = 500;
@@ -310,6 +314,20 @@ class ProductService {
             if (payload === null || payload === void 0 ? void 0 : payload.imageAddress) {
                 offerQueryParamObj.imageAddress = String(payload.imageAddress);
             }
+            // Add optional filters to offerQueryParamObj (1688 API expects these inside offerQueryParam)
+            if ((payload === null || payload === void 0 ? void 0 : payload.priceStart) !== undefined && (payload === null || payload === void 0 ? void 0 : payload.priceStart) !== null && (payload === null || payload === void 0 ? void 0 : payload.priceStart) !== '') {
+                offerQueryParamObj.priceStart = payload.priceStart;
+            }
+            if ((payload === null || payload === void 0 ? void 0 : payload.priceEnd) !== undefined && (payload === null || payload === void 0 ? void 0 : payload.priceEnd) !== null && (payload === null || payload === void 0 ? void 0 : payload.priceEnd) !== '') {
+                offerQueryParamObj.priceEnd = payload.priceEnd;
+            }
+            if ((payload === null || payload === void 0 ? void 0 : payload.categoryId) !== undefined && (payload === null || payload === void 0 ? void 0 : payload.categoryId) !== null && (payload === null || payload === void 0 ? void 0 : payload.categoryId) !== '') {
+                offerQueryParamObj.categoryId = String(payload.categoryId);
+            }
+            if ((payload === null || payload === void 0 ? void 0 : payload.sort) !== undefined && (payload === null || payload === void 0 ? void 0 : payload.sort) !== null && (payload === null || payload === void 0 ? void 0 : payload.sort) !== '') {
+                offerQueryParamObj.sort = payload.sort;
+            }
+            console.log('Offer Query Param Object before optional params:', offerQueryParamObj);
             // Include imageId inside offerQueryParam as well for API variants
             offerQueryParamObj.imageId = imageId;
             const offerQueryParam = JSON.stringify(offerQueryParamObj);
