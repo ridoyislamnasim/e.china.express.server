@@ -1,3 +1,4 @@
+import { pagination } from "../../utils/pagination";
 import rateWeightCategoriesRepository, { RateWeightCategoriesRepository } from "./rateWeightCategories.repository";
 
 export class RateWeightCategoriesService {
@@ -43,6 +44,17 @@ export class RateWeightCategoriesService {
 
     const shippingMethod = await this.repository.createRateWeightCategories(weightCategoriesPayload);
     return shippingMethod;
+  }
+
+  async getRateWeightCategoriesWithPagination(payload: any): Promise<any> {
+    const rateWeightCategories = await pagination(payload, async (limit: number, offset: number) => {
+      const [doc, totalDoc] = await Promise.all([
+        await this.repository.getRateWeightCategoriesWithPagination({ limit, offset, sortOrder: payload.order }),
+        await this.repository.countRateWeightCategories(),
+      ]);
+      return { doc, totalDoc };
+    });
+    return rateWeightCategories;
   }
 
   getAllRateWeightCategories = async (): Promise<any> => {

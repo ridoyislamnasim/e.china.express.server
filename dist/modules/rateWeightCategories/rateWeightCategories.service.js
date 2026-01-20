@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RateWeightCategoriesService = void 0;
+const pagination_1 = require("../../utils/pagination");
 const rateWeightCategories_repository_1 = __importDefault(require("./rateWeightCategories.repository"));
 class RateWeightCategoriesService {
     // private roleRepository: RoleRepository;
@@ -49,6 +50,16 @@ class RateWeightCategoriesService {
         };
         const shippingMethod = await this.repository.createRateWeightCategories(weightCategoriesPayload);
         return shippingMethod;
+    }
+    async getRateWeightCategoriesWithPagination(payload) {
+        const rateWeightCategories = await (0, pagination_1.pagination)(payload, async (limit, offset) => {
+            const [doc, totalDoc] = await Promise.all([
+                await this.repository.getRateWeightCategoriesWithPagination({ limit, offset, sortOrder: payload.order }),
+                await this.repository.countRateWeightCategories(),
+            ]);
+            return { doc, totalDoc };
+        });
+        return rateWeightCategories;
     }
     async updateRateWeightCategories(id, payload) {
         const { label, min_weight, max_weight } = payload;

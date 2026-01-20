@@ -31,10 +31,12 @@ const banding_route_1 = __importDefault(require("./routes/banding.route"));
 const companyContact_route_1 = __importDefault(require("./routes/companyContact.route"));
 const teamManagement_route_1 = __importDefault(require("./routes/teamManagement.route"));
 const services_route_1 = __importDefault(require("./routes/services.route"));
+const role_route_1 = __importDefault(require("./routes/role.route"));
 // import other routers here
 const rootRouter = (0, express_1.Router)();
 rootRouter.use("/example", example_route_1.default);
 rootRouter.use("/auth", auth_route_1.default);
+rootRouter.use("/role", role_route_1.default);
 rootRouter.use("/1688/category", category1688_route_1.default);
 rootRouter.use("/category", category_route_1.default);
 rootRouter.use("/banner", banner_route_1.default);

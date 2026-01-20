@@ -37,5 +37,45 @@ export class ShippingMethodService {
     return shippingMethods;
   }
 
+  async getShippingMethodWithPagination(payload: any): Promise<any> {
+    const allShippingMethods = await this.repository.getShippingMethodWithPagination(payload);
+    return allShippingMethods;
+  }
+  async getSingleShippingMethod(id: string): Promise<any> {
+    const shippingMethod = await this.repository.getSingleShippingMethod(id);
+    if (!shippingMethod) {
+      const error = new Error('Shipping Method Not Found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    return shippingMethod;
+  }
+  
+  async updateShippingMethod(id: string, payload: any): Promise<any> {
+  //  GET GY ID THAN CHECK IF EXISTS
+    const existingShippingMethod = await this.repository.getSingleShippingMethod(id);
+    if (!existingShippingMethod) {
+      const error = new Error('Shipping Method Not Found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    const updatedShippingMethod = await this.repository.updateShippingMethod(id, payload);
+    return updatedShippingMethod;
+
+   
+  }
+
+  async deleteShippingMethod(id: string): Promise<any> {
+    //  GET BY ID THAN CHECK IF EXISTS
+    const existingShippingMethod = await this.repository.getSingleShippingMethod(id);
+    if (!existingShippingMethod) {
+      const error = new Error('Shipping Method Not Found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+    const deletedShippingMethod = await this.repository.deleteShippingMethod(id);
+    return deletedShippingMethod;
+  }
+
 }
 

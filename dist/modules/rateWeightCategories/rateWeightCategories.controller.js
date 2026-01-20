@@ -34,6 +34,21 @@ class RateWeightCategoriesController {
             }
         };
     }
+    async getRateWeightCategoriesWithPagination(req, res, next) {
+        try {
+            let payload = {
+                page: Number(req.query.page),
+                limit: Number(req.query.limit),
+                order: req.query.order,
+            };
+            const rateWeightCategories = await rateWeightCategoriesService.getRateWeightCategoriesWithPagination(payload);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate weight categories retrieved successfully', { ...rateWeightCategories });
+            res.status(resDoc.statusCode).json(resDoc);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
     async updateRateWeightCategories(req, res, next) {
         const { id } = req.params;
         const { label, min_weight, max_weight } = req.body;

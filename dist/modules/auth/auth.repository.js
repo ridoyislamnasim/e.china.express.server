@@ -50,6 +50,19 @@ class AuthRepository {
     async getUserById(id) {
         return await this.prisma.user.findUnique({ where: { id } });
     }
+    async getUserBy(id) {
+        console.log('Fetching user by ID:', id);
+        return await this.prisma.user.findUnique({
+            where: { id },
+            include: {
+                role: {
+                    include: {
+                        permission: true
+                    }
+                }
+            }
+        });
+    }
     async saveOTP(userId, otp, expiresInMinutes = 5) {
         const otpHash = await (0, OTPGenerate_1.hashOTP)(otp);
         console.log('Saving OTP hash:', otpHash, 'for otp:', otp);

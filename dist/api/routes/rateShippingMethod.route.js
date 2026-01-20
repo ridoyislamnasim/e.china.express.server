@@ -18,12 +18,12 @@ rateShippingMethodRoute.route("/")
 // countryRoute.route("/admin").post(controller.createAdminOrder);
 // countryRoute.route("/user/:id").get(controller.getUserAllOrder);
 // countryRoute.route("/track").get(controller.orderTracking);
-// countryRoute.get("/pagination", controller.getOrderWithPagination);
+rateShippingMethodRoute.get("/pagination", shippingMethod_controller_1.default.getShippingMethodWithPagination);
 // countryRoute.get("/incomplete/pagination", controller.getIncompleteOrderWithPagination);
-// countryRoute.route(":id")
-//     .get(controller.getSingleOrder)
-//     .put(upload.any(), controller.updateOrder)
-//     .delete(controller.deleteOrder);
+rateShippingMethodRoute.route("/:id")
+    .get(shippingMethod_controller_1.default.getSingleShippingMethod)
+    .put(shippingMethod_controller_1.default.updateShippingMethod)
+    .delete(shippingMethod_controller_1.default.deleteShippingMethod);
 // countryRoute.put("/status/:id", controller.updateOrderStatus);
 // countryRoute.put("/couriersend/:id", controller.isCourierSending);
 exports.default = rateShippingMethodRoute;

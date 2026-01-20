@@ -31,6 +31,19 @@ export class RateWeightCategoriesRepository {
     return rateWeightCategories;
   }
 
+  async getRateWeightCategoriesWithPagination(payload: any) {
+// only get with limit and offset
+    return await this.prisma.rateWeightCategorie.findMany({
+      skip: payload.offset,
+      take: payload.limit,
+      // orderBy: { createdAt: payload.sortOrder },
+    });
+  }
+  async countRateWeightCategories(): Promise<number> {
+    const count = await this.prisma.rateWeightCategorie.count();
+    return count;
+  }
+
   async deleteRateWeightCategories(id: string): Promise<any> {
     const deletedCategory = await this.prisma.rateWeightCategorie.delete({
       where: { id: Number(id) }

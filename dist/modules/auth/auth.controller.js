@@ -3,21 +3,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDeleteUser = exports.getSingleUser = exports.getAllUser = exports.updateUser = exports.getUserById = exports.authForgetPasswordVarification = exports.authForgetPassword = exports.getUser = exports.createUser = exports.authUserSignOut = exports.authUserSignIn = exports.authUserSignUp = void 0;
+exports.createSuperAdminRole = exports.getDeleteUser = exports.getSingleUser = exports.getAllUser = exports.updateUser = exports.getUserBy = exports.authForgetPasswordVarification = exports.authForgetPassword = exports.getUser = exports.createUser = exports.authUserSignOut = exports.authUserSignIn = exports.authUserSignUp = void 0;
 const auth_repository_1 = __importDefault(require("./auth.repository"));
 const auth_service_1 = require("./auth.service");
 const responseHandler_1 = require("../../utils/responseHandler");
 const config_1 = __importDefault(require("../../config/config"));
 const withTransaction_1 = __importDefault(require("../../middleware/transactions/withTransaction"));
 const requestInfo_1 = require("../../utils/requestInfo");
-const inspector_1 = require("inspector");
 const authService = new auth_service_1.AuthService(auth_repository_1.default);
 exports.authUserSignUp = (0, withTransaction_1.default)(async (req, res, next, tx) => {
     try {
         const { name, email, phone, password } = req.body;
         // console.log('Received signup request with data:', { name, email, phone, role, password });
         const payload = { name, email, phone, password };
-        inspector_1.console.log('SignUp request payload:', payload);
+        console.log('SignUp request payload:', payload);
         const user = await authService.authUserSignUp(payload, tx);
         const resDoc = (0, responseHandler_1.responseHandler)(201, 'User Created successfully', user);
         res.status(resDoc.statusCode).json(resDoc);
@@ -27,7 +26,7 @@ exports.authUserSignUp = (0, withTransaction_1.default)(async (req, res, next, t
     }
 });
 const authUserSignIn = async (req, res, next) => {
-    inspector_1.console.log('SignIn request body:', req.body);
+    console.log('SignIn request body:', req.body);
     try {
         const { email, phone, password } = req.body;
         const payload = { email, phone, password };
@@ -36,11 +35,11 @@ const authUserSignIn = async (req, res, next) => {
         const accessToken = authResult.accessToken;
         const refreshToken = authResult.refreshToken;
         const isProduction = config_1.default.isProduction || false; // fallback to false in local
-        inspector_1.console.log('Setting auth cookies for user:', isProduction);
+        console.log('Setting auth cookies for user:', isProduction);
         // Access Token Cookie
         // Make cookies usable for local development by setting a local domain and disabling secure when not in production.
         const cookieDomain = !isProduction ? 'localhost' : undefined;
-        inspector_1.console.log('Cookie Domain:', cookieDomain);
+        console.log('Cookie Domain:', cookieDomain);
         const accessCookieOptions = {
             httpOnly: true,
             secure: isProduction,
@@ -50,7 +49,7 @@ const authUserSignIn = async (req, res, next) => {
         };
         if (cookieDomain)
             accessCookieOptions.domain = cookieDomain;
-        inspector_1.console.log('Setting access token cookie with options access:', accessCookieOptions);
+        console.log('Setting access token cookie with options access:', accessCookieOptions);
         res.cookie('accessToken', accessToken, accessCookieOptions);
         // Refresh Token Cookie
         const refreshCookieOptions = {
@@ -62,7 +61,7 @@ const authUserSignIn = async (req, res, next) => {
         };
         if (cookieDomain)
             refreshCookieOptions.domain = cookieDomain;
-        inspector_1.console.log('Setting refresh token cookie with options refresh:', refreshCookieOptions);
+        console.log('Setting refresh token cookie with options refresh:', refreshCookieOptions);
         res.cookie('refreshToken', refreshToken, refreshCookieOptions);
         // User Cookie (readable by frontend)
         const userCookieOptions = {
@@ -131,7 +130,7 @@ const getUser = async (req, res, next) => {
 };
 exports.getUser = getUser;
 const authForgetPassword = async (req, res, next) => {
-    inspector_1.console.log("AuthController - authForgetPassword - request body:", req.body);
+    console.log("AuthController - authForgetPassword - request body:", req.body);
     try {
         // body theke data distrcaret
         const { email, phone } = req.body;
@@ -148,14 +147,14 @@ const authForgetPassword = async (req, res, next) => {
             time,
             geoLocation
         };
-        inspector_1.console.log("========= Request Info =========");
-        inspector_1.console.log("IP Address:", ip);
-        inspector_1.console.log("Browser:", browser); // Will show like "Chrome 111.0.0"
-        inspector_1.console.log("Operating System:", os); // Will show like "Windows 10"
-        inspector_1.console.log("Date:", date); // Will show like "Monday, 20 March 2023"
-        inspector_1.console.log("Time:", time); // Will show like "11:31:10 pm"
-        inspector_1.console.log("Location:", geoLocation);
-        inspector_1.console.log("================================");
+        console.log("========= Request Info =========");
+        console.log("IP Address:", ip);
+        console.log("Browser:", browser); // Will show like "Chrome 111.0.0"
+        console.log("Operating System:", os); // Will show like "Windows 10"
+        console.log("Date:", date); // Will show like "Monday, 20 March 2023"
+        console.log("Time:", time); // Will show like "11:31:10 pm"
+        console.log("Location:", geoLocation);
+        console.log("================================");
         const user = await authService.authForgetPassword(payload);
         res.status(200).json({ message: 'Forget Password OTP sent email successfully' });
     }
@@ -177,19 +176,20 @@ const authForgetPasswordVarification = async (req, res, next) => {
     }
 };
 exports.authForgetPasswordVarification = authForgetPasswordVarification;
-const getUserById = async (req, res, next) => {
+exports.getUserBy = (0, withTransaction_1.default)(async (req, res, next, tx) => {
     var _a, _b;
+    console.log('AuthController - getUserBy - called');
     try {
-        // @ts-ignore
+        // @ts-ignore user_info_encrypted.id
         const userId = (_b = (_a = req.user) === null || _a === void 0 ? void 0 : _a.user_info_encrypted) === null || _b === void 0 ? void 0 : _b.id;
-        const user = await authService.getUserById(userId);
+        console.log('Getting user by ID from JWT:', userId);
+        const user = await authService.getUserBy(userId, tx);
         res.status(200).json({ message: 'User get successfully', user });
     }
     catch (error) {
         next(error);
     }
-};
-exports.getUserById = getUserById;
+});
 const updateUser = async (req, res, next) => {
     var _a, _b, _c, _d, _e;
     try {
@@ -246,3 +246,12 @@ const getDeleteUser = async (req, res, next) => {
     }
 };
 exports.getDeleteUser = getDeleteUser;
+exports.createSuperAdminRole = (0, withTransaction_1.default)(async (req, res, next, tx) => {
+    try {
+        const role = await authService.createSuperAdminRole(tx);
+        res.status(201).json({ message: 'Super Admin Role created successfully', role });
+    }
+    catch (error) {
+        next(error);
+    }
+});

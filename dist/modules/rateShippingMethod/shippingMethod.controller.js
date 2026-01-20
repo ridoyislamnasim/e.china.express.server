@@ -34,6 +34,57 @@ class RateShippingMethodController {
                 next(error);
             }
         };
+        this.getShippingMethodWithPagination = async (req, res, next) => {
+            try {
+                let payload = {
+                    page: Number(req.query.page),
+                    limit: Number(req.query.limit),
+                    order: req.query.order,
+                };
+                const shippingMethods = await rateShippingMethodService.getShippingMethodWithPagination(payload);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping methods retrieved successfully', { ...shippingMethods });
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.getSingleShippingMethod = async (req, res, next) => {
+            try {
+                const id = req.params.id;
+                const shippingMethod = await rateShippingMethodService.getSingleShippingMethod(id);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping method retrieved successfully', shippingMethod);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.updateShippingMethod = async (req, res, next) => {
+            try {
+                const id = req.params.id;
+                const payload = {
+                    name: req.body.name,
+                };
+                await rateShippingMethodService.updateShippingMethod(id, payload);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping method updated successfully');
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
+        this.deleteShippingMethod = async (req, res, next) => {
+            try {
+                const id = req.params.id;
+                await rateShippingMethodService.deleteShippingMethod(id);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping method deleted successfully');
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
     }
 }
 exports.default = new RateShippingMethodController();

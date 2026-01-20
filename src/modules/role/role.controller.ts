@@ -8,6 +8,7 @@ class RoleController {
   createRole = withTransaction(async (req: Request, res: Response, next: NextFunction, session: any) => {
     const payload = {
       role: req?.body?.role,
+      permissions: req?.body?.permissions,
     };
     const roleResult = await RoleService.createRole(payload, session);
     const resDoc = responseHandler(201, "Role Created successfully", roleResult);

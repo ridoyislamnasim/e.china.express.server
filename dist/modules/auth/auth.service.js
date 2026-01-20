@@ -11,6 +11,7 @@ const jwt_1 = require("../../utils/jwt");
 const errors_1 = require("../../utils/errors");
 const Email_1 = __importDefault(require("../../utils/Email"));
 const OTPGenerate_1 = require("../../utils/OTPGenerate");
+const role_repository_1 = __importDefault(require("../role/role.repository"));
 class AuthService {
     // private roleRepository: RoleRepository;
     constructor(repository = auth_repository_1.default) {
@@ -93,8 +94,8 @@ class AuthService {
             user: user_info_encrypted,
         };
     }
-    async getUserById(userId, session) {
-        const user = await this.repository.getUserById(userId);
+    async getUserBy(userId, session) {
+        const user = await this.repository.getUserBy(userId);
         if (!user) {
             const error = new Error('User not found');
             error.statusCode = 404;
@@ -211,6 +212,21 @@ class AuthService {
         // For now, call Prisma directly if needed
         // Example: await this.repository.deleteUser(userId)
         return null;
+    }
+    async createSuperAdminRole(session) {
+        // crarte super admin role
+        const superAdminRole = await role_repository_1.default.createSuperAdminRole();
+        const password = 'SuperAdmin@123';
+        const hashedPassword = await bcryptjs_1.default.hash(String(password), 10);
+        const superAdminUserPayload = {
+            name: 'Super Admin',
+            password: hashedPassword,
+            email: 'superadmin@example.com',
+            roleId: superAdminRole.id,
+            phone: '0000000000',
+        };
+        const role = await this.repository.createUser(superAdminUserPayload, session);
+        return role;
     }
 }
 exports.AuthService = AuthService;

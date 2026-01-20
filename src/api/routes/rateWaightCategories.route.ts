@@ -18,7 +18,7 @@ rateWeightCategoriesRoute.route("/")
 // countryRoute.route("/user/:id").get(controller.getUserAllOrder);
 // countryRoute.route("/track").get(controller.orderTracking);
 
-// countryRoute.get("/pagination", controller.getOrderWithPagination);
+rateWeightCategoriesRoute.get("/pagination", controller.getRateWeightCategoriesWithPagination);
 // countryRoute.get("/incomplete/pagination", controller.getIncompleteOrderWithPagination);
 
 rateWeightCategoriesRoute.route("/:id")

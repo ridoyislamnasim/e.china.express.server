@@ -32,21 +32,27 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const controller = __importStar(require("../../modules/auth/auth.controller"));
+// import { upload } from "../../middleware/upload/upload";
+const jwtAuth_1 = __importDefault(require("../../middleware/auth/jwtAuth"));
 const AuthRouter = (0, express_1.Router)();
 AuthRouter
     .post('/signup', controller.authUserSignUp)
     .post('/signin', controller.authUserSignIn)
     .post('/signout', controller.authUserSignOut)
     .post('/create', controller.createUser)
-    .get('/create', controller.getUser)
+    // .get('/create', controller.getUser)
     .post('/forget-password', controller.authForgetPassword)
     .post('/forget-password/otp-verification', controller.authForgetPasswordVarification)
-    // .get('/', jwtAuth('admin', 'student'), controller.getUserById)
-    // .put('/', upload.any(), jwtAuth('admin', 'student'), controller.updateUser) // Uncomment if upload middleware is ready
-    .get('/user', controller.getAllUser)
-    .get('/user/:id', controller.getSingleUser)
-    .delete('/user/:id', controller.getDeleteUser);
+    .get('/', (0, jwtAuth_1.default)(), controller.getUserBy);
+AuthRouter.post("/super-admin", (0, jwtAuth_1.default)(), controller.createSuperAdminRole);
+// .put('/', upload.any(), jwtAuth('admin', 'student'), controller.updateUser) // Uncomment if upload middleware is ready
+// .get('/user',jwtAuth(["superAdmin"]), controller.getAllUser)
+// .get('/user/:id', controller.getSingleUser)
+// .delete('/user/:id', controller.getDeleteUser);
 exports.default = AuthRouter;
