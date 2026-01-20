@@ -1,22 +1,23 @@
-// import { Router } from "express";
-// import controller from "../../modules/role/role.controller";
-// // import jwtAuth from "../../middleware/auth/jwtAuth";
-// import { upload } from "../../middleware/upload/upload";
+import { Router } from "express";
+import controller from "../../modules/role/role.controller";
+import jwtAuth from "../../middleware/auth/jwtAuth";
+import { upload } from "../../middleware/upload/upload";
 
-// const RoleRoute = Router();
-// // RoleRoute.use(jwtAuth());
+const RoleRoute = Router();
+// RoleRoute.use(jwtAuth());
 
-// RoleRoute.route("/")
-//   .post(controller.createRole)
-//   .get(controller.getAllRole);
+RoleRoute.route("/")
+  .post(jwtAuth(["superAdmin"]),controller.createRole)
+//   .get(jwtAuth(["superAdmin"]) ,controller.getAllRole);
+  .get(jwtAuth(["superAdmin"]) ,controller.getAllRole);
 
-// RoleRoute.get("/pagination", controller.getRoleWithPagination);
+RoleRoute.get("/pagination", jwtAuth(["superAdmin"]), controller.getRoleWithPagination);
 
-// RoleRoute.route(":id")
-//   .get(controller.getSingleRole)
-//   .put(upload.any(), controller.updateRole)
-//   .delete(controller.deleteRole);
+RoleRoute.route("/:id")
+  .get(jwtAuth(["superAdmin"]), controller.getSingleRole)
+  .patch(jwtAuth(["superAdmin"]), controller.updateRole)
+  .delete(jwtAuth(["superAdmin"]), controller.deleteRole);
 
 // RoleRoute.put("/status/:id", controller.updateRoleStatus);
 
-// export default RoleRoute;
+export default RoleRoute;

@@ -9,13 +9,14 @@ AuthRouter
   .post('/signin', controller.authUserSignIn)
   .post('/signout', controller.authUserSignOut)
   .post('/create', controller.createUser)
-  .get('/create', controller.getUser)
+  // .get('/create', controller.getUser)
   .post('/forget-password', controller.authForgetPassword)
   .post('/forget-password/otp-verification', controller.authForgetPasswordVarification)
-  // .get('/', jwtAuth('admin', 'student'), controller.getUserById)
+  .get('/', jwtAuth(), controller.getUserBy)
+  AuthRouter.post("/super-admin", jwtAuth(), controller.createSuperAdminRole);
   // .put('/', upload.any(), jwtAuth('admin', 'student'), controller.updateUser) // Uncomment if upload middleware is ready
-  .get('/user', controller.getAllUser)
-  .get('/user/:id', controller.getSingleUser)
-  .delete('/user/:id', controller.getDeleteUser);
+  // .get('/user',jwtAuth(["superAdmin"]), controller.getAllUser)
+  // .get('/user/:id', controller.getSingleUser)
+  // .delete('/user/:id', controller.getDeleteUser);
 
 export default AuthRouter;

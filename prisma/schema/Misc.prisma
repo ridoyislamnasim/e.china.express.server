@@ -50,25 +50,24 @@ model Coupon {
   startDate        DateTime?
   expireDate       DateTime?
   discountType     String?
-  brandRef         Brand?       @relation(fields: [brandRefId], references: [id])
   brandRefId       Int?
-  categoryRef      Category?    @relation(fields: [categoryRefId], references: [id])
   categoryRefId    Int?
-  subCategoryRef   SubCategory? @relation("SubCategoryToCoupon", fields: [subCategoryRefId], references: [id])
   subCategoryRefId Int?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
-
-  campaigns Campaign[] @relation("CouponToCampaign")
+  campaigns        Campaign[]   @relation("CouponToCampaign")
+  brandRef         Brand?       @relation(fields: [brandRefId], references: [id])
+  categoryRef      Category?    @relation(fields: [categoryRefId], references: [id])
+  subCategoryRef   SubCategory? @relation("SubCategoryToCoupon", fields: [subCategoryRefId], references: [id])
 }
 
 model Campaign {
   id          Int      @id @default(autoincrement())
   name        String
-  couponRef   Coupon?  @relation("CouponToCampaign", fields: [couponRefId], references: [id])
   couponRefId Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  couponRef   Coupon?  @relation("CouponToCampaign", fields: [couponRefId], references: [id])
 }
 
 model ContactInfo {
@@ -122,28 +121,11 @@ model TeamMember {
   updatedAt DateTime @updatedAt
 }
 
-model CompanyContacts {
-  id Int @id @default(autoincrement())
-
-  phones            String
-  emergencyHotlines String
-
-  email             String
-  businessHourStart String
-  businessHourEnd   String
-  facebook          String?
-  twitter           String?
-  linkedin          String?
-  instagram         String?
-  youtube           String?
-  tiktok            String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
-
 model ContactMessage {
   id        Int      @id @default(autoincrement())
   name      String
+  phones     String?
+  emergencyHotlines  String?
   email     String
   phone     String?
   subject   String?

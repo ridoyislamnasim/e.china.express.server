@@ -1,125 +1,108 @@
 model Warehouse {
-  id       String          @id @default(cuid())
-  name     String          @unique
-  code     String          @unique
-  address  String
-  city     String
-  state    String
-  zipCode  String
-  country  String          @default("USA")
-  phone    String
-  email    String
-  location String?
-  status   WarehouseStatus @default(OPERATIONAL)
-  type     WarehouseType
-
-  totalCapacity Int
-  usedCapacity  Int    @default(0)
-  capacityUnit  String @default("sq ft")
-
-  latitude  Float?
-  longitude Float?
-
-  weekdaysHours String?
-  weekendsHours String?
-  holidaysHours String?
-
-  lastInspection  DateTime?
-  nextMaintenance DateTime?
-
-  createdBy    Int?
-  createdByRef User?    @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
-  updatedBy    Int?
-  updatedByRef User?    @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  managerRefId Int?
-  managerRef   User? @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
-
-  countryId  Int?
-  countryRef Country? @relation(fields: [countryId], references: [id], onDelete: Cascade)
-
-  warehouseSpaces        WarehouseSpace[]
-  fromWarehouseTransfers WarehouseTransfer[] @relation("FromWarehouse")
-  toWarehouseTransfers   WarehouseTransfer[] @relation("ToWarehouse")
-  // shipment
-  shipmentBookingsImport ShipmentBooking[]   @relation("ShipmentImportWarehouse")
-  shipmentBookingsExport ShipmentBooking[]   @relation("ShipmentExportWarehouse")
-  shipmentBookingItems   BookingProduct[]
-
-  // shopping
-  shoppingBookingsAsImportWarehouse ShoppingBooking[] @relation("ShoppingBookingImportWarehouse")
-  shoppingBookingsAsExportWarehouse ShoppingBooking[] @relation("ShoppingBookingExportWarehouse")
-
-  // inventory
-  inventoryBookings InventoryBooking[]
+  id                                                            String              @id @default(cuid())
+  name                                                          String              @unique
+  code                                                          String              @unique
+  address                                                       String
+  city                                                          String
+  state                                                         String
+  zipCode                                                       String
+  country                                                       String              @default("USA")
+  phone                                                         String
+  email                                                         String
+  location                                                      String?
+  status                                                        WarehouseStatus     @default(OPERATIONAL)
+  type                                                          WarehouseType
+  totalCapacity                                                 Int
+  usedCapacity                                                  Int                 @default(0)
+  capacityUnit                                                  String              @default("sq ft")
+  latitude                                                      Float?
+  longitude                                                     Float?
+  weekdaysHours                                                 String?
+  weekendsHours                                                 String?
+  holidaysHours                                                 String?
+  lastInspection                                                DateTime?
+  nextMaintenance                                               DateTime?
+  createdBy                                                     Int?
+  updatedBy                                                     Int?
+  createdAt                                                     DateTime            @default(now())
+  updatedAt                                                     DateTime            @updatedAt
+  managerRefId                                                  Int?
+  countryId                                                     Int?
+  inventoryBookings                                             InventoryBooking[]
+  shipmentBookingsExport                                        ShipmentBooking[]   @relation("ShipmentExportWarehouse")
+  ShipmentBooking_ShipmentBooking_inportWarehouseIdTowarehouses ShipmentBooking[]   @relation("ShipmentBooking_inportWarehouseIdTowarehouses")
+  shipmentBookingItems                                          BookingProduct[]
+  ShoppingBooking                                               ShoppingBooking[]
+  fromWarehouseTransfers                                        WarehouseTransfer[] @relation("FromWarehouse")
+  toWarehouseTransfers                                          WarehouseTransfer[] @relation("ToWarehouse")
+  warehouseSpaces                                               WarehouseSpace?
+  countryRef                                                    Country?            @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  createdByRef                                                  User?               @relation("UserCreatedWarehouses", fields: [createdBy], references: [id])
+  managerRef                                                    User?               @relation("UserManagedWarehouses", fields: [managerRefId], references: [id])
+  updatedByRef                                                  User?               @relation("UserUpdatedWarehouses", fields: [updatedBy], references: [id])
 
   @@map("warehouses")
 }
 
 model WarehouseSpace {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String
   totalCapacity Int
   description   String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  warehouseId   String      @unique
+  inventories   Inventory[]
+  spaces        Space[]
+  warehouse     Warehouse   @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
 
-  warehouseId String
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-
-  spaces      Space[]
-  inventories Inventory[]
-
-  @@unique([warehouseId])
   @@index([warehouseId])
   @@map("warehouse_spaces")
 }
 
 model Space {
-  id          String    @id @default(cuid())
-  spaceId     String
-  type        SpaceType
-  name        String
-  price       String?
-  duration    String?
-  occupied    Boolean?  @default(false)
-  spaceNumber Int?
-  capacity    Int
-  notes       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
+  id               String         @id @default(cuid())
+  spaceId          String
+  type             SpaceType
+  name             String
+  price            String?
+  duration         String?
+  occupied         Boolean?       @default(false)
+  spaceNumber      Int?
+  capacity         Int
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   warehouseSpaceId String
   warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
   @@unique([warehouseSpaceId, type, spaceId])
+  @@unique([warehouseSpaceId, type, spaceNumber])
   @@index([warehouseSpaceId])
   @@index([type])
   @@map("spaces")
 }
 
 model Inventory {
-  id          String        @id @default(cuid())
-  code        String
-  name        String        @default("Inventory")
-  type        InventoryType
-  description String?
-  price       String?
-  duration    String?
-  occupied    Boolean?      @default(false)
-  spaceNumber Int?
-  capacity    Int?
-  fixedCbm    Boolean       @default(true)
-  notes       String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
+  id               String         @id @default(cuid())
+  code             String
+  name             String         @default("Inventory")
+  type             InventoryType
+  description      String?
+  price            String?
+  duration         String?
+  occupied         Boolean?       @default(false)
+  spaceNumber      Int?
+  capacity         Int?
+  fixedCbm         Boolean        @default(true)
+  notes            String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
   warehouseSpaceId String
   warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
 
   @@unique([warehouseSpaceId, type, code])
+  @@unique([warehouseSpaceId, type, spaceNumber])
   @@index([warehouseSpaceId])
   @@index([type])
   @@map("inventories")
@@ -127,13 +110,13 @@ model Inventory {
 
 model WarehouseTransfer {
   id                 String    @id @default(cuid())
-  fromWarehouseRef   Warehouse @relation("FromWarehouse", fields: [fromWarehouseRefId], references: [id])
   fromWarehouseRefId String
-  toWarehouseRef     Warehouse @relation("ToWarehouse", fields: [toWarehouseRefId], references: [id])
   toWarehouseRefId   String
   inventoryRefId     Int
   quantity           Int
   status             String    @default("Pending")
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
+  fromWarehouseRef   Warehouse @relation("FromWarehouse", fields: [fromWarehouseRefId], references: [id])
+  toWarehouseRef     Warehouse @relation("ToWarehouse", fields: [toWarehouseRefId], references: [id])
 }

@@ -4,8 +4,8 @@ model Categorie {
   shCategoryCode String
   description    String?
   created_at     DateTime        @default(now())
-  subCategories  SubCategories[]
   rateProduct    RateProduct[]
+  subCategories  SubCategories[]
 }
 
 model SubCategories {
@@ -15,9 +15,9 @@ model SubCategories {
   shSubCategoryCode String
   description       String?
   created_at        DateTime      @default(now())
+  rateProduct       RateProduct[]
   categorie         Categorie?    @relation(fields: [categoryId], references: [id])
   subHeadings       SubHeadings[]
-  rateProduct       RateProduct[]
 }
 
 model SubHeadings {
@@ -27,8 +27,8 @@ model SubHeadings {
   hsSubHeadingCode String
   description      String?
   created_at       DateTime       @default(now())
-  subCategoriesId  SubCategories? @relation(fields: [subcategoryId], references: [id])
   rateProduct      RateProduct[]
+  subCategoriesId  SubCategories? @relation(fields: [subcategoryId], references: [id])
 }
 
 model RateProduct {

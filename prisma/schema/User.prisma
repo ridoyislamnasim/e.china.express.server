@@ -1,4 +1,4 @@
-model User {
+model User {   
   id                Int             @id @default(autoincrement())
   email             String          @unique
   phone             String?         @unique
@@ -54,53 +54,6 @@ model Role {
   updatedAt    DateTime    @updatedAt
 }
 
-model Permission {
-  id Int @id @default(autoincrement())
-
-  // aboutUs permissions
-  aboutUsAccess Boolean @default(false)
-  aboutUsCreate Boolean @default(false)
-  aboutUsUpdate Boolean @default(false)
-  aboutUsDelete Boolean @default(false)
-
-  // banner permissions
-  bannerAccess Boolean @default(false)
-  bannerCreate Boolean @default(false)
-  bannerUpdate Boolean @default(false)
-  bannerDelete Boolean @default(false)
-
-  // category permissions
-  categoryAccess Boolean @default(false)
-  categoryCreate Boolean @default(false)
-  categoryUpdate Boolean @default(false)
-  categoryDelete Boolean @default(false)
-
-  // subCategory permissions
-  subCategoryAccess Boolean @default(false)
-  subCategoryCreate Boolean @default(false)
-  subCategoryUpdate Boolean @default(false)
-  subCategoryDelete Boolean @default(false)
-
-  // chilsCategory permissions (kept existing name)
-  chilsCategoryAccess Boolean @default(false)
-  chilsCategoryCreate Boolean @default(false)
-  chilsCategoryUpdate Boolean @default(false)
-  chilsCategoryDelete Boolean @default(false)
-
-  // order permissions
-  orderAccess Boolean @default(false)
-  orderCreate Boolean @default(false)
-  orderUpdate Boolean @default(false)
-  orderDelete Boolean @default(false)
-
-  // user permissions
-  userAccess Boolean @default(false)
-  userCreate Boolean @default(false)
-  userUpdate Boolean @default(false)
-  userDelete Boolean @default(false)
-
-  roles Role[]
-}
 
 model Address {
   id      Int    @id @default(autoincrement())
@@ -123,4 +76,181 @@ model OTP {
   attempts  Int      @default(0)
   verified  Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+// 0. permission
+// 1. blog
+// 2. shipmentBooking
+// 3. shoppingBooking
+// 4. inventoryBooking
+// 5. suppliers
+// 6. wishlist
+// 7. cart
+// 8. product 
+// 9. order
+// 10. Guide
+// 11. aboutUs
+// 12. banner
+// 13. coupon
+// 14. campaign
+// 15. package
+// 16. banding
+// 17. policy
+// 18. services
+// 19. rate 
+// 20. Category1688
+
+model Permission {
+  id Int @id @default(autoincrement())
+  // 0. permission permissions
+  permissionAccess Boolean @default(false)
+  permissionCreate Boolean @default(false)
+  permissionUpdate Boolean @default(false)
+  permissionDelete Boolean @default(false)
+
+  // blog permissions
+  blogAccess Boolean @default(false)
+  blogCreate Boolean @default(false)
+  blogUpdate Boolean @default(false)
+  blogDelete Boolean @default(false)
+
+  // shipmentBooking permissions
+  shipmentBookingAccess Boolean @default(false)
+  shipmentBookingCreate Boolean @default(false)
+  shipmentBookingUpdate Boolean @default(false)
+  shipmentBookingDelete Boolean @default(false)
+
+  // shoppingBooking permissions
+  shoppingBookingAccess Boolean @default(false)
+  shoppingBookingCreate Boolean @default(false)
+  shoppingBookingUpdate Boolean @default(false)
+  shoppingBookingDelete Boolean @default(false)
+
+  // inventoryBooking permissions
+  inventoryBookingAccess Boolean @default(false)
+  inventoryBookingCreate Boolean @default(false)
+  inventoryBookingUpdate Boolean @default(false)
+  inventoryBookingDelete Boolean @default(false)
+
+  // suppliers permissions
+  suppliersAccess Boolean @default(false)
+  suppliersCreate Boolean @default(false)
+  suppliersUpdate Boolean @default(false)
+  suppliersDelete Boolean @default(false)
+
+  // wishlist permissions
+  wishlistAccess Boolean @default(false)
+  wishlistCreate Boolean @default(false)
+  wishlistUpdate Boolean @default(false)
+  wishlistDelete Boolean @default(false)
+
+  // cart permissions
+  cartAccess Boolean @default(false)
+  cartCreate Boolean @default(false)
+  cartUpdate Boolean @default(false)
+  cartDelete Boolean @default(false)
+
+  // product permissions
+  productAccess Boolean @default(false)
+  productCreate Boolean @default(false)
+  productUpdate Boolean @default(false)
+  productDelete Boolean @default(false)
+
+  // order permissions
+  orderAccess Boolean @default(false)
+  orderCreate Boolean @default(false)
+  orderUpdate Boolean @default(false)
+  orderDelete Boolean @default(false)
+
+  // Guide permissions
+  guideAccess Boolean @default(false)
+  guideCreate Boolean @default(false)
+  guideUpdate Boolean @default(false)
+  guideDelete Boolean @default(false)
+
+  // aboutUs permissions
+  aboutUsAccess Boolean @default(false)
+  aboutUsCreate Boolean @default(false)
+  aboutUsUpdate Boolean @default(false)
+  aboutUsDelete Boolean @default(false)
+
+  // banner permissions
+  bannerAccess Boolean @default(false)
+  bannerCreate Boolean @default(false)
+  bannerUpdate Boolean @default(false)
+  bannerDelete Boolean @default(false)
+
+  // coupon permissions
+  couponAccess Boolean @default(false)
+  couponCreate Boolean @default(false)
+  couponUpdate Boolean @default(false)
+  couponDelete Boolean @default(false)
+
+  // campaign permissions
+  campaignAccess Boolean @default(false)
+  campaignCreate Boolean @default(false)
+  campaignUpdate Boolean @default(false)
+  campaignDelete Boolean @default(false)
+
+  // package permissions
+  packageAccess Boolean @default(false)
+  packageCreate Boolean @default(false)
+  packageUpdate Boolean @default(false)
+  packageDelete Boolean @default(false)
+
+  // banding permissions
+  bandingAccess Boolean @default(false)
+  bandingCreate Boolean @default(false)
+  bandingUpdate Boolean @default(false)
+  bandingDelete Boolean @default(false)
+
+  // policy permissions
+  policyAccess Boolean @default(false)
+  policyCreate Boolean @default(false)
+  policyUpdate Boolean @default(false)
+  policyDelete Boolean @default(false)
+
+  // services permissions
+  servicesAccess Boolean @default(false)
+  servicesCreate Boolean @default(false)
+  servicesUpdate Boolean @default(false)
+  servicesDelete Boolean @default(false)
+
+  // rate permissions
+  rateAccess Boolean @default(false)
+  rateCreate Boolean @default(false)
+  rateUpdate Boolean @default(false)
+  rateDelete Boolean @default(false)
+
+  // Category1688 permissions
+  category1688Access Boolean @default(false)
+  category1688Create Boolean @default(false)
+  category1688Update Boolean @default(false)
+  category1688Delete Boolean @default(false)
+
+  // category permissions
+  categoryAccess Boolean @default(false)
+  categoryCreate Boolean @default(false)
+  categoryUpdate Boolean @default(false)
+  categoryDelete Boolean @default(false)
+
+  // subCategory permissions
+  subCategoryAccess Boolean @default(false)
+  subCategoryCreate Boolean @default(false)
+  subCategoryUpdate Boolean @default(false)
+  subCategoryDelete Boolean @default(false)
+
+  // chilsCategory permissions (kept existing name)
+  chilsCategoryAccess Boolean @default(false)
+  chilsCategoryCreate Boolean @default(false)
+  chilsCategoryUpdate Boolean @default(false)
+  chilsCategoryDelete Boolean @default(false)
+
+  // user permissions
+  userAccess Boolean @default(false)
+  userCreate Boolean @default(false)
+  userUpdate Boolean @default(false)
+  userDelete Boolean @default(false)
+
+  roles Role[]
 }

@@ -61,14 +61,14 @@ class AirBookingRepository {
                     name: true,
                   },
                 },
-                importCountryRef: {
-                  select: {
-                    id: true,
-                    name: true,
-                    isoCode: true,
-                    zone: true,
-                  },
-                },
+                // importCountryRef: {
+                //   select: {
+                //     id: true,
+                //     name: true,
+                //     isoCode: true,
+                //     zone: true,
+                //   },
+                // },
                 exportCountryRef: {
                   select: {
                     id: true,

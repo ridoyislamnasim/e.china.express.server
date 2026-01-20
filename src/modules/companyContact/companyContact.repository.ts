@@ -13,42 +13,42 @@ class CompanyContactsRepository {
 
   
 async updateCompanyContactRepo(data: CompanyContacts) {
-  return await this.prisma.companyContacts.update({
-    where: {
-      id: data.id, // 👈 Prisma primary key
-    },
-    data: {
-      phones: data.phones,
-      email: data.email,
-      businessHourStart: data.businessHourStart,
-      businessHourEnd: data.businessHourEnd,
-      emergencyHotlines: data.emergencyHotlines,
-      facebook: data.facebook,
-      twitter: data.twitter,
-      linkedin: data.linkedin,
-      instagram: data.instagram,
-      youtube: data.youtube,
-    },
-  });
+  // return await this.prisma.companyContacts.update({
+  //   where: {
+  //     id: data.id, // 👈 Prisma primary key
+  //   },
+  //   data: {
+  //     phones: data.phones,
+  //     email: data.email,
+  //     businessHourStart: data.businessHourStart,
+  //     businessHourEnd: data.businessHourEnd,
+  //     emergencyHotlines: data.emergencyHotlines,
+  //     facebook: data.facebook,
+  //     twitter: data.twitter,
+  //     linkedin: data.linkedin,
+  //     instagram: data.instagram,
+  //     youtube: data.youtube,
+  //   },
+  // });
 }
 
 
 async createCompanyContactRepo(data: CompanyContacts) {
-  return await this.prisma.companyContacts.create({
+  // return await this.prisma.companyContacts.create({
 
-    data: {
-      phones: data.phones,
-      email: data.email,
-      businessHourStart: data.businessHourStart,
-      businessHourEnd: data.businessHourEnd,
-      emergencyHotlines: data.emergencyHotlines,
-      facebook: data.facebook,
-      twitter: data.twitter,
-      linkedin: data.linkedin,
-      instagram: data.instagram,
-      youtube: data.youtube,
-    },
-  });
+  //   data: {
+  //     phones: data.phones,
+  //     email: data.email,
+  //     businessHourStart: data.businessHourStart,
+  //     businessHourEnd: data.businessHourEnd,
+  //     emergencyHotlines: data.emergencyHotlines,
+  //     facebook: data.facebook,
+  //     twitter: data.twitter,
+  //     linkedin: data.linkedin,
+  //     instagram: data.instagram,
+  //     youtube: data.youtube,
+  //   },
+  // });
 }
 
 
@@ -102,7 +102,7 @@ async createCompanyContactRepo(data: CompanyContacts) {
 
 
   async getCompanyContactInfoRepo(){
-    return await this.prisma.companyContacts.findMany({})
+    // return await this.prisma.companyContacts.findMany({})
   }
 
   /* ==============================

@@ -1,29 +1,26 @@
 model Country {
-  id   Int    @id @default(autoincrement())
-  name String
-
-  isoCode             String
-  zone                String?
-  status              Boolean               @default(true)
-  createdAt           DateTime              @default(now())
-  isShippingCountry   Boolean               @default(false)
-  exportCombinations  CountryCombination[]  @relation("ExportCountry")
-  importCombinations  CountryCombination[]  @relation("ImportCountry")
-  ports               Ports[]
-  warehouses          Warehouse[]
-  countryHsCodes      CountryHsCode[]
-  productShipping     CartProductShipping[] @relation("FromCountry")
-  productShippingTo   CartProductShipping[] @relation("ToCountry")
-  ShippingFromCountry ShippingInfo[]        @relation("ShippingFromCountry")
-  ShippingToCountry   ShippingInfo[]        @relation("ShippingToCountry")
-
-  // shipment Booking
-  shipmentBookingsExport ShipmentBooking[] @relation("ShipmentExportCountry")
-  shipmentBookingsImport ShipmentBooking[] @relation("ShipmentImportCountry")
-
-  // shopping Booking
-  shoppingBookingsExport ShoppingBooking[] @relation("ShoppingBookingExportCountry")
-  shoppingBookingsImport ShoppingBooking[] @relation("ShoppingBookingImportCountry")
+  id                                                         Int                   @id @default(autoincrement())
+  name                                                       String
+  isoCode                                                    String
+  zone                                                       String?
+  status                                                     Boolean               @default(true)
+  createdAt                                                  DateTime              @default(now())
+  isShippingCountry                                          Boolean               @default(false)
+  productShipping                                            CartProductShipping[] @relation("FromCountry")
+  productShippingTo                                          CartProductShipping[] @relation("ToCountry")
+  exportCombinations                                         CountryCombination[]  @relation("ExportCountry")
+  importCombinations                                         CountryCombination[]  @relation("ImportCountry")
+  countryHsCodes                                             CountryHsCode[]
+  OrderShipping_OrderShipping_fromCountryIdTocountries       OrderShipping[]       @relation("OrderShipping_fromCountryIdTocountries")
+  OrderShipping_OrderShipping_toCountryIdTocountries         OrderShipping[]       @relation("OrderShipping_toCountryIdTocountries")
+  ports                                                      Ports[]
+  ProductShipping_ProductShipping_fromCountryIdTocountries   ProductShipping[]     @relation("ProductShipping_fromCountryIdTocountries")
+  ProductShipping_ProductShipping_toCountryIdTocountries     ProductShipping[]     @relation("ProductShipping_toCountryIdTocountries")
+  shipmentBookingsExport                                     ShipmentBooking[]     @relation("ShipmentExportCountry")
+  ShipmentBooking_ShipmentBooking_inportCountryIdTocountries ShipmentBooking[]     @relation("ShipmentBooking_inportCountryIdTocountries")
+  ShippingFromCountry                                        ShippingInfo[]        @relation("ShippingFromCountry")
+  ShippingToCountry                                          ShippingInfo[]        @relation("ShippingToCountry")
+  warehouses                                                 Warehouse[]
 
   @@map("countries")
 }
@@ -33,9 +30,8 @@ model Ports {
   portName   String   @db.VarChar(100)
   portType   PortType @default(Sea)
   created_at DateTime @default(now())
-
-  countryId Int
-  country   Country? @relation(fields: [countryId], references: [id])
+  countryId  Int
+  country    Country  @relation(fields: [countryId], references: [id])
 }
 
 model CountryCombination {
@@ -43,21 +39,19 @@ model CountryCombination {
   exportCountryId Int
   importCountryId Int
   status          Boolean  @default(true)
+  created_at      DateTime @default(now())
   exportCountry   Country  @relation("ExportCountry", fields: [exportCountryId], references: [id], onDelete: Cascade)
   importCountry   Country  @relation("ImportCountry", fields: [importCountryId], references: [id], onDelete: Cascade)
-  created_at      DateTime @default(now())
   rate            Rate[]
 }
 
 model CountryHsCode {
-  id        Int     @id @default(autoincrement())
-  countryId Int
-  country   Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  hsCodes   String
-
+  id             Int          @id @default(autoincrement())
+  countryId      Int
+  hsCodes        String
   category1688Id Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   category1688   Category1688 @relation(fields: [category1688Id], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  country        Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
 }

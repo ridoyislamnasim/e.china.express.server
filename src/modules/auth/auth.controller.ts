@@ -8,7 +8,6 @@ import { responseHandler } from '../../utils/responseHandler';
 import config from '../../config/config';
 import withTransaction from '../../middleware/transactions/withTransaction';
 import { getRequestInfo } from '../../utils/requestInfo';
-import { console } from 'inspector';
 const authService = new AuthServiceClass(authRepository);
 
 export const authUserSignUp = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
@@ -187,16 +186,20 @@ export const authForgetPasswordVarification = async (req: Request, res: Response
   }
 };
 
-export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+export const getUserBy = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+  console.log('AuthController - getUserBy - called');
   try {
-    // @ts-ignore
+
+    // @ts-ignore user_info_encrypted.id
     const userId = req.user?.user_info_encrypted?.id;
-    const user = await authService.getUserById(userId);
+    console.log('Getting user by ID from JWT:', userId);
+    const user = await authService.getUserBy(userId, tx);
     res.status(200).json({ message: 'User get successfully', user });
   } catch (error) {
     next(error);
   }
-};
+});
+
 
 export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -248,3 +251,13 @@ export const getDeleteUser = async (req: Request, res: Response, next: NextFunct
     next(error);
   }
 };
+
+export const createSuperAdminRole = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+  try {
+    const role = await authService.createSuperAdminRole(tx);
+    res.status(201).json({ message: 'Super Admin Role created successfully', role });
+  } catch (error) {
+    next(error);
+  }
+
+});

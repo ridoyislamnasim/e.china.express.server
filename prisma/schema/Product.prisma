@@ -20,29 +20,28 @@ model Product {
   status                Boolean?          @default(true)
   slug                  String?           @unique
   freeShipping          Boolean           @default(false)
-  brandRef              Brand?            @relation(fields: [brandRefId], references: [id])
   brandRefId            Int?
   mainInventory         Int?
   gender                String?
   inventoryType         String?
-  categoryRef           Category?         @relation("CategoryToProduct", fields: [categoryRefId], references: [id])
   categoryRefId         Int?
-  subCategoryRef        SubCategory?      @relation(fields: [subCategoryRefId], references: [id])
   subCategoryRefId      Int?
-  childCategoryRef      ChildCategory?    @relation("ChildCategoryToProduct", fields: [childCategoryRefId], references: [id])
   childCategoryRefId    Int?
-  subChildCategoryRef   SubChildCategory? @relation("SubChildCategoryToProduct", fields: [subChildCategoryRefId], references: [id])
   subChildCategoryRefId Int?
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
+  publishStatus         String?           @default("Publish")
+  viewProduct           Int?              @default(0)
+  buyNowCarts           BuyNowCart[]      @relation("ProductToCart")
+  cartProducts          CartProduct[]
+  brandRef              Brand?            @relation(fields: [brandRefId], references: [id])
+  categoryRef           Category?         @relation("CategoryToProduct", fields: [categoryRefId], references: [id])
+  childCategoryRef      ChildCategory?    @relation("ChildCategoryToProduct", fields: [childCategoryRefId], references: [id])
+  subCategoryRef        SubCategory?      @relation(fields: [subCategoryRefId], references: [id])
+  subChildCategoryRef   SubChildCategory? @relation("SubChildCategoryToProduct", fields: [subChildCategoryRefId], references: [id])
+  productReviews        ProductReview[]
+  shipmentBookingItems  BookingProduct[]
   wishlists             Wishlist[]        @relation("ProductToWishlist")
-
-  productReviews       ProductReview[]
-  buyNowCarts          BuyNowCart[]     @relation("ProductToCart")
-  publishStatus        String?          @default("Publish")
-  viewProduct          Int?             @default(0)
-  cartProducts         CartProduct[]
-  shipmentBookingItems BookingProduct[]
 }
 
 model Category {
@@ -55,9 +54,9 @@ model Category {
   status        Boolean       @default(true)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  subCategories SubCategory[]
+  coupons       Coupon[]
   products      Product[]     @relation("CategoryToProduct")
-  coupons       Coupon[]      @relation(fields: [], references: [])
+  subCategories SubCategory[]
 }
 
 model SubCategory {
@@ -67,13 +66,13 @@ model SubCategory {
   bannerImage     String?
   slug            String?         @unique
   status          Boolean         @default(true)
-  categoryRef     Category?       @relation(fields: [categoryRefId], references: [id])
   categoryRefId   Int?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   childCategories ChildCategory[]
-  products        Product[]
   coupons         Coupon[]        @relation("SubCategoryToCoupon")
+  products        Product[]
+  categoryRef     Category?       @relation(fields: [categoryRefId], references: [id])
 }
 
 model ChildCategory {
@@ -82,12 +81,12 @@ model ChildCategory {
   image              String?
   slug               String?
   status             Boolean            @default(true)
-  subCategoryRef     SubCategory?       @relation(fields: [subCategoryRefId], references: [id])
   subCategoryRefId   Int?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
-  subChildCategories SubChildCategory[]
+  subCategoryRef     SubCategory?       @relation(fields: [subCategoryRefId], references: [id])
   products           Product[]          @relation("ChildCategoryToProduct")
+  subChildCategories SubChildCategory[]
 }
 
 model SubChildCategory {
@@ -96,24 +95,23 @@ model SubChildCategory {
   image              String?
   slug               String?
   status             Boolean        @default(true)
-  childCategoryRef   ChildCategory? @relation(fields: [childCategoryRefId], references: [id])
   childCategoryRefId Int?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
   products           Product[]      @relation("SubChildCategoryToProduct")
+  childCategoryRef   ChildCategory? @relation(fields: [childCategoryRefId], references: [id])
 }
 
 model Brand {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String?
   image     String?
   slug      String?
-  status    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  products Product[]
-  coupons  Coupon[]  @relation(fields: [], references: [])
+  status    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  coupons   Coupon[]
+  products  Product[]
 }
 
 model ProductReview {
@@ -123,10 +121,10 @@ model ProductReview {
   rating       Int?
   comment      String?
   status       Boolean  @default(true)
-  userRef      User?    @relation(fields: [userRefId], references: [id])
   userRefId    Int?
-  productRef   Product? @relation(fields: [productRefId], references: [id])
   productRefId Int?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  productRef   Product? @relation(fields: [productRefId], references: [id])
+  userRef      User?    @relation(fields: [userRefId], references: [id])
 }

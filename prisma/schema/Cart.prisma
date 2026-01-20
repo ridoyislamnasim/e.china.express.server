@@ -1,11 +1,11 @@
 model Wishlist {
   id           Int      @id @default(autoincrement())
-  userRef      User?    @relation(fields: [userRefId], references: [id])
   userRefId    Int?
-  productRef   Product? @relation("ProductToWishlist", fields: [productRefId], references: [id])
   productRefId Int?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  productRef   Product? @relation("ProductToWishlist", fields: [productRefId], references: [id])
+  userRef      User?    @relation(fields: [userRefId], references: [id])
 }
 
 model BuyNowCart {
@@ -14,145 +14,116 @@ model BuyNowCart {
   isGuestUser   Boolean  @default(false)
   guestUserRef  String?
   correlationId String?  @unique
-  userRef       User?    @relation(fields: [userRefId], references: [id])
   userRefId     Int?
-  productRef    Product? @relation("ProductToCart", fields: [productRefId], references: [id])
   productRefId  Int?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  productRef    Product? @relation("ProductToCart", fields: [productRefId], references: [id])
+  userRef       User?    @relation(fields: [userRefId], references: [id])
 }
 
 model Cart {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  totalPrice  Float? @default(0)
-  totalWeight Float? @default(0)
-  currency    String @default("Dollar")
-  status      String @default("active")
-
+  id              Int                   @id @default(autoincrement())
+  userId          Int
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  totalPrice      Float?                @default(0)
+  totalWeight     Float?                @default(0)
+  currency        String                @default("Dollar")
+  status          String                @default("active")
   user            User                  @relation(fields: [userId], references: [id])
   products        CartProduct[]
   productShipping CartProductShipping[]
+  Order           Order[]
+  ProductShipping ProductShipping[]
 }
 
 model CartProduct {
-  id         Int        @id @default(autoincrement())
-  titleTrans String?
-  productFor ProductFor @default(FROM1688)
-
-  product1688Id  String?
-  productLocalId Int?
-
-  productLocal     Product? @relation(fields: [productLocalId], references: [id])
+  id               Int                     @id @default(autoincrement())
+  titleTrans       String?
+  productFor       ProductFor              @default(FROM1688)
+  product1688Id    String?
+  productLocalId   Int?
   productAlibabaId String?
-
-  mainSkuImageUrl String?
-  vendorId        Int?
-
-  cartId  Int
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  confirm Boolean @default(false)
-
-  quantity        Int   @default(1)
-  totalPrice      Float @default(0)
-  calculatedPrice Float @default(0)
-  totalWeight     Float @default(0)
-
-  isDeleted Boolean @default(false)
-
-  variants        CartProductVariant[]
-  productShipping CartProductShipping[]
-  priceRanges     CartProductPriceRange[]
+  mainSkuImageUrl  String?
+  vendorId         Int?
+  cartId           Int
+  confirm          Boolean                 @default(false)
+  quantity         Int                     @default(1)
+  totalPrice       Float                   @default(0)
+  calculatedPrice  Float                   @default(0)
+  totalWeight      Float                   @default(0)
+  isDeleted        Boolean                 @default(false)
+  cart             Cart                    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productLocal     Product?                @relation(fields: [productLocalId], references: [id])
+  priceRanges      CartProductPriceRange[]
+  productShipping  CartProductShipping[]
+  variants         CartProductVariant[]
+  ProductShipping  ProductShipping[]
 }
 
 model CartProductPriceRange {
-  id Int @id @default(autoincrement())
-
+  id            Int         @id @default(autoincrement())
   startQuantity Int
-  price         Decimal @db.Decimal(10, 2)
-
+  price         Decimal     @db.Decimal(10, 2)
   cartProductId Int
+  createdAt     DateTime    @default(now())
   cartProduct   CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
 }
 
 model CartProductVariant {
-  id            Int @id @default(autoincrement())
-  cartProductId Int
-
-  skuId  String?
-  specId String?
-
-  quantity     Int  @default(1)
-  amountOnSale Int?
-
+  id                  Int         @id @default(autoincrement())
+  cartProductId       Int
+  skuId               String?
+  specId              String?
+  quantity            Int         @default(1)
+  amountOnSale        Int?
   attributeName       String?
   attributeNameSecond String?
-
-  weight      Float?
-  dimensions  String?
-  price       Float?
-  skuImageUrl String?
-
-  shippingRateId Int?
-  rate           Int?
-  cartProduct    CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
-  shippingRate   Rate?       @relation(fields: [shippingRateId], references: [id])
+  weight              Float?
+  dimensions          String?
+  price               Float?
+  skuImageUrl         String?
+  shippingRateId      Int?
+  rate                Int?
+  cartProduct         CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
+  shippingRate        Rate?       @relation(fields: [shippingRateId], references: [id])
 }
 
 model CartProductShipping {
-  id Int @id @default(autoincrement())
-
-  cartId Int
-  cart   Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
-
-  cartProductId Int
-  cartProduct   CartProduct @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
-
-  rateId Int?
-  rate   Rate? @relation(fields: [rateId], references: [id])
-
-  userId Int?
-  user   User? @relation("CartProductShippingUser", fields: [userId], references: [id])
-
-  fromCountryId Int?
-  fromCountry   Country? @relation("FromCountry", fields: [fromCountryId], references: [id])
-
-  toCountryId Int?
-  toCountry   Country? @relation("ToCountry", fields: [toCountryId], references: [id])
-
-  totalQuantity Int     @default(0)
-  approxWeight  Decimal @default("0") @db.Decimal(10, 3)
-  weightRange   Decimal @default("0") @db.Decimal(10, 3)
-
-  shippingMethodId Int?
-  shippingMethod   RateShippingMethod? @relation(fields: [shippingMethodId], references: [id])
-  totalCost        Decimal             @default("0") @db.Decimal(12, 2)
-
-  orderEnabled Boolean @default(false)
-
-  customDuty   Decimal @default("0") @db.Decimal(12, 2)
-  vat          Decimal @default("0") @db.Decimal(6, 2)
-  handlingFee  Decimal @default("0") @db.Decimal(12, 2)
-  packagingFee Decimal @default("0") @db.Decimal(12, 2)
-
-  discount     Decimal @default("0") @db.Decimal(12, 2)
-  finalPayable Decimal @default("0") @db.Decimal(12, 2)
-
+  id                 Int                 @id @default(autoincrement())
+  cartId             Int
+  cartProductId      Int
+  rateId             Int?
+  userId             Int?
+  fromCountryId      Int?
+  toCountryId        Int?
+  totalQuantity      Int                 @default(0)
+  approxWeight       Decimal             @default(0) @db.Decimal(10, 3)
+  weightRange        Decimal             @default(0) @db.Decimal(10, 3)
+  shippingMethodId   Int?
+  totalCost          Decimal             @default(0) @db.Decimal(12, 2)
+  orderEnabled       Boolean             @default(false)
+  customDuty         Decimal             @default(0) @db.Decimal(12, 2)
+  vat                Decimal             @default(0) @db.Decimal(6, 2)
+  handlingFee        Decimal             @default(0) @db.Decimal(12, 2)
+  packagingFee       Decimal             @default(0) @db.Decimal(12, 2)
+  discount           Decimal             @default(0) @db.Decimal(12, 2)
+  finalPayable       Decimal             @default(0) @db.Decimal(12, 2)
   estDeliveryDays    Int?
   actualDeliveryDate DateTime?
-
-  trackingNumber    String?
-  trackingURL       String?
-  warehouseLocation String?
-  shippingStatus    String  @default("pending")
-
-  remarks String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  trackingNumber     String?
+  trackingURL        String?
+  warehouseLocation  String?
+  shippingStatus     String              @default("pending")
+  remarks            String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  cart               Cart                @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartProduct        CartProduct         @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
+  fromCountry        Country?            @relation("FromCountry", fields: [fromCountryId], references: [id])
+  rate               Rate?               @relation(fields: [rateId], references: [id])
+  shippingMethod     RateShippingMethod? @relation(fields: [shippingMethodId], references: [id])
+  toCountry          Country?            @relation("ToCountry", fields: [toCountryId], references: [id])
+  user               User?               @relation("CartProductShippingUser", fields: [userId], references: [id])
 }

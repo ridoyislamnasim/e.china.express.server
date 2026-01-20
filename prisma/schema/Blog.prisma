@@ -1,58 +1,53 @@
 model Industry {
-  id    Int    @id @default(autoincrement())
-  title String
-  slug  String @unique
-
-  blogs Blog[]
-
+  id        Int      @id @default(autoincrement())
+  title     String
+  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  blogs     Blog[]
 }
 
 model Topic {
-  id    Int    @id @default(autoincrement())
-  title String
-  slug  String @unique
-
-  blogs Blog[]
-
+  id        Int      @id @default(autoincrement())
+  title     String
+  slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  blogs     Blog[]
 }
 
 model BlogTag {
   id        Int             @id @default(autoincrement())
   title     String?
   slug      String?
-  blogs     BlogTagOnBlog[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  blogs     BlogTagOnBlog[]
 }
 
 model Blog {
   id              Int             @id @default(autoincrement())
-  title           String
-  details         String
-  slug            String          @unique
   image           String?
-  industry        Industry        @relation(fields: [industryId], references: [id])
+  title           String
+  slug            String          @unique
+  details         String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
   industryId      Int
-  topic           Topic           @relation(fields: [topicId], references: [id])
   topicId         Int
-  status          Boolean         @default(false)
   featured        Boolean         @default(false)
   trendingContent Boolean         @default(false)
+  status          Boolean         @default(false)
+  industry        Industry        @relation(fields: [industryId], references: [id])
+  topic           Topic           @relation(fields: [topicId], references: [id])
   tags            BlogTagOnBlog[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model BlogTagOnBlog {
   id     Int     @id @default(autoincrement())
   blogId Int
-  blog   Blog    @relation(fields: [blogId], references: [id], onDelete: Cascade)
   tagId  Int
+  blog   Blog    @relation(fields: [blogId], references: [id], onDelete: Cascade)
   tag    BlogTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([blogId, tagId])

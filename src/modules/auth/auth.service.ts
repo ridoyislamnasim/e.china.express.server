@@ -13,6 +13,7 @@ import { BaseRepository } from '../base/base.repository';
 import Email from '../../utils/Email';
 import { generateOTP } from '../../utils/OTPGenerate';
 import { link } from 'fs';
+import roleRepository from '../role/role.repository';
 
 
 export class AuthService {
@@ -104,8 +105,8 @@ export class AuthService {
     };
   }
 
-  async getUserById(userId: number, session?: any) {
-    const user = await this.repository.getUserById(userId);
+  async getUserBy(userId: number, session?: any) {
+    const user = await this.repository.getUserBy(userId);
     if (!user) {
       const error = new Error('User not found');
       (error as any).statusCode = 404;
@@ -243,6 +244,23 @@ export class AuthService {
     // For now, call Prisma directly if needed
     // Example: await this.repository.deleteUser(userId)
     return null;
+  }
+
+
+  async createSuperAdminRole(session?: any) {
+    // crarte super admin role
+    const superAdminRole = await roleRepository.createSuperAdminRole();
+    const password = 'SuperAdmin@123';
+    const hashedPassword = await bcrypt.hash(String(password), 10);
+    const superAdminUserPayload = {
+      name: 'Super Admin',
+      password: hashedPassword,
+      email: 'superadmin@example.com',
+      roleId: superAdminRole.id,
+      phone: '0000000000',
+    };
+    const role = await this.repository.createUser(superAdminUserPayload, session);
+    return role;
   }
 }
 

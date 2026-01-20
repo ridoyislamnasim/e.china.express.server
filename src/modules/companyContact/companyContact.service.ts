@@ -17,13 +17,13 @@ class CompanyContactService {
     payload.id = payload.id
 
     const contact = await this.contactUsRepository.getCompanyContactInfoRepo();
-    if (contact.length==0) {
-      const result = await this.contactUsRepository.createCompanyContactRepo(payload);
-      return result
-    }else{
-      const result = await this.contactUsRepository.updateCompanyContactRepo(payload);
-      return result;
-    }
+    // if (contact.length==0) {
+    //   const result = await this.contactUsRepository.createCompanyContactRepo(payload);
+    //   return result
+    // }else{
+    //   const result = await this.contactUsRepository.updateCompanyContactRepo(payload);
+    //   return result;
+    // }
     
 
   }
@@ -35,21 +35,21 @@ class CompanyContactService {
 
     const contact = await this.contactUsRepository.getCompanyContactInfoRepo();
 
-    if (contact.length>0) {
-      return {
-          statusCode: 200,
-          success: true,
-          message: "Contact info fetched successfully",
-          data: contact[0],
-        };
-      }else{
-        return {
-        statusCode: 200,
-        success: true,
-        message: "Contact info fetched successfully",
-        data: {},
-      };
-    }
+    // if (contact.length>0) {
+    //   return {
+    //       statusCode: 200,
+    //       success: true,
+    //       message: "Contact info fetched successfully",
+    //       data: contact[0],
+    //     };
+    //   }else{
+    //     return {
+    //     statusCode: 200,
+    //     success: true,
+    //     message: "Contact info fetched successfully",
+    //     data: {},
+    //   };
+    // }
 
 
   }

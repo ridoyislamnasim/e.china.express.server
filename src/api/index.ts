@@ -26,12 +26,15 @@ import BandingRoute from "./routes/banding.route";
 import contactUsRoute from "./routes/companyContact.route";
 import teamManagementRoute from "./routes/teamManagement.route";
 import servicesRoute from "./routes/services.route";
+import RoleRoute from "./routes/role.route";
 // import other routers here
 
 const rootRouter = Router();
 
 rootRouter.use("/example", exampleRouter);
 rootRouter.use("/auth", authRouter);
+rootRouter.use("/role", RoleRoute);
+
 
 rootRouter.use("/1688/category", Category1688Router);
 

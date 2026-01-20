@@ -3,6 +3,7 @@ import prisma from '../../config/prismadatabase';
 import { PrismaClient } from '@prisma/client';
 import { AuthUserSignUpPayload } from '../../types/auth';
 import { hashOTP } from '../../utils/OTPGenerate';
+import { copyFile } from 'fs';
 
 export class AuthRepository {
   private prisma = prisma;
@@ -47,6 +48,22 @@ export class AuthRepository {
 
   async getUserById(id: number) {
     return await this.prisma.user.findUnique({ where: { id } });
+  }
+
+  async getUserBy(id: number) {
+    console.log('Fetching user by ID:', id);
+    return await this.prisma.user.findUnique({ 
+      where: { id }, 
+      include: { 
+        role: {
+          include: {
+        permission: true
+          }
+        }
+         
+      }
+
+        });
   }
 
   async saveOTP(userId: number, otp: string, expiresInMinutes = 5) {

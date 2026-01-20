@@ -143,7 +143,7 @@ class CompanyContactController {
      
       const resDoc = await this.companyContactService.getCompanyContactService();
 
-      res.status(resDoc.statusCode).json(resDoc);
+      // res.status(resDoc.statusCode).json(resDoc);
     } catch (error) {
       next(error);
     }

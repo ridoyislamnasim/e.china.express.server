@@ -1,23 +1,20 @@
 model Package {
-  id    String      @id @default(cuid())
-  type  PackageType
-  image String
-  name  String?
-
-  size     String?
-  weight   String?
-  volume   String?
-  cbm      String?
-  thin     String?
-  category String?
-  episodes String?
-
-  metadata Json?
-
+  id        String        @id @default(cuid())
+  image     String
+  name      String?
+  size      String?
+  weight    String?
+  volume    String?
+  cbm       String?
+  thin      String?
+  category  String?
+  episodes  String?
+  metadata  Json?
   price     String
   status    PackageStatus @default(ACTIVE)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+  type      PackageType
 
   @@index([status])
   @@index([type, status])
@@ -46,12 +43,11 @@ model Banding {
   priceCurrency   String          @default("USD")
   costPrice       Decimal?        @db.Decimal(10, 2)
   discountPercent Decimal?        @db.Decimal(5, 2)
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  publishedAt DateTime?
-  createdBy   String?
-  updatedBy   String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  publishedAt     DateTime?
+  createdBy       String?
+  updatedBy       String?
 
   @@index([brandingName])
   @@index([slug])

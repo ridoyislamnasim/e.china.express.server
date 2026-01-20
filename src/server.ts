@@ -40,6 +40,8 @@ const allowedOrigins = [
   'http://localhost:3010',
   'http://localhost:3012',
   'https://echinaexpress.com',
+  'http://echinaexpress.com',
+  'https://www.echinaexpress.com',
   'https://admin.echinaexpress.com',
 ];
 
