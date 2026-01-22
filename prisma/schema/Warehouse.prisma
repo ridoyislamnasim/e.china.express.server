@@ -20,6 +20,7 @@ model Warehouse {
   weekdaysHours                                                 String?
   weekendsHours                                                 String?
   holidaysHours                                                 String?
+  maplink                                                  String?
   lastInspection                                                DateTime?
   nextMaintenance                                               DateTime?
   createdBy                                                     Int?
