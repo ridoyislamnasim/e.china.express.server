@@ -262,5 +262,34 @@ export class AuthService {
     const role = await this.repository.createUser(superAdminUserPayload, session);
     return role;
   }
+
+  // ====================================================
+// user services 
+// ====================================================
+
+ async getUserWithPagination(payload: any, session?: any) {
+    const users = await this.repository.getUserWithPagination(payload);
+    return users;
+  }
+
+  updateUserRole = async (payload: any) => {
+    const { userId, roleId } = payload;
+    // superAdmin role cannot be updated and assigned to any user
+    if (!userId || !roleId) {
+      const error = new Error('userId and roleId are required');
+      (error as any).statusCode = 400;
+      throw error;
+    }
+    // superAdmin role cannot be updated and assigned to any user
+    // get superAdmin role id
+    const superAdminRole = await roleRepository.getRoleByName('superAdmin');
+    if (roleId === superAdminRole?.id) {
+      const error = new Error('Cannot assign superAdmin role to any user');
+      (error as any).statusCode = 400;
+      throw error;
+    }
+    const user = await this.repository.updateUserRole(userId, roleId);
+    return user;
+  }
 }
 

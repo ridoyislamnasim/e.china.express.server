@@ -14,6 +14,10 @@ AuthRouter
   .post('/forget-password/otp-verification', controller.authForgetPasswordVarification)
   .get('/', jwtAuth(), controller.getUserBy)
   AuthRouter.post("/super-admin", jwtAuth(), controller.createSuperAdminRole);
+
+  // user routes
+  AuthRouter.get('/users/pagination', jwtAuth(), controller.getUserWithPagination)
+  AuthRouter.put('/user/role', jwtAuth(["superAdmin"]), controller.updateUserRole);
   // .put('/', upload.any(), jwtAuth('admin', 'student'), controller.updateUser) // Uncomment if upload middleware is ready
   // .get('/user',jwtAuth(["superAdmin"]), controller.getAllUser)
   // .get('/user/:id', controller.getSingleUser)

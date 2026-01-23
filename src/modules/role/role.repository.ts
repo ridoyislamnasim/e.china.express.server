@@ -18,20 +18,37 @@ class RoleRepository {
   // --------------------------
   // parmison
   // -----------------------
-  async createPermission(payload: Prisma.PermissionCreateInput) {
+  async createPermission(payload: Prisma.PermissionCreateInput, session?: any) {
     const newPermission = await prisma.permission.create({
       data: payload,
     });
     return newPermission;
   }
 
+  async getPermissionById(id: number) {
+    const permission = await prisma.permission.findUnique({
+      where: { id },
+    });
+    return permission;
+  }
+
+  async updatePermission(id: number, payload: Prisma.PermissionUpdateInput, session?: any) {
+    const updatedPermission = await prisma.permission.update({
+      where: { id },
+      data: payload,
+      // ...(session && { transaction: session }),
+    });
+    return updatedPermission;
+  }
+
   // --------------------------
   // role
   // -----------------------
-  async createRole(payload: Prisma.RoleCreateInput) {
+  async createRole(payload: Prisma.RoleCreateInput, session?: any) {
     // check 
     const newRole = await prisma.role.create({
       data: payload,
+      // ...(session && { transaction: session }),
     });
     return newRole;
   }
@@ -167,19 +184,6 @@ class RoleRepository {
   }
 
   async getRoleWithPagination(payload: any) {
-    // try {
-    //   const roles = await prisma.role.findMany({
-    //     skip: payload.offset,
-    //     take: payload.limit,
-    //     orderBy: { createdAt: payload.sortOrder },
-    //   });
-    //   const totalRole = await prisma.role.count();
-    //   return { doc: roles, totalDoc: totalRole };
-    // } catch (error) {
-    //   console.error('Error getting roles with pagination:', error);
-    //   throw error;
-    // }
-
     return await pagination(payload, async (limit: number, offset: number) => {
       const [doc, totalDoc] = await Promise.all([
         await prisma.role.findMany({
@@ -193,6 +197,14 @@ class RoleRepository {
     });
   }
 
+  async getRoleByRoleName(roleName: string) {
+    const role = await prisma.role.findFirst({
+      where: { role: roleName },
+    });
+    return role;
+  }
+
+  
   async getSingleRole(id: number) {
     const role = await prisma.role.findUnique({
       where: { id },
@@ -201,10 +213,18 @@ class RoleRepository {
     return role;
   }
 
-  async updateRole(id: number, payload: Prisma.RoleUpdateInput) {
+  async getRoleByName(roleName: string) {
+    const role = await prisma.role.findFirst({
+      where: { role: roleName },
+    });
+    return role;
+  }
+
+  async updateRole(id: number, payload: Prisma.RoleUpdateInput, session?: any) {
     const updatedRole = await prisma.role.update({
       where: { id },
       data: payload,
+      // ...(session && { transaction: session }),
     });
     return updatedRole;
   }

@@ -8,8 +8,9 @@ class RoleController {
   createRole = withTransaction(async (req: Request, res: Response, next: NextFunction, session: any) => {
     const payload = {
       role: req?.body?.role,
-      permissions: req?.body?.permissions,
+      permissions: JSON.parse(req?.body?.permissions),
     };
+    console.log("Payload in controller:", payload);
     const roleResult = await RoleService.createRole(payload, session);
     const resDoc = responseHandler(201, "Role Created successfully", roleResult);
     res.status(resDoc.statusCode).json(resDoc);
@@ -26,6 +27,13 @@ class RoleController {
     };
     const roleResult = await RoleService.getAllRole(payload);
     const resDoc = responseHandler(200, "Get All Roles", roleResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getAuthRole = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.user_info_encrypted?.id;
+    const roleResult = await RoleService.getAuthRole(userId);
+    const resDoc = responseHandler(200, "Get Auth Role", roleResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
@@ -47,12 +55,13 @@ class RoleController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  updateRole = catchError(async (req: Request, res: Response, next: NextFunction) => {
+  updateRole = withTransaction(async (req: Request, res: Response, next: NextFunction, session: any) => {
     const id = req.params.id;
     const payload = {
       role: req?.body?.role,
+      permissions: JSON.parse(req?.body?.permissions),
     };
-    const roleResult = await RoleService.updateRole(id, payload );
+    const roleResult = await RoleService.updateRole(id, payload, session);
     const resDoc = responseHandler(201, "Role Update successfully");
     res.status(resDoc.statusCode).json(resDoc);
   });

@@ -261,3 +261,29 @@ export const createSuperAdminRole = withTransaction(async (req: Request, res: Re
   }
 
 });
+
+// ====================================================
+// user Controller 
+// ====================================================
+export const getUserWithPagination = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const limit = req.query.limit ? Number(req.query.limit) : 10;
+    const order = req.query.order ? String(req.query.order) : 'desc';
+    const payload = { page, limit, order };
+    const users = await authService.getUserWithPagination(payload);
+    res.status(200).json({ message: 'Users retrieved successfully', users });
+  } catch (error) {
+    next(error);
+  }
+};
+export const updateUserRole = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { userId, roleId } = req.body;
+    const payload = { userId, roleId };
+    const user = await authService.updateUserRole(payload);
+    res.status(200).json({ message: 'User role updated successfully', user });
+  } catch (error) {
+    next(error);
+  }
+};

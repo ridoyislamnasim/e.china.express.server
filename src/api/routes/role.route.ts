@@ -11,6 +11,8 @@ RoleRoute.route("/")
 //   .get(jwtAuth(["superAdmin"]) ,controller.getAllRole);
   .get(jwtAuth(["superAdmin"]) ,controller.getAllRole);
 
+RoleRoute.get("/auth", jwtAuth(), controller.getAuthRole)
+
 RoleRoute.get("/pagination", jwtAuth(["superAdmin"]), controller.getRoleWithPagination);
 
 RoleRoute.route("/:id")
