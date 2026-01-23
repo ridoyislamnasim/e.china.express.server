@@ -1,6 +1,6 @@
 import { NotFoundError } from "../../utils/errors";
 import { BaseService } from "../base/base.service";
-import airBookingRepository from "./air.booking.repository";
+import BookingRepository from "./booking.repository";
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
 
 import ImgUploader from "../../middleware/upload/ImgUploder";
@@ -8,14 +8,14 @@ import { idGenerate } from "../../utils/IdGenerator";
 import { Prisma, PrismaClient } from "@prisma/client";
 import rateRepository from "../rate/rate.repository";
 
-export class AirBookingService extends BaseService<typeof airBookingRepository> {
-  private repository: typeof airBookingRepository;
-  constructor(repository: typeof airBookingRepository, serviceName: string) {
+export class BookingService extends BaseService<typeof BookingRepository> {
+  private repository: typeof BookingRepository;
+  constructor(repository: typeof BookingRepository, serviceName: string) {
     super(repository);
     this.repository = repository;
   }
 
-  async createAirBooking(payload: any, payloadFiles: any, tx?: any) {
+  async createBooking(payload: any, payloadFiles: any, tx?: any) {
     const { files } = payloadFiles;
     if (files?.length) {
       const images = await ImgUploader(files);
@@ -26,21 +26,21 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
 
     // find shipping rate to get price
     // find country combination
-    console.log("Payload received in AirBooking Service:", payload);
+    console.log("Payload received in Booking Service:", payload);
     const countryCombination = await rateRepository.existingCountryConbination({
       importCountryId: Number(payload.importCountryId),
       exportCountryId: Number(payload.exportCountryId),
     });
     // findWeightCategoryByWeight
     const weightCategory = await rateRepository.findWeightCategoryByWeight(Number(payload.weight));
-    console.log("Country Combination found in AirBooking Service:", countryCombination);
+    console.log("Country Combination found in Booking Service:", countryCombination);
     const rate = await rateRepository.findRateByCriteria({
       countryCombinationId: countryCombination?.id,
       weightCategoryId: weightCategory?.id,
       shippingMethodId: Number(payload.shippingMethodId),
       category1688Id: Number(payload.category1688Id)
     });
-    console.log("Rate found in AirBooking Service:", rate);
+    console.log("Rate found in Booking Service:", rate);
 
     const price = Number(rate[0].price) * (payload.weight ? Number(payload.weight) : 0);
 
@@ -59,7 +59,7 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
     // categoryId: payload.categoryId,
     // subCategoryId: payload.subCategoryId,
 
-    const airBookingPayload = {
+    const BookingPayload = {
       rateRef: { connect: { id: Number(payload.rateId) } },
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       orderNumber,
@@ -82,25 +82,26 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
       // totalProductCost: 
       // price: rate
     };
-    console.log("AirBooking Payload in Service:", airBookingPayload);
-    // return airBookingPayload;
-    const airBookingData = await this.repository.createAirBooking(airBookingPayload, tx);
-    return airBookingData;
+    console.log("Booking Payload in Service:", BookingPayload);
+    // return BookingPayload;
+    const BookingData = await this.repository.createBooking(BookingPayload, tx);
+    return BookingData;
   }
 
-  async getAllAirBookingByFilterWithPagination(payload: any) {
-    const airBookings = await this.repository.getAllAirBookingByFilterWithPagination(payload);
-    return airBookings;
+  async getAllBookingByFilterWithPagination(payload: any) {
+    const Bookings = await this.repository.getAllBookingByFilterWithPagination(payload);
+    return Bookings;
   }
 
-  async getSingleAirBooking(id: string) {
+
+  async getSingleBooking(id: string) {
     const numericId = Number(id);
-    const airBookingData = await this.repository.getSingleAirBooking(numericId);
-    if (!airBookingData) throw new NotFoundError("AirBooking Not Find");
-    return airBookingData;
+    const BookingData = await this.repository.getSingleBooking(numericId);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    return BookingData;
   }
 
-  async updateAirBooking(id: string, payload: any, payloadFiles: any, session?: any) {
+  async updateBooking(id: string, payload: any, payloadFiles: any, session?: any) {
     const { files } = payloadFiles;
     if (files?.length) {
       const images = await ImgUploader(files);
@@ -108,22 +109,22 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
         payload[key] = images[key];
       }
     }
-    const airBookingData = await this.repository.updateAirBooking(Number(id), payload);
-    if (!airBookingData) throw new NotFoundError("AirBooking Not Find");
-    if (files?.length && airBookingData) {
-      // await removeUploadFile(airBookingData?.image);
+    const BookingData = await this.repository.updateBooking(Number(id), payload);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    if (files?.length && BookingData) {
+      // await removeUploadFile(BookingData?.image);
     }
-    return airBookingData;
+    return BookingData;
   }
 
-  async deleteAirBooking(id: string) {
+  async deleteBooking(id: string) {
     const numericId = Number(id);
-    const deletedAirBooking = await this.repository.deleteAirBooking(numericId);
-    if (deletedAirBooking) {
-      // await removeUploadFile(airBooking?.image);
+    const deletedBooking = await this.repository.deleteBooking(numericId);
+    if (deletedBooking) {
+      // await removeUploadFile(Booking?.image);
     }
-    return deletedAirBooking;
+    return deletedBooking;
   }
 }
 
-export default new AirBookingService(airBookingRepository, "airBooking");
+export default new BookingService(BookingRepository, "Booking");

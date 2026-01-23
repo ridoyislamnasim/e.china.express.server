@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthRepository = void 0;
 const prismadatabase_1 = __importDefault(require("../../config/prismadatabase"));
 const OTPGenerate_1 = require("../../utils/OTPGenerate");
+const pagination_1 = require("../../utils/pagination");
 class AuthRepository {
     constructor() {
         this.prisma = prismadatabase_1.default;
@@ -48,7 +49,9 @@ class AuthRepository {
         return await this.prisma.user.findMany();
     }
     async getUserById(id) {
-        return await this.prisma.user.findUnique({ where: { id } });
+        return await this.prisma.user.findUnique({
+            where: { id }
+        });
     }
     async getUserBy(id) {
         console.log('Fetching user by ID:', id);
@@ -148,6 +151,43 @@ class AuthRepository {
                 role: true,
             },
         });
+    }
+    // ====================================================
+    // user repository services 
+    // ====================================================
+    async getUserWithPagination(payload) {
+        return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
+            const [doc, totalDoc] = await Promise.all([
+                this.prisma.user.findMany({
+                    skip: offset,
+                    take: limit,
+                    // orderBy: sortOrder,
+                    include: {
+                        role: true,
+                    },
+                }),
+                this.prisma.user.count(),
+            ]);
+            return { doc, totalDoc };
+        });
+    }
+    async updateUserRole(userId, roleId) {
+        return await this.prisma.user.update({
+            where: { id: userId },
+            data: { roleId },
+            include: { role: true }
+        });
+    }
+    async getUserRoleById(userId) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { role: {
+                    include: {
+                        permission: true
+                    }
+                } }
+        });
+        return user === null || user === void 0 ? void 0 : user.role;
     }
 }
 exports.AuthRepository = AuthRepository;

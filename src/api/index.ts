@@ -27,6 +27,8 @@ import contactUsRoute from "./routes/companyContact.route";
 import teamManagementRoute from "./routes/teamManagement.route";
 import servicesRoute from "./routes/services.route";
 import RoleRoute from "./routes/role.route";
+import SeaBookingRouter from "./routes/sea.booking.route";
+import BookingRouter from "./routes/booking.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -56,8 +58,9 @@ rootRouter.use('/rate/product', rateProductRoute);
 rootRouter.use('/rate', rateRoute);
 
 // booking 
+rootRouter.use("/booking", BookingRouter); 
 rootRouter.use("/booking/air", AirBookingRouter); 
-rootRouter.use("/booking/sea", WishlistRouter); 
+rootRouter.use("/booking/sea", SeaBookingRouter); 
 rootRouter.use("/booking/express", WishlistRouter);
 rootRouter.use("/booking/inventory", WishlistRouter);
 

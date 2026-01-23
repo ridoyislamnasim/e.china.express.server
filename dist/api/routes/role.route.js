@@ -12,6 +12,7 @@ RoleRoute.route("/")
     .post((0, jwtAuth_1.default)(["superAdmin"]), role_controller_1.default.createRole)
     //   .get(jwtAuth(["superAdmin"]) ,controller.getAllRole);
     .get((0, jwtAuth_1.default)(["superAdmin"]), role_controller_1.default.getAllRole);
+RoleRoute.get("/auth", (0, jwtAuth_1.default)(), role_controller_1.default.getAuthRole);
 RoleRoute.get("/pagination", (0, jwtAuth_1.default)(["superAdmin"]), role_controller_1.default.getRoleWithPagination);
 RoleRoute.route("/:id")
     .get((0, jwtAuth_1.default)(["superAdmin"]), role_controller_1.default.getSingleRole)

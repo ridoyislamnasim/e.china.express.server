@@ -31,7 +31,7 @@ model Warehouse {
   countryId                                                     Int?
   inventoryBookings                                             InventoryBooking[]
   shipmentBookingsExport                                        ShipmentBooking[]   @relation("ShipmentExportWarehouse")
-  ShipmentBooking_ShipmentBooking_inportWarehouseIdTowarehouses ShipmentBooking[]   @relation("ShipmentBooking_inportWarehouseIdTowarehouses")
+  shipmentBookingsImport                                        ShipmentBooking[]   @relation("ShipmentImportWarehouse")
   shipmentBookingItems                                          BookingProduct[]
   ShoppingBooking                                               ShoppingBooking[]
   fromWarehouseTransfers                                        WarehouseTransfer[] @relation("FromWarehouse")

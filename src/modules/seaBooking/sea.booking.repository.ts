@@ -3,35 +3,35 @@ import { pagination } from '../../utils/pagination';
 
 const prisma = new PrismaClient();
 
-export interface AirBookingDoc {
+export interface SeaBookingDoc {
   title: string;
   details: string;
   type: string;
-  airBookingCategory: string;
+  seaBookingCategory: string;
   status: string;
   link: string;
   // add other fields as needed
 }
 
-class AirBookingRepository {
+class SeaBookingRepository {
     private prisma = prisma;
-  async createAirBooking(airBookingPayload: any, tx?: any) {
+  async createSeaBooking(seaBookingPayload: any, tx?: any) {
     const prismaClient: PrismaClient = tx || this.prisma;
-    const newAirBooking = await prismaClient.shipmentBooking.create({
-      data: airBookingPayload,
+    const newSeaBooking = await prismaClient.shipmentBooking.create({
+      data: seaBookingPayload,
     });
-    return newAirBooking;
+    return newSeaBooking;
     // make tx than use tx
 
   }
 
-  async getAllAirBookingByFilterWithPagination(payload: any) {
-    const { airBookingStatus , userRef} = payload;
+  async getAllSeaBookingByFilterWithPagination(payload: any) {
+    const { seaBookingStatus , userRef} = payload;
     const filter: any = {};
-    if (airBookingStatus == "CUSTOMER_ALL"){
+    if (seaBookingStatus == "CUSTOMER_ALL"){
       filter.warehouseReceivingStatus = { in: ["PENDING", "RECEIVED"] };
     } else {
-      filter.warehouseReceivingStatus = airBookingStatus;
+      filter.warehouseReceivingStatus = seaBookingStatus;
     }
     if (userRef) filter.customerId = Number(userRef);
 
@@ -86,28 +86,27 @@ class AirBookingRepository {
         });
   }
 
-
-  async getSingleAirBooking(id: number) {
-    const airBooking = await prisma.shipmentBooking.findUnique({
+  async getSingleSeaBooking(id: number) {
+    const seaBooking = await prisma.shipmentBooking.findUnique({
       where: { id },
     });
-    return airBooking;
+    return seaBooking;
   }
 
-  async updateAirBooking(id: number, payload: Prisma.ShipmentBookingUpdateInput) {
-    const updatedAirBooking = await prisma.shipmentBooking.update({
+  async updateSeaBooking(id: number, payload: Prisma.ShipmentBookingUpdateInput) {
+    const updatedSeaBooking = await prisma.shipmentBooking.update({
       where: { id },
       data: payload,
     });
-    return updatedAirBooking;
+    return updatedSeaBooking;
   }
 
-  async deleteAirBooking(id: number) {
-    const deletedAirBooking = await prisma.shipmentBooking.delete({
+  async deleteSeaBooking(id: number) {
+    const deletedSeaBooking = await prisma.shipmentBooking.delete({
       where: { id },
     });
-    return deletedAirBooking;
+    return deletedSeaBooking;
   }
 }
 
-export default new AirBookingRepository();
+export default new SeaBookingRepository();

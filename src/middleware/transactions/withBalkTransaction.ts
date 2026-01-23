@@ -19,7 +19,7 @@ const withBalkTransaction = (
   return catchError(async (req: Request, res: Response, next: NextFunction) => {
     const maxRetries = 3;
     const retryDelay = 1000;
-    const transactionTimeout = 30000;
+    const transactionTimeout = 60000;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {

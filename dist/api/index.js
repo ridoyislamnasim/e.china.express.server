@@ -32,6 +32,8 @@ const companyContact_route_1 = __importDefault(require("./routes/companyContact.
 const teamManagement_route_1 = __importDefault(require("./routes/teamManagement.route"));
 const services_route_1 = __importDefault(require("./routes/services.route"));
 const role_route_1 = __importDefault(require("./routes/role.route"));
+const sea_booking_route_1 = __importDefault(require("./routes/sea.booking.route"));
+const booking_route_1 = __importDefault(require("./routes/booking.route"));
 // import other routers here
 const rootRouter = (0, express_1.Router)();
 rootRouter.use("/example", example_route_1.default);
@@ -52,8 +54,9 @@ rootRouter.use('/rate/weightcategories', rateWaightCategories_route_1.default);
 rootRouter.use('/rate/product', rateProduct_route_1.default);
 rootRouter.use('/rate', rate_route_1.default);
 // booking 
+rootRouter.use("/booking", booking_route_1.default);
 rootRouter.use("/booking/air", air_booking_route_1.default);
-rootRouter.use("/booking/sea", wishlist_route_1.default);
+rootRouter.use("/booking/sea", sea_booking_route_1.default);
 rootRouter.use("/booking/express", wishlist_route_1.default);
 rootRouter.use("/booking/inventory", wishlist_route_1.default);
 // WarehouseSpace masud

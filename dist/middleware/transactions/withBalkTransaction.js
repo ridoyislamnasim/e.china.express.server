@@ -12,7 +12,7 @@ const withBalkTransaction = (handler) => {
     return (0, catchError_1.default)(async (req, res, next) => {
         const maxRetries = 3;
         const retryDelay = 1000;
-        const transactionTimeout = 30000;
+        const transactionTimeout = 60000;
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 await prismadatabase_1.default.$transaction(async (tx) => {

@@ -50,6 +50,7 @@ class WarehouseService {
             createdBy,
             ...rest
         };
+        console.log('Creating warehouse with data:', warehouseData);
         return await this.repository.createWarehouse(warehouseData);
     }
     async getAllWarehouses(filter = {}) {

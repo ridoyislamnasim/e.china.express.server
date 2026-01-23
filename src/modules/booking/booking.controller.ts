@@ -2,10 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import catchError from "../../middleware/errors/catchError";
 import { responseHandler } from "../../utils/responseHandler";
 import withTransaction from "../../middleware/transactions/withTransaction";
-import AirBookingService from "./air.booking.service";
+import BookingService from "./booking.service";
 
-class AirBookingController {
-  createAirBooking = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+class BookingController {
+  createBooking = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     const payloadFiles = {
       files: req.files,
     };
@@ -35,53 +35,54 @@ class AirBookingController {
       productQuantity: req.body.productQuantity,
      
     };
-    console.log("AirBooking Create request body:", payload);
-    console.log("AirBooking Create request files:", payloadFiles);
-    const airBookingResult = await AirBookingService.createAirBooking(payload, payloadFiles, tx);
-    const resDoc = responseHandler(201, "AirBooking Created successfully", airBookingResult);
+    console.log("Booking Create request body:", payload);
+    console.log("Booking Create request files:", payloadFiles);
+    const BookingResult = await BookingService.createBooking(payload, payloadFiles, tx);
+    const resDoc = responseHandler(201, "Booking Created successfully", BookingResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  getAllAirBookingByFilterWithPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+  getAllBookingByFilterWithPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const payload = {
       userRef: userRef,
-      airBookingStatus: req.query.airBookingStatus as string,
+      BookingStatus: req.query.BookingStatus as string,
       page: Number(req.query.page) || 1,
       limit: Number(req.query.limit) || 10,
       sortOrder: req.query.sortOrder === 'asc' ? 'asc' : 'desc',
     };
-    const airBookingResult = await AirBookingService. getAllAirBookingByFilterWithPagination(payload);
-    const resDoc = responseHandler(200, "Get All AirBookings", airBookingResult);
+    const BookingResult = await BookingService. getAllBookingByFilterWithPagination(payload);
+    const resDoc = responseHandler(200, "Get All Bookings", BookingResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  getSingleAirBooking = catchError(async (req: Request, res: Response, next: NextFunction) => {
+
+  getSingleBooking = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
-    const airBookingResult = await AirBookingService.getSingleAirBooking(id);
-    const resDoc = responseHandler(201, "Single AirBooking successfully", airBookingResult);
+    const BookingResult = await BookingService.getSingleBooking(id);
+    const resDoc = responseHandler(201, "Single Booking successfully", BookingResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  updateAirBooking = catchError(async (req: Request, res: Response, next: NextFunction) => {
+  updateBooking = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
     const payloadFiles = {
       files: req.files,
     };
     const payload = {
-      airBookingType: req?.body?.airBookingType,
+      BookingType: req?.body?.BookingType,
       link: req?.body?.link,
     };
-    const airBookingResult = await AirBookingService.updateAirBooking(id, payload, payloadFiles);
-    const resDoc = responseHandler(201, "AirBooking Update successfully");
+    const BookingResult = await BookingService.updateBooking(id, payload, payloadFiles);
+    const resDoc = responseHandler(201, "Booking Update successfully");
     res.status(resDoc.statusCode).json(resDoc);
   });
-  deleteAirBooking = catchError(async (req: Request, res: Response, next: NextFunction) => {
+  deleteBooking = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
-    const airBookingResult = await AirBookingService.deleteAirBooking(id);
-    const resDoc = responseHandler(200, "AirBooking Deleted successfully");
+    const BookingResult = await BookingService.deleteBooking(id);
+    const resDoc = responseHandler(200, "Booking Deleted successfully");
     res.status(resDoc.statusCode).json(resDoc);
   });
 }
 
-export default new AirBookingController();
+export default new BookingController();

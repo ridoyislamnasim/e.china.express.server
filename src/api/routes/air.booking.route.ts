@@ -8,9 +8,9 @@ const AirBookingRouter = Router();
 
 AirBookingRouter.route("/")
   .post(upload, jwtAuth(), controller.createAirBooking)
-  .get(jwtAuth(), controller.getAllAirBookingByFilterWithPagination);
+  // .get(jwtAuth(), controller.getAllAirBookingByFilterWithPagination);
 
-AirBookingRouter.get("/pagination", jwtAuth(), controller.getAirBookingWithPagination);
+AirBookingRouter.get("/pagination", jwtAuth(), controller.getAllAirBookingByFilterWithPagination);
 
 AirBookingRouter.route("/:id")
   .get(jwtAuth(), controller.getSingleAirBooking)
