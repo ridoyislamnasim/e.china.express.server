@@ -99,14 +99,6 @@ model PaymentServiceConfig {
   updatedAt     DateTime @updatedAt
 }
 
-model ShippingMethod {
-  id             Int      @id @default(autoincrement())
-  shippingMethod String?
-  rate           Float?
-  status         Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
 
 model TeamMember {
   id        Int      @id @default(autoincrement())

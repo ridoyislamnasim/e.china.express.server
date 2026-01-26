@@ -15,11 +15,11 @@ export class CountryService {
 
   
   async createCountry(payload: CountryPayload): Promise<any> {
-    const { name, status, isoCode, ports, zone, isShippingCountry } = payload;
+    const { name, status, isoCode, ports, countryZoneId, isShippingCountry } = payload;
 
-    // Validate required fields
-    if (!name || !status || !isoCode) {
-      const error = new Error('name, status, and isoCode are required');
+    // Validate required fields - countryZoneId is required
+    if (!name || !status || !isoCode || !countryZoneId) {
+      const error = new Error('name, status, isoCode, and countryZoneId are required');
       (error as any).statusCode = 400;
       throw error;
     }
@@ -36,7 +36,7 @@ export class CountryService {
       name,
       status,
       isoCode,
-      zone,
+      countryZoneId,
       isShippingCountry,
     };
 
@@ -76,7 +76,7 @@ export class CountryService {
     return countries;
   }
   async updateCountry(id: number, payload: CountryPayload, tx: any): Promise<any> {
-    const { name, status, isoCode, ports, zone, isShippingCountry } = payload;
+    const { name, status, isoCode, ports, countryZoneId, isShippingCountry } = payload;
     if (isShippingCountry) {
       const existingShippingCountry = await this.repository.getCountryByCondition({ isShippingCountry: true });
       if (existingShippingCountry && existingShippingCountry.id !== id) {
@@ -88,7 +88,7 @@ export class CountryService {
       name,
       status,
       isoCode,
-      zone,
+      countryZoneId,
       isShippingCountry,
     };
     const updatedCountry = await this.repository.updateCountry(id, countryPayload, tx);

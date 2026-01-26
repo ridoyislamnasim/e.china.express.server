@@ -9,13 +9,13 @@ const countryService = new CountryService(countryRepository);
 class CountryController {
   createCountry = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
-      const { name, status, isoCode, ports, zone, isShippingCountry } = req.body;
+      const { name, status, isoCode, ports, countryZoneId, isShippingCountry } = req.body;
       const payload = {
         name,
         status,
         isoCode,
         ports,
-        zone,
+        countryZoneId,
         isShippingCountry,
       };
       const country = await countryService.createCountry(payload);
@@ -69,13 +69,13 @@ class CountryController {
   updateCountry = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const { name, status, isoCode, ports, zone, isShippingCountry } = req.body;
+      const { name, status, isoCode, ports, countryZoneId, isShippingCountry } = req.body;
       const payload = {
         name,
         status,
         isoCode,
         ports,
-        zone,
+        countryZoneId,
         isShippingCountry,
       };
       // Implement update logic here using countryService

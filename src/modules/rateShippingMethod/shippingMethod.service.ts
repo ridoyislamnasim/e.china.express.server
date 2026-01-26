@@ -25,7 +25,9 @@ export class ShippingMethodService {
     // Ensure description is optional
     const shippingMethodPayload  = {
       name,
-      description: description ?? null
+      description: description ?? null,
+      boxSize: payload.boxSize ?? null,
+      cbmToKgRatio: payload.cbmToKgRatio !== undefined ? parseFloat(payload.cbmToKgRatio) : undefined,
     };
 
     const shippingMethod = await this.repository.createShippingMethod(shippingMethodPayload);
@@ -59,7 +61,13 @@ export class ShippingMethodService {
       (error as any).statusCode = 404;
       throw error;
     }
-    const updatedShippingMethod = await this.repository.updateShippingMethod(id, payload);
+    const payloadData = {
+      name: payload.name ?? existingShippingMethod.name,
+      description: payload.description ?? existingShippingMethod.description,
+      boxSize: payload.boxSize ?? existingShippingMethod.boxSize,
+      cbmToKgRatio: payload.cbmToKgRatio !== undefined ? parseFloat(payload.cbmToKgRatio) : existingShippingMethod.cbmToKgRatio,
+    };
+    const updatedShippingMethod = await this.repository.updateShippingMethod(id, payloadData);
     return updatedShippingMethod;
 
    

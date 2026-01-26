@@ -9,7 +9,7 @@ export class RateWeightCategoriesService {
     this.repository = repository;
   }
   async createRateWeightCategories(payload: any): Promise<any> {
-    const { label, min_weight, max_weight  } = payload;
+    const { label, min_weight, max_weight, boxSize  } = payload;
     console.log("payload service", payload);
 
     // Validate required fields.
@@ -40,6 +40,7 @@ export class RateWeightCategoriesService {
       label,
       min_weight: min,
       max_weight: max,
+      boxSize
     };
 
     const shippingMethod = await this.repository.createRateWeightCategories(weightCategoriesPayload);
@@ -63,7 +64,7 @@ export class RateWeightCategoriesService {
   }
 
   async updateRateWeightCategories(id: string, payload: any): Promise<any> {
-    const { label, min_weight, max_weight } = payload;
+    const { label, min_weight, max_weight, boxSize } = payload;
 
     // Validate required fields
     if (!label || min_weight === undefined || min_weight === null || max_weight === undefined || max_weight === null) {
@@ -125,7 +126,8 @@ export class RateWeightCategoriesService {
     const updatedPayload = {
       label,
       min_weight: min,
-      max_weight: max
+      max_weight: max,
+      boxSize
     };
     
     const updatedCategory = await this.repository.updateRateWeightCategories(id, updatedPayload);

@@ -2,10 +2,13 @@ model RateShippingMethod {
   id              Int                   @id @default(autoincrement())
   name            String                @unique
   description     String?
+  boxSize         String?
+  cbmToKgRatio    Decimal?              @db.Decimal(10, 2)
   createdAt       DateTime              @default(now())
   productShipping CartProductShipping[]
   shippingInfos   ShippingInfo[]
-    rate        Rate[]
+  rate            Rate[]
+  expressRates    ExpressRate[]
 }
 
 model RateWeightCategorie {
@@ -13,8 +16,10 @@ model RateWeightCategorie {
   label      String
   min_weight Decimal
   max_weight Decimal
+  boxSize    String?
   created_at DateTime @default(now())
   rate       Rate[]
+  expressRates ExpressRate[]
 }
 
 model Rate {
@@ -29,7 +34,7 @@ model Rate {
   // Relations
   countryCombination CountryCombination    @relation(fields: [countryCombinationId], references: [id], onDelete: Cascade)
   category1688       Category1688          @relation(fields: [category1688Id], references: [id])
-  shippingMethod     RateShippingMethod     @relation(fields: [shippingMethodId], references: [id])
+  shippingMethod     RateShippingMethod    @relation(fields: [shippingMethodId], references: [id])
   weightCategory     RateWeightCategorie   @relation(fields: [weightCategoryId], references: [id])
   cartProductVariant CartProductVariant[]
   productShipping    CartProductShipping[]
@@ -37,6 +42,20 @@ model Rate {
   // shopping bookings
   ShoppingBookings   ShoppingBooking[]
 }
+
+
+model ExpressRate {
+  id             Int      @id @default(autoincrement())
+  countryZoneId Int
+  countryZone   CountryZone @relation(fields: [countryZoneId], references: [id])
+  weightCategoryId Int
+  weightCategory RateWeightCategorie @relation(fields: [weightCategoryId], references: [id])
+  shippingMethodId Int
+  shippingMethod RateShippingMethod @relation(fields: [shippingMethodId], references: [id])
+  price          Decimal  @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+ 
+ }
 
 model Category1688 {
   id             Int     @id @default(autoincrement())

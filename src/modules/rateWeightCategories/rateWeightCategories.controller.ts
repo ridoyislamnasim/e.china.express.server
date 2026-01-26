@@ -7,9 +7,9 @@ const rateWeightCategoriesService = new RateWeightCategoriesService(rateWeightCa
 class RateWeightCategoriesController {
 createRateWeightCategories = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { label, min_weight, max_weight } = req.body;
+    const { label, min_weight, max_weight, boxSize  } = req.body;
     const payload = {
-      label, min_weight, max_weight
+      label, min_weight, max_weight, boxSize
     };
     const shippingMethod = await rateWeightCategoriesService.createRateWeightCategories(payload);
     const resDoc = responseHandler(201, 'Rate weight categories created successfully', shippingMethod);
@@ -45,9 +45,9 @@ async getRateWeightCategoriesWithPagination(req: Request, res: Response, next: N
 }
  async updateRateWeightCategories(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params;
-    const { label, min_weight, max_weight } = req.body;
+    const { label, min_weight, max_weight, boxSize } = req.body;
     const payload = {
-      label, min_weight, max_weight
+      label, min_weight, max_weight, boxSize
     };
     const updatedCategory = await rateWeightCategoriesService.updateRateWeightCategories(id, payload);
     const resDoc = responseHandler(200, 'Rate weight categories updated successfully', updatedCategory);

@@ -29,6 +29,7 @@ import servicesRoute from "./routes/services.route";
 import RoleRoute from "./routes/role.route";
 import SeaBookingRouter from "./routes/sea.booking.route";
 import BookingRouter from "./routes/booking.route";
+import countryZoneRouter from "./routes/countryZone.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -52,6 +53,7 @@ rootRouter.use("/order", OrderRouter);
 
 rootRouter.use("/cart", CartRouter); // cart routes
 rootRouter.use('/country', countryRouter);
+rootRouter.use('/country/zone', countryZoneRouter);
 rootRouter.use('/rate/shippingmethod', rateShippingMethodRoute);
 rootRouter.use('/rate/weightcategories', rateWeightCategoriesRoute);
 rootRouter.use('/rate/product', rateProductRoute);

@@ -21,8 +21,20 @@ model Country {
   ShippingFromCountry                                        ShippingInfo[]        @relation("ShippingFromCountry")
   ShippingToCountry                                          ShippingInfo[]        @relation("ShippingToCountry")
   warehouses                                                   Warehouse[]
+  countryZoneId                                             Int?
+  countryZone                                               CountryZone?          @relation(fields: [countryZoneId], references: [id])
 
   @@map("countries")
+}
+
+model CountryZone {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  zoneCode String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  countries Country[]
+  expressRates ExpressRate[]
 }
 
 model Ports {

@@ -8,25 +8,16 @@ import controller from "../../modules/rateWeightCategories/rateWeightCategories.
 const rateWeightCategoriesRoute = Router();
 // OrderRoute.use(jwtAuth());
 
-// rateWeightCategoriesRoute.post('/',controller.createRateWeightCategories)
 rateWeightCategoriesRoute.route("/")
     .post(controller.createRateWeightCategories)
     .get(controller.getAllRateWeightCategories);
 
-// countryRoute.route("/order-product").get(controller.getOrderProducts);
-// countryRoute.route("/admin").post(controller.createAdminOrder);
-// countryRoute.route("/user/:id").get(controller.getUserAllOrder);
-// countryRoute.route("/track").get(controller.orderTracking);
-
 rateWeightCategoriesRoute.get("/pagination", controller.getRateWeightCategoriesWithPagination);
-// countryRoute.get("/incomplete/pagination", controller.getIncompleteOrderWithPagination);
 
 rateWeightCategoriesRoute.route("/:id")
     // .get(controller.getSingleOrder)
     .put( controller.updateRateWeightCategories)
     .delete(controller.deleteRateWeightCategories);
 
-// countryRoute.put("/status/:id", controller.updateOrderStatus);
-// countryRoute.put("/couriersend/:id", controller.isCourierSending);
 
 export default rateWeightCategoriesRoute;
