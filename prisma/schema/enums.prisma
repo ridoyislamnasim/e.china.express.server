@@ -97,6 +97,15 @@ enum WarehouseReceivingStatus {
   RETURNED_TO_SUPPLIER
   CANCELLED
 }
+enum CargoType {
+  DG
+  NON_DG
+}
+
+enum ShipmentMode {
+  FCL
+  LCL
+}
 
 enum DiscountType {
   PERCENT

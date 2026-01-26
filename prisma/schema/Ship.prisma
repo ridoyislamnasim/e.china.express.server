@@ -1,0 +1,47 @@
+model Container {
+    id            Int         @id @default(autoincrement())
+    freightRateId Int
+    quantity      Int
+    size          String
+    freightRate   FreightRate @relation(fields: [freightRateId], references: [id])
+    createdAt     DateTime    @default(now())
+    updatedAt     DateTime    @updatedAt
+}
+
+model Ship {
+    id        Int         @id @default(autoincrement())
+    name      String
+    code      String
+    status    Boolean     @default(true)
+    routes    ShipRoute[]
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+}
+
+model ShipRoute {
+    id              Int           @id @default(autoincrement())
+    shipId          Int
+    fromPortId      Int
+    toPortId        Int
+    shipScheduileId Int?
+    shipSchedule    ShipSchedule? @relation(fields: [shipScheduileId], references: [id])
+
+    ship     Ship  @relation(fields: [shipId], references: [id])
+    fromPort Ports @relation("FromPort", fields: [fromPortId], references: [id])
+    toPort   Ports @relation("ToPort", fields: [toPortId], references: [id])
+
+    freightRates FreightRate[]
+    createdAt    DateTime      @default(now())
+    updatedAt    DateTime      @updatedAt
+}
+
+model ShipSchedule {
+    id          Int         @id @default(autoincrement())
+    sailingDate DateTime // কবে ছাড়বে
+    arrivalDate DateTime // কবে পৌঁছাবে
+    //   shipRoute
+    shipRoutes  ShipRoute[]
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+
+}

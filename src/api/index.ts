@@ -30,6 +30,7 @@ import RoleRoute from "./routes/role.route";
 import SeaBookingRouter from "./routes/sea.booking.route";
 import BookingRouter from "./routes/booking.route";
 import countryZoneRouter from "./routes/countryZone.route";
+import rateExpressRouter from "./routes/rateExpress.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -58,6 +59,7 @@ rootRouter.use('/rate/shippingmethod', rateShippingMethodRoute);
 rootRouter.use('/rate/weightcategories', rateWeightCategoriesRoute);
 rootRouter.use('/rate/product', rateProductRoute);
 rootRouter.use('/rate', rateRoute);
+rootRouter.use('/rate/express', rateExpressRouter);
 
 // booking 
 rootRouter.use("/booking", BookingRouter); 

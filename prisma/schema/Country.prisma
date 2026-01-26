@@ -3,6 +3,7 @@ model Country {
   name                                                       String
   isoCode                                                    String
   zone                                                       String?
+  isFreight                                                  Boolean               @default(false)
   status                                                     Boolean               @default(true)
   createdAt                                                  DateTime              @default(now())
   isShippingCountry                                          Boolean               @default(false)
@@ -11,7 +12,7 @@ model Country {
   exportCombinations                                         CountryCombination[]  @relation("ExportCountry")
   importCombinations                                         CountryCombination[]  @relation("ImportCountry")
   countryHsCodes                                             CountryHsCode[]
-  OrderShipping_OrderShipping_fromCountryIdTocountries       OrderShipping[]       @relation("OrderShipping_fromCountryIdTocountries")
+  OrderShipping_OrderShipping_fromCountryIdTorecountries       OrderShipping[]       @relation("OrderShipping_fromCountryIdTocountries")
   OrderShipping_OrderShipping_toCountryIdTocountries         OrderShipping[]       @relation("OrderShipping_toCountryIdTocountries")
   ports                                                      Ports[]
   ProductShipping_ProductShipping_fromCountryIdTocountries   ProductShipping[]     @relation("ProductShipping_fromCountryIdTocountries")
@@ -44,6 +45,10 @@ model Ports {
   created_at DateTime @default(now())
   countryId  Int
   country    Country  @relation(fields: [countryId], references: [id])
+  // ToPorts FromPort ShipRoute 
+  ShipRouteToPorts ShipRoute[] @relation("ToPort")
+  ShipRouteFromPort ShipRoute[] @relation("FromPort")
+
 }
 
 model CountryCombination {

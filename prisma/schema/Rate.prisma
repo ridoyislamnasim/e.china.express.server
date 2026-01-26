@@ -12,13 +12,13 @@ model RateShippingMethod {
 }
 
 model RateWeightCategorie {
-  id         Int      @id @default(autoincrement())
-  label      String
-  min_weight Decimal
-  max_weight Decimal
-  boxSize    String?
-  created_at DateTime @default(now())
-  rate       Rate[]
+  id           Int           @id @default(autoincrement())
+  label        String
+  min_weight   Decimal
+  max_weight   Decimal
+  boxSize      String?
+  created_at   DateTime      @default(now())
+  rate         Rate[]
   expressRates ExpressRate[]
 }
 
@@ -43,19 +43,37 @@ model Rate {
   ShoppingBookings   ShoppingBooking[]
 }
 
-
 model ExpressRate {
-  id             Int      @id @default(autoincrement())
-  countryZoneId Int
-  countryZone   CountryZone @relation(fields: [countryZoneId], references: [id])
+  id               Int                 @id @default(autoincrement())
+  countryZoneId    Int
+  countryZone      CountryZone         @relation(fields: [countryZoneId], references: [id])
   weightCategoryId Int
-  weightCategory RateWeightCategorie @relation(fields: [weightCategoryId], references: [id])
+  weightCategory   RateWeightCategorie @relation(fields: [weightCategoryId], references: [id])
   shippingMethodId Int
-  shippingMethod RateShippingMethod @relation(fields: [shippingMethodId], references: [id])
-  price          Decimal  @db.Decimal(10, 2)
-  createdAt      DateTime @default(now())
- 
- }
+  shippingMethod   RateShippingMethod  @relation(fields: [shippingMethodId], references: [id])
+  price            Decimal             @db.Decimal(10, 2)
+  createdAt        DateTime            @default(now())
+}
+
+model FreightRate {
+  id Int @id @default(autoincrement())
+  routeId      Int
+  cargoType    CargoType // DG or NON_DG
+  shipmentMode ShipmentMode // FCL or LCL
+
+  price         Decimal        @db.Decimal(10, 2)
+  currency String @default("USD")
+
+  // LCL
+  cbm Decimal? @db.Decimal(10, 2)
+
+  // FCL
+  containerRates Container[]
+
+  route    ShipRoute    @relation(fields: [routeId], references: [id])
+  createdAt DateTime @default(now())
+}
+
 
 model Category1688 {
   id             Int     @id @default(autoincrement())
