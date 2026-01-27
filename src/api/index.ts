@@ -37,6 +37,7 @@ import shipScheduleRouter from "./routes/ship.schedule.route";
 import shipRouteRouter from "./routes/ship.route.route";
 import rateFreightRouter from "./routes/rateFreight.route";
 
+import WalletRoute from "./routes/wallet.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -45,9 +46,7 @@ rootRouter.use("/example", exampleRouter);
 rootRouter.use("/auth", authRouter);
 rootRouter.use("/role", RoleRoute);
 
-
 rootRouter.use("/1688/category", Category1688Router);
-
 
 rootRouter.use("/category", CategoryRouter);
 rootRouter.use("/banner", BannerRouter);
@@ -56,7 +55,6 @@ rootRouter.use("/product", ProductRouter);
 // rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/coupon", CouponRouter);
 rootRouter.use("/order", OrderRouter);
-
 
 rootRouter.use("/cart", CartRouter); // cart routes
 rootRouter.use('/country', countryRouter);
@@ -75,27 +73,33 @@ rootRouter.use('/rate/freight', rateFreightRouter);
 
 // booking 
 rootRouter.use("/booking", BookingRouter); 
-rootRouter.use("/booking/air", AirBookingRouter); 
-rootRouter.use("/booking/sea", SeaBookingRouter); 
+rootRouter.use("/country", countryRouter);
+rootRouter.use("/rate/shippingmethod", rateShippingMethodRoute);
+rootRouter.use("/rate/weightcategories", rateWeightCategoriesRoute);
+rootRouter.use("/rate/product", rateProductRoute);
+rootRouter.use("/rate", rateRoute);
+
+// booking
+rootRouter.use("/booking/air", AirBookingRouter);
+rootRouter.use("/booking/sea", SeaBookingRouter);
 rootRouter.use("/booking/express", WishlistRouter);
 rootRouter.use("/booking/inventory", WishlistRouter);
 
-
 // WarehouseSpace masud
-rootRouter.use('/warehouses', warehouseRoute);
-rootRouter.use('/warehouse-spaces', warehouseSpaceRoute);
+rootRouter.use("/warehouses", warehouseRoute);
+rootRouter.use("/warehouse-spaces", warehouseSpaceRoute);
 
-rootRouter.use('/packages', PackageRoute);
-rootRouter.use('/banding', BandingRoute);
+rootRouter.use("/packages", PackageRoute);
+rootRouter.use("/banding", BandingRoute);
+
+rootRouter.use("/wallets", WalletRoute);
 
 //done by rafi
-rootRouter.use("/policies",policiesRoute ); 
-rootRouter.use("/services",servicesRoute ); 
+rootRouter.use("/policies", policiesRoute);
+rootRouter.use("/services", servicesRoute);
 rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/guide", guideRoute);
-rootRouter.use("/contact-us", contactUsRoute); 
-rootRouter.use("/team-management", teamManagementRoute); 
-
-
+rootRouter.use("/contact-us", contactUsRoute);
+rootRouter.use("/team-management", teamManagementRoute);
 
 export default rootRouter;
