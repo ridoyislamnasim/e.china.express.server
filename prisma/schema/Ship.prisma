@@ -46,8 +46,8 @@ model ShipRoute {
     shipId          Int
     fromPortId      Int
     toPortId        Int
-    shipScheduileId Int?
-    shipSchedule    ShipSchedule? @relation(fields: [shipScheduileId], references: [id])
+    shipScheduleId Int?
+    shipSchedule    ShipSchedule? @relation(fields: [shipScheduleId], references: [id])
 
     ship     Ship  @relation(fields: [shipId], references: [id])
     fromPort Ports @relation("FromPort", fields: [fromPortId], references: [id])

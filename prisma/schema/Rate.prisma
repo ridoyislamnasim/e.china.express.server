@@ -9,6 +9,7 @@ model RateShippingMethod {
   shippingInfos   ShippingInfo[]
   rate            Rate[]
   expressRates    ExpressRate[]
+  freightRates   FreightRate[]
 }
 
 model RateWeightCategorie {
@@ -57,7 +58,7 @@ model ExpressRate {
 
 model FreightRate {
   id Int @id @default(autoincrement())
-  routeId      Int
+
   cargoType    CargoType // DG or NON_DG
   shipmentMode ShipmentMode // FCL or LCL
 
@@ -71,6 +72,10 @@ model FreightRate {
   containerId Int?
   container   Container?    @relation(fields: [containerId], references: [id])
 
+  shippingMethodId Int
+  shippingMethod   RateShippingMethod  @relation(fields: [shippingMethodId], references: [id])
+
+  routeId      Int
   route    ShipRoute    @relation(fields: [routeId], references: [id])
   createdAt DateTime @default(now())
 }

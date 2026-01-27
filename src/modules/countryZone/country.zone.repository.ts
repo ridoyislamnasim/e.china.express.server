@@ -103,9 +103,6 @@ export class CountryZoneRepository {
   async deleteCountryZone(id: number): Promise<void> { // Corrected method name
     await this.prisma.countryZone.delete({ where: { id } });
   }
- async deletePort(id: number): Promise<void> {
-    await this.prisma.ports.delete({ where: { id } });
-  }
 
 
   // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.

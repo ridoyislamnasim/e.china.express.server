@@ -1,22 +1,11 @@
-
 import prisma from '../../config/prismadatabase';
 import { PrismaClient } from '@prisma/client';
 import { pagination } from '../../utils/pagination';
 
 export class CountryRepository {
   private prisma = prisma;
+// portexits 
 
-  createCustomRoleIfNotExists = async (roleName: string, tx?: any) => {
-    const prismaClient: PrismaClient = tx || this.prisma;
-
-    // Try to find existing role first
-    let role = await prismaClient.role.findUnique({ where: { role: roleName } });
-    if (role) return role;
-
-    const permission = await prismaClient.permission.create({});
-    role = await prismaClient.role.create({ data: { role: roleName, permissionId: permission.id } });
-    return role;
-  };
 
   async createPort(payload: any) : Promise<any> {
     const newPort = await this.prisma.ports.create({
@@ -52,7 +41,11 @@ export class CountryRepository {
     });
   }
 
-
+  // Check if a port exists by a given condition
+  async portExists(condition: any): Promise<boolean> {
+    const port = await this.prisma.ports.findFirst({ where: condition });
+    return !!port;
+  }
 
   async getAllCountries() {
     // include ports
