@@ -5,7 +5,6 @@ import withTransaction from "../../middleware/transactions/withTransaction";
 import walletService from "./wallet.service";
 
 class WalletController {
-  // Manual creation of an additional wallet (defaults to inactive)
   createWallet = withTransaction(
     async (req: Request, res: Response, next: NextFunction, tx: any) => {
       const userId = (req as any).user.id; // Assuming user is attached via auth middleware
