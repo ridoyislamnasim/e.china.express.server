@@ -31,6 +31,10 @@ import SeaBookingRouter from "./routes/sea.booking.route";
 import BookingRouter from "./routes/booking.route";
 import countryZoneRouter from "./routes/countryZone.route";
 import rateExpressRouter from "./routes/rateExpress.route";
+import containerRouter from "./routes/container.route";
+import shipRouter from "./routes/ship.route";
+import shipScheduleRouter from "./routes/ship.schedule.route";
+
 // import other routers here
 
 const rootRouter = Router();
@@ -58,6 +62,11 @@ rootRouter.use('/country/zone', countryZoneRouter);
 rootRouter.use('/rate/shippingmethod', rateShippingMethodRoute);
 rootRouter.use('/rate/weightcategories', rateWeightCategoriesRoute);
 rootRouter.use('/rate/product', rateProductRoute);
+// Container
+rootRouter.use('/rate/container', containerRouter);
+rootRouter.use('/rate/ship/schedule', shipScheduleRouter);
+rootRouter.use('/rate/ship', shipRouter);
+// rootRouter.use('/rate/ship/route', rateShipRouteRouter);
 rootRouter.use('/rate', rateRoute);
 rootRouter.use('/rate/express', rateExpressRouter);
 

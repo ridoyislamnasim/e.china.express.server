@@ -13,5 +13,5 @@
     "lib": ["es2019"] 
     
   },
-  "include": ["src"]
+  "include": ["src", "src/modules/container/container.service.ts"]
 }

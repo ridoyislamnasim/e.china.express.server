@@ -1,12 +1,35 @@
+
 model Container {
-    id            Int         @id @default(autoincrement())
-    freightRateId Int
-    quantity      Int
-    size          String
-    freightRate   FreightRate @relation(fields: [freightRateId], references: [id])
-    createdAt     DateTime    @default(now())
-    updatedAt     DateTime    @updatedAt
+  id            Int     @id @default(autoincrement())
+//   relations
+  freightRates FreightRate[]
+
+  // Identity
+  code          String  @unique   // 20FT, 40FT, 40HC, 45HC
+  name          String            // Standard Dry, High Cube, Reefer etc
+  description   String?
+
+  // Size & Capacity
+  lengthFt      Int               // 20, 40, 45
+  heightFt      Decimal? @db.Decimal(4,2)  // 8.6, 9.6 (HC)
+  widthFt       Decimal? @db.Decimal(4,2)
+
+  internalVolumeCbm Decimal? @db.Decimal(6,2) // ≈ 33, 67 CBM
+  maxPayloadKg      Int?                     // weight limit
+  tareWeightKg      Int?                     // empty container weight
+
+  // Type flags
+  containerClass ContainerClass // DRY, HC, REEFER, OPEN_TOP
+  isReefer       Boolean @default(false)
+  isHazmatAllowed Boolean @default(true)
+
+  // System
+  isActive      Boolean @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
+
 
 model Ship {
     id        Int         @id @default(autoincrement())

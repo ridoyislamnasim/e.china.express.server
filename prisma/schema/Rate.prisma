@@ -68,7 +68,8 @@ model FreightRate {
   cbm Decimal? @db.Decimal(10, 2)
 
   // FCL
-  containerRates Container[]
+  containerId Int?
+  container   Container?    @relation(fields: [containerId], references: [id])
 
   route    ShipRoute    @relation(fields: [routeId], references: [id])
   createdAt DateTime @default(now())

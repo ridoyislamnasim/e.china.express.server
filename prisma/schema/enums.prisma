@@ -97,6 +97,14 @@ enum WarehouseReceivingStatus {
   RETURNED_TO_SUPPLIER
   CANCELLED
 }
+
+enum ContainerClass {
+  DRY
+  HIGH_CUBE
+  REEFER
+  OPEN_TOP
+  FLAT_RACK
+}
 enum CargoType {
   DG
   NON_DG
