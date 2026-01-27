@@ -53,16 +53,14 @@ export class AuthRepository {
       name,
       email: email || "",
       password,
-      // Nested create for the default Wallet
       wallets: {
         create: {
           name: "Default RMB Wallet",
-          currency: "RMB", // Set fixed currency
-          balance: 0, // Initial balance
-          status: "active", // Enum status
-          monthlyLimit: 50000, // Set a default limit
+          currency: "RMB",
+          balance: 0,
+          status: "active",
+          monthlyLimit: 50000,
           category: "Main",
-          // Fake/Generated card details for the wallet
           cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`,
           expiryDate: "12/29",
           cvv: "123",
