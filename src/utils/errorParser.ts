@@ -53,6 +53,11 @@ export function parsePostgreSQLError(error: any) {
           message: `Foreign key constraint failed in ${error.meta?.model || 'the database'}. Please check related data.`,
         };
 
+      case 'P2028': // Transaction start timeout
+        return {
+          status: 'error',
+          message: `Transaction API error: Unable to start a transaction in the given time. This may indicate database overload, connection pool exhaustion, or network issues. Consider increasing transaction timeout, adding retries with backoff, or checking database availability. Original message: ${error.message}`,
+        };
       default:
         return {
           status: 'error',
@@ -60,6 +65,15 @@ export function parsePostgreSQLError(error: any) {
         };
     }
   } else if (error.message) {
+    // Map common network/connection errors to more actionable messages
+    const lowerMsg = error.message.toLowerCase();
+    if (lowerMsg.includes('connection reset') || lowerMsg.includes('connectionreset') || lowerMsg.includes('ecorrupt') || lowerMsg.includes('econnreset')) {
+      return {
+        status: 'error',
+        message: 'Database connection was reset. This often indicates transient network issues or the database process restarting. Please check database health and network connectivity.',
+      };
+    }
+
     return {
       status: 'error',
       message: error.message,

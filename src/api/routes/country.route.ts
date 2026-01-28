@@ -14,7 +14,7 @@ countryRoute.route("/")
 
 countryRoute.route("/shipping").get(controller.getCountryForShipping);
 countryRoute.route("/export").get(controller.exportCountryData);
-// countryRoute.route("/user/:id").get(controller.getUserAllOrder);
+countryRoute.route("/port").get(controller.getAllPorts);
 // countryRoute.route("/track").get(controller.orderTracking);
 
 countryRoute.get("/pagination", controller.getCountryWithPagination);

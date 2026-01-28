@@ -65,8 +65,9 @@ export class CountryZoneRepository {
     );
   }
 
-  async getCountryZoneById(id: number) {
-    return await this.prisma.countryZone.findUnique({
+  async getCountryZoneById(id: number, tx?: any) {
+    const prismaClient = tx || this.prisma;
+    return await prismaClient.countryZone.findUnique({
       where: { id },
       include: { countries: true },
     });

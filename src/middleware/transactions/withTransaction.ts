@@ -18,20 +18,25 @@ const withTransaction = (
   ) => Promise<any>
 ) => {
   return catchError(async (req: Request, res: Response, next: NextFunction) => {
-    const maxRetries = 3;
-    const retryDelay = 1000; // 1 second
+    const maxRetries = parseInt(process.env.TRANSACTION_MAX_RETRIES || '5', 10);
+    const baseDelay = parseInt(process.env.TRANSACTION_RETRY_DELAY_MS || '500', 10); // base delay in ms
+    const timeout = parseInt(process.env.TRANSACTION_TIMEOUT_MS || '10000', 10); // transaction timeout
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         await prisma.$transaction(async (tx) => {
           await handler(req, res, next, tx);
-        }, { timeout: 10000 }); // 10-second timeout
+        }, { timeout });
         return; // Exit loop if successful
       } catch (error) {
         console.error(`Transaction attempt ${attempt} failed:`, error);
         if (attempt < maxRetries) {
-          console.warn(`Transaction attempt ${attempt} failed. Retrying in ${retryDelay}ms...`);
-          await sleep(retryDelay);
+          // exponential backoff with jitter
+          const backoff = baseDelay * Math.pow(2, attempt - 1);
+          const jitter = Math.floor(Math.random() * 100);
+          const wait = backoff + jitter;
+          console.warn(`Transaction attempt ${attempt} failed. Retrying in ${wait}ms...`);
+          await sleep(wait);
         } else {
           const parsedError = parsePostgreSQLError(error);
           next(parsedError);

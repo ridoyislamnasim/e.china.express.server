@@ -5,7 +5,7 @@ import { pagination } from '../../utils/pagination';
 export class ShipRouteRepository {
   private prisma = prisma;
 
-  async createShipRoute(payload: any) : Promise<any> {
+  async createShipRoute(payload: any): Promise<any> {
     const newShipRoute = await this.prisma.shipRoute.create({
       data: payload
     })
@@ -30,7 +30,16 @@ export class ShipRouteRepository {
 
   async getAllShipRoutes() {
     // include ports
-    return await this.prisma.shipRoute.findMany();
+    return await this.prisma.shipRoute.findMany(
+      {
+        include: {
+          ship: true,
+          fromPort: true,
+          toPort: true,
+          shipSchedule: true,
+        },
+      }
+    );
   }
 
   async getShipRouteById(id: number) {
@@ -42,24 +51,30 @@ export class ShipRouteRepository {
     });
   }
 
-//  async getShipRouteWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
-    async getShipRouteWithPagination(payload: any, tx: any) {
+  //  async getShipRouteWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
+  async getShipRouteWithPagination(payload: any, tx: any) {
     const prismaClient: PrismaClient = tx || this.prisma;
 
-        return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
-          const [doc, totalDoc] = await Promise.all([
-            prismaClient.shipRoute.findMany({
-              skip: offset, // Use the offset passed by the pagination callback
-              take: limit,  // Use the limit passed by the pagination callback
-              orderBy: { createdAt: sortOrder },
-            }),
-            prismaClient.shipRoute.count(),
-          ]);
-          return { doc, totalDoc };
-        });
- }
+    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+      const [doc, totalDoc] = await Promise.all([
+        prismaClient.shipRoute.findMany({
+          skip: offset, // Use the offset passed by the pagination callback
+          take: limit,  // Use the limit passed by the pagination callback
+          orderBy: { createdAt: sortOrder },
+          include: {
+            ship: true,
+            fromPort: true,
+            toPort: true,
+            shipSchedule: true,
+          },
+        }),
+        prismaClient.shipRoute.count(),
+      ]);
+      return { doc, totalDoc };
+    });
+  }
 
-//  update 
+  //  update 
   async updateShipRoute(id: number, payload: any, tx: any): Promise<any> {
     const prismaClient: PrismaClient = tx || this.prisma;
     const updatedShipRoute = await prismaClient.shipRoute.update({

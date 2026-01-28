@@ -7,22 +7,25 @@ export class CountryRepository {
 // portexits 
 
 
-  async createPort(payload: any) : Promise<any> {
-    const newPort = await this.prisma.ports.create({
+  async createPort(payload: any, tx?: any) : Promise<any> {
+    const prismaClient = tx || this.prisma;
+    const newPort = await prismaClient.ports.create({
       data: payload
-    })
-  return newPort
+    });
+    return newPort;
   }
 
-  async createCountry(payload: any) : Promise<any> {
-    const newCountry = await this.prisma.country.create({
+  async createCountry(payload: any, tx?: any) : Promise<any> {
+    const prismaClient = tx || this.prisma;
+    const newCountry = await prismaClient.country.create({
       data: payload
-    })
-    return newCountry
+    });
+    return newCountry;
   }
 
-  async getCountryByCondition(condition: any): Promise<any> {
-    return await this.prisma.country.findFirst({
+  async getCountryByCondition(condition: any, tx?: any): Promise<any> {
+    const prismaClient = tx || this.prisma;
+    return await prismaClient.country.findFirst({
       where: condition,
     });
   }
@@ -34,8 +37,9 @@ export class CountryRepository {
     });
   }
 
-  async updateCountryByCondition(id: number, payload: any): Promise<any> {
-    return await this.prisma.country.update({
+  async updateCountryByCondition(id: number, payload: any, tx?: any): Promise<any> {
+    const prismaClient = tx || this.prisma;
+    return await prismaClient.country.update({
       where: { id },
       data: payload,
     });
@@ -59,8 +63,9 @@ export class CountryRepository {
     );
   }
 
-  async getCountryById(id: number) {
-    return await this.prisma.country.findUnique({
+  async getCountryById(id: number, tx?: any) {
+    const prismaClient = tx || this.prisma;
+    return await prismaClient.country.findUnique({
       where: { id },
       include: { ports: true, warehouses: true, countryHsCodes: true},
     });
@@ -92,11 +97,36 @@ export class CountryRepository {
     return updatedCountry;
   }
 
-  async deleteCountry(id: number): Promise<void> { // Corrected method name
-    await this.prisma.country.delete({ where: { id } });
+  async deleteCountry(id: number, tx?: any): Promise<void> { // Corrected method name
+    const prismaClient = tx || this.prisma;
+    await prismaClient.country.delete({ where: { id } });
   }
- async deletePort(id: number): Promise<void> {
-    await this.prisma.ports.delete({ where: { id } });
+  async updatePort(id: number, payload: any, tx?: any): Promise<any> {
+    const prismaClient = tx || this.prisma;
+    const updatedPort = await prismaClient.ports.update({
+      where: { id },
+      data: payload,
+    });
+    return updatedPort;
+  }
+
+  async deletePort(id: number, tx?: any): Promise<void> {
+    const prismaClient = tx || this.prisma;
+    await prismaClient.ports.delete({ where: { id } });
+  }
+
+  async getAllPorts(payload?: { portType?: string; countryId?: any }): Promise<any> {
+    const where: any = {};
+    if (payload) {
+      if (payload.portType) {
+        where.portType = payload.portType;
+      }
+      if (payload.countryId) {
+        where.countryId = payload.countryId;
+      }
+    }
+
+    return await this.prisma.ports.findMany({ where });
   }
 
 

@@ -9,7 +9,7 @@ const countryService = new CountryService(countryRepository);
 class CountryController {
   createCountry = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
-      const { name, status, isoCode, ports, countryZoneId, isShippingCountry } = req.body;
+      const { name, status, isoCode, ports, countryZoneId, isShippingCountry,isFreight } = req.body;
       const payload = {
         name,
         status,
@@ -17,8 +17,10 @@ class CountryController {
         ports,
         countryZoneId,
         isShippingCountry,
+        isFreight,
       };
-      const country = await countryService.createCountry(payload);
+      // Pass the transaction client down to the service so all DB ops are contained in the same transaction
+      const country = await countryService.createCountry(payload, tx);
       const resDoc = responseHandler(201, 'Country Created successfully', country);
       res.status(resDoc.statusCode).json(resDoc);
     } catch (error) {
@@ -55,6 +57,24 @@ class CountryController {
       next(error);
     }
   };
+
+  getAllPorts = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Normalize query param which may be string | string[] | undefined
+      const portTypeRaw = req.query.portType;
+      const portType = Array.isArray(portTypeRaw) ? portTypeRaw[0] : portTypeRaw;
+      const payload: any = {};
+      if (typeof portType === 'string' && portType.trim().length > 0) {
+        payload.portType = portType.trim();
+      }
+
+      const ports = await countryService.getAllPorts(payload);
+      const resDoc = responseHandler(200, 'Ports retrieved successfully', ports);
+      res.status(resDoc.statusCode).json(resDoc);
+    } catch (error) {
+      next(error);
+    }
+  };
   
 
   getCountryWithPagination = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
@@ -69,7 +89,7 @@ class CountryController {
   updateCountry = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const { name, status, isoCode, ports, countryZoneId, isShippingCountry } = req.body;
+      const { name, status, isoCode, ports, countryZoneId, isShippingCountry, isFreight } = req.body;
       const payload = {
         name,
         status,
@@ -77,6 +97,7 @@ class CountryController {
         ports,
         countryZoneId,
         isShippingCountry,
+        isFreight,
       };
       // Implement update logic here using countryService
       const updatedCountry = await countryService.updateCountry(id, payload, tx);

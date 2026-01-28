@@ -3,6 +3,7 @@
 import { is } from 'zod/v4/locales';
 import CountryPayload from '../../types/country.type';
 import countryRepository, { CountryRepository } from './country.repository';
+import countryZoneRepository from '../countryZone/country.zone.repository';
 
 
 export class CountryService {
@@ -14,21 +15,30 @@ export class CountryService {
   }
 
   
-  async createCountry(payload: CountryPayload): Promise<any> {
-    const { name, status, isoCode, ports, countryZoneId, isShippingCountry } = payload;
+  async createCountry(payload: CountryPayload, tx?: any): Promise<any> {
+    const { name, status, isoCode, ports, countryZoneId, isShippingCountry, isFreight } = payload;
 
     // Validate required fields - countryZoneId is required
-    if (!name || !status || !isoCode || !countryZoneId) {
-      const error = new Error('name, status, isoCode, and countryZoneId are required');
+    const zoneId = Number(countryZoneId);
+    if (!name || !isoCode || typeof status === 'undefined' || isNaN(zoneId) || zoneId <= 0) {
+      const error = new Error('name, status (true/false), isoCode, and a valid countryZoneId (>0) are required');
+      (error as any).statusCode = 400;
+      throw error;
+    }
+
+    // Ensure the provided country zone exists
+    const zone = await countryZoneRepository.getCountryZoneById(zoneId, tx);
+    if (!zone) {
+      const error = new Error('Invalid countryZoneId. The referenced zone does not exist.');
       (error as any).statusCode = 400;
       throw error;
     }
 
     // Ensure only one country has isShippingCountry set to true
     if (isShippingCountry) {
-      const existingShippingCountry = await this.repository.getCountryByCondition({ isShippingCountry: true });
+      const existingShippingCountry = await this.repository.getCountryByCondition({ isShippingCountry: true }, tx);
       if (existingShippingCountry) {
-        await this.repository.updateCountryByCondition(existingShippingCountry.id, { isShippingCountry: false });
+        await this.repository.updateCountryByCondition(existingShippingCountry.id, { isShippingCountry: false }, tx);
       }
     }
 
@@ -38,13 +48,14 @@ export class CountryService {
       isoCode,
       countryZoneId,
       isShippingCountry,
+      isFreight,
     };
 
-    const country = await this.repository.createCountry(countryPayload);
+    const country = await this.repository.createCountry(countryPayload, tx);
     if (ports && Array.isArray(ports)) {
       // Assuming ports is an array of port objects
       for (const port of ports) {
-        await this.repository.createPort({ ...port, countryId: country.id } );
+        await this.repository.createPort({ ...port, countryId: country.id }, tx);
       }
     }
 
@@ -76,7 +87,7 @@ export class CountryService {
     return countries;
   }
   async updateCountry(id: number, payload: CountryPayload, tx: any): Promise<any> {
-    const { name, status, isoCode, ports, countryZoneId, isShippingCountry } = payload;
+    const { name, status, isoCode, ports, countryZoneId, isShippingCountry, isFreight } = payload;
     if (isShippingCountry) {
       const existingShippingCountry = await this.repository.getCountryByCondition({ isShippingCountry: true });
       if (existingShippingCountry && existingShippingCountry.id !== id) {
@@ -90,24 +101,80 @@ export class CountryService {
       isoCode,
       countryZoneId,
       isShippingCountry,
+      isFreight,
     };
+
+    // Validate countryZoneId exists before updating
+    if (countryZoneId) {
+      const zoneId = Number(countryZoneId);
+      const zone = await countryZoneRepository.getCountryZoneById(zoneId, tx);
+      if (!zone) {
+        const error = new Error('Invalid countryZoneId. The referenced zone does not exist.');
+        (error as any).statusCode = 400;
+        throw error;
+      }
+    }
+
     const updatedCountry = await this.repository.updateCountry(id, countryPayload, tx);
 
     if (ports && Array.isArray(ports)) {
-      // For simplicity, delete existing ports and recreate them
-      const existingCountry = await this.repository.getCountryById(id);
-      if (existingCountry && existingCountry.ports && existingCountry.ports.length > 0) {
-        for (const port of existingCountry.ports) {
-          await this.repository.deletePort(port.id);
+      // Reconcile ports: delete removed, update existing, create new
+      const existingCountry = await this.repository.getCountryById(id, tx);
+      const existingPorts = existingCountry?.ports ?? [];
+
+      const incomingPorts = ports.map((p: any) => ({
+        id: p.id,
+        portName: p.portName ?? p.name,
+        portType: p.portType ?? p.mode,
+      }));
+
+      const incomingIds = new Set(incomingPorts.filter((p) => p.id).map((p) => p.id));
+
+      // Delete ports that are not present in incoming payload
+      for (const existingPort of existingPorts) {
+        if (!incomingIds.has(existingPort.id)) {
+          await this.repository.deletePort(existingPort.id, tx);
         }
       }
 
-      for (const port of ports) {
-        await this.repository.createPort({ ...port, countryId: id });
+      // Update existing ports and create new ones
+      for (const p of incomingPorts) {
+        if (p.id) {
+          // safe update
+          await this.repository.updatePort(p.id, {
+            portName: p.portName,
+            portType: p.portType,
+            countryId: id,
+          }, tx);
+        } else {
+          await this.repository.createPort({
+            portName: p.portName,
+            portType: p.portType,
+            countryId: id,
+          }, tx);
+        }
       }
     }
 
     return updatedCountry;
+  }
+
+
+  async getAllPorts(payload: { portType?: string } = {}): Promise<any> {
+    // get all freight countries
+    const freightCountries = await this.repository.getCountryWithCondition({ isFreight: true });
+    const freightCountryIds = freightCountries.map((country: any) => country.id);
+
+    const repoPayload: any = {};
+    if (payload.portType) repoPayload.portType = payload.portType;
+    if (freightCountryIds && freightCountryIds.length > 0) {
+      repoPayload.countryId = { in: freightCountryIds };
+    } else {
+      // If there are no freight countries, return empty set early
+      return [];
+    }
+
+    return await this.repository.getAllPorts(repoPayload);
   }
 
   async deleteCountry(id: number): Promise<void> {
