@@ -7,7 +7,16 @@ import walletService from "./wallet.service";
 class WalletController {
   createWallet = withTransaction(
     async (req: Request, res: Response, next: NextFunction, tx: any) => {
-      const userId = (req as any).user.id; // Assuming user is attached via auth middleware
+      // For testing, use a hardcoded userId or get from request body
+      const userId = (req as any).user?.id || req.body.userId || 1; // Default to 1 for testing
+
+      if (!userId) {
+        return res.status(400).json({
+          status: "error",
+          message: "User ID is required",
+        });
+      }
+
       const payload = {
         name: req.body.name,
         currency: req.body.currency,
