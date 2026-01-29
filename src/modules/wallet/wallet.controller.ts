@@ -3,19 +3,14 @@ import catchError from "../../middleware/errors/catchError";
 import { responseHandler } from "../../utils/responseHandler";
 import withTransaction from "../../middleware/transactions/withTransaction";
 import walletService from "./wallet.service";
+import { getAuthUserId, getAuthUser } from "../../utils/auth.helper";
 
 class WalletController {
   createWallet = withTransaction(
     async (req: Request, res: Response, next: NextFunction, tx: any) => {
-      // For testing, use a hardcoded userId or get from request body
-      const userId = (req as any).user?.id || req.body.userId || 1; // Default to 1 for testing
+      // const userId = (req as any).user?.user_info_encrypted?.id;
 
-      if (!userId) {
-        return res.status(400).json({
-          status: "error",
-          message: "User ID is required",
-        });
-      }
+      const userId = getAuthUserId(req);
 
       const payload = {
         name: req.body.name,
@@ -40,7 +35,8 @@ class WalletController {
 
   getWallets = catchError(
     async (req: Request, res: Response, next: NextFunction) => {
-      const userId = (req as any).user.id;
+      const userId = getAuthUserId(req);
+
       const result = await walletService.getWalletsByUserId(userId);
       const resDoc = responseHandler(200, "Wallets retrieved", result);
       res.status(resDoc.statusCode).json(resDoc);
@@ -50,7 +46,8 @@ class WalletController {
   getSingleWallet = catchError(
     async (req: Request, res: Response, next: NextFunction) => {
       const id = req.params.id;
-      const userId = (req as any).user.id;
+      const userId = getAuthUserId(req);
+
       const wallet = await walletService.getSingleWallet(id, userId);
       const resDoc = responseHandler(200, "Wallet details retrieved", wallet);
       res.status(resDoc.statusCode).json(resDoc);
@@ -60,7 +57,7 @@ class WalletController {
   updateWalletStatus = catchError(
     async (req: Request, res: Response, next: NextFunction) => {
       const id = req.params.id;
-      const { status } = req.body; // 'active' or 'inactive'
+      const { status } = req.body;
       const wallet = await walletService.updateWalletStatus(id, status);
       const resDoc = responseHandler(
         200,

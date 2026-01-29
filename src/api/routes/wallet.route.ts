@@ -4,7 +4,7 @@ import walletController from "../../modules/wallet/wallet.controller";
 
 const WalletRoute = Router();
 
-// Secure all wallet routes 
+// Secure all wallet routes
 WalletRoute.use(jwtAuth());
 
 WalletRoute.route("/")

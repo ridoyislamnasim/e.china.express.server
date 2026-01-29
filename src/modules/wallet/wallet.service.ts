@@ -28,9 +28,20 @@ export class WalletService extends BaseService<typeof walletRepository> {
   }
 
   async getSingleWallet(id: string, userId: number) {
+    console.log("Service - Looking for wallet:", { id, userId });
+
     const wallet = await this.repository.getWalletById(id);
-    if (!wallet || wallet.userId !== userId)
+
+    console.log("Service - Found wallet:", wallet);
+
+    if (!wallet) {
       throw new NotFoundError("Wallet not found");
+    }
+
+    if (wallet.userId !== userId) {
+      throw new NotFoundError("Wallet not found or unauthorized");
+    }
+
     return wallet;
   }
 
