@@ -4,7 +4,9 @@ import ShipRoutePayload from '../../types/shipRoute.type';
 import shipRouteRepository, { ShipRouteRepository } from './ship.route.repository';
 import countryRepository from '../country/country.repository';
 import ShipScheduleRepository from '../shipSchedule/ship.schedule.repository';
-import ShipRepository from '../ship/ship.repository';
+import ShipRepository, { CarrierCompanyRepository } from '../carrierCompany/carrier.company.repository';
+import carrierCompanyRepository from '../carrierCompany/carrier.company.repository';
+import ShipSchedulePayload from '../../types/shipSchedule.type';
 
 
 
@@ -16,41 +18,33 @@ export class ShipRouteService {
     this.repository = repository;
   }
 
-  
+
   async createShipRoute(payload: ShipRoutePayload): Promise<any> {
 
-    const { shipId, fromPortId, toPortId, shipScheduleId } = payload;
+    const { carrierCompanyId, fromPortId, toPortId, sailingDate, arrivalDate } = payload;
     console.log("Creating ShipRoute with payload: ", payload);
 
     // check required fields and all are exist
     if (
-      shipId === undefined ||
+      carrierCompanyId === undefined ||
       fromPortId === undefined ||
       toPortId === undefined ||
-      shipScheduleId === undefined 
+      sailingDate === undefined ||
+      arrivalDate === undefined
     ) {
       const error = new Error('Missing required fields in ship route payload');
       (error as any).statusCode = 400;
       throw error;
     }
 
-
     // Check if ship exists
-    const existShip = await ShipRepository.getShipById(shipId);
+    const existShip = await carrierCompanyRepository.getCarrierCompanyById(carrierCompanyId);
     if (!existShip) {
       const error = new Error('Ship with the given shipId does not exist');
       (error as any).statusCode = 404;
       throw error;
     }
 
-    // Check if shipScheduleId exists
-    const existSchedule = await ShipScheduleRepository.getShipScheduleById(Number(shipScheduleId));
-    if (!existSchedule) {
-      const error = new Error('Ship schedule with the given shipScheduleId does not exist');
-      (error as any).statusCode = 404;
-      throw error;
-    }
-    
 
     const existFromPort = await countryRepository.portExists({ id: fromPortId });
     if (!existFromPort) {
@@ -65,41 +59,57 @@ export class ShipRouteService {
       throw error;
     }
 
-  const existingShipRoutes = await this.repository.getShipRouteWithCondition({
-      shipId,
+
+    let shipSchedulePayload: Partial<ShipSchedulePayload> = {};
+    if (sailingDate) {
+      shipSchedulePayload.sailingDate = new Date(sailingDate);
+    }
+    if (arrivalDate) {
+      shipSchedulePayload.arrivalDate = new Date(arrivalDate);
+    }
+    const createSchedule = await ShipScheduleRepository.createShipSchedule(shipSchedulePayload);
+    if (!createSchedule) {
+      const error = new Error('Failed to create ship schedule with the given sailingDate and arrivalDate');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    const existingShipRoutes = await this.repository.getShipRouteWithCondition({
+      carrierCompanyId,
       fromPortId,
       toPortId,
-      shipScheduleId
+      shipScheduleId: createSchedule.id
     });
     if (existingShipRoutes.length > 0) {
-      const error = new Error('ShipRoute with the same shipId, fromPortId, toPortId, and shipScheduleId already exists');
+      const error = new Error('ShipRoute with the same carrierCompanyId, fromPortId, toPortId, and shipScheduleId already exists');
       (error as any).statusCode = 409;
       throw error;
     }
 
     const shipRoutePayload: ShipRoutePayload = {
-      shipId,
+      carrierCompanyId,
       fromPortId,
       toPortId,
-      shipScheduleId
+      shipScheduleId: createSchedule.id
     };
 
     const shipRoute = await this.repository.createShipRoute(shipRoutePayload);
     return shipRoute;
   }
-    
 
 
-  async getAllShipRoutes(payload?: any){
-    const shipRoutes = await this.repository.getAllShipRoutes();
+
+  async getAllShipRoutes(payload?: any) {
+
+    const shipRoutes = await this.repository.getAllShipRoutes(payload);
     console.log("Fetched ShipRoutes: ", shipRoutes);
     return shipRoutes;
   }
 
-  async getShipRouteWithPagination(payload: { page: number; limit: number }, tx: any): Promise<any> {
-    const { page, limit } = payload;
+  async getShipRouteWithPagination(payload: { page: number; limit: number, carrierCompanyId?: number }, tx: any): Promise<any> {
+    const { page, limit, carrierCompanyId } = payload;
     const offset = (page - 1) * limit;
-    const countries = await this.repository.getShipRouteWithPagination({ limit, offset }, tx);
+    const countries = await this.repository.getShipRouteWithPagination({ limit, offset, carrierCompanyId }, tx);
     return countries;
   }
 
@@ -108,12 +118,12 @@ export class ShipRouteService {
     const shipRoute = await this.repository.getShipRouteById(id);
     return shipRoute;
   }
-  
+
   async updateShipRoute(id: number, payload: ShipRoutePayload, tx: any): Promise<any> {
-    const { shipId, fromPortId, toPortId, shipScheduleId, } = payload;
+    const { carrierCompanyId, fromPortId, toPortId, shipScheduleId, } = payload;
 
     // Check if ship exists
-    const existShip = await ShipRepository.getShipById(shipId);
+    const existShip = await carrierCompanyRepository.getCarrierCompanyById(carrierCompanyId);
     if (!existShip) {
       const error = new Error('Ship with the given shipId does not exist');
       (error as any).statusCode = 404;
@@ -145,7 +155,7 @@ export class ShipRouteService {
     }
 
     const shipRoutePayload: ShipRoutePayload = {
-      shipId,
+      carrierCompanyId,
       fromPortId,
       toPortId,
       shipScheduleId
@@ -163,8 +173,8 @@ export class ShipRouteService {
       throw error;
     }
     // then delete ports associated with the shipRoute
-    
-   return  await this.repository.deleteShipRoute(id);
+
+    return await this.repository.deleteShipRoute(id);
   }
 
 }

@@ -32,12 +32,12 @@ import BookingRouter from "./routes/booking.route";
 import countryZoneRouter from "./routes/countryZone.route";
 import rateExpressRouter from "./routes/rateExpress.route";
 import containerRouter from "./routes/container.route";
-import shipRouter from "./routes/ship.route";
 import shipScheduleRouter from "./routes/ship.schedule.route";
 import shipRouteRouter from "./routes/ship.route.route";
 import rateFreightRouter from "./routes/rateFreight.route";
 
 import WalletRoute from "./routes/wallet.route";
+import carrierCompanyRouter from "./routes/carrierCompany.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -66,7 +66,7 @@ rootRouter.use('/rate/product', rateProductRoute);
 rootRouter.use('/rate/container', containerRouter);
 rootRouter.use('/rate/ship/schedule', shipScheduleRouter);
 rootRouter.use('/rate/ship/route', shipRouteRouter);
-rootRouter.use('/rate/ship', shipRouter);
+rootRouter.use('/rate/carrier-company', carrierCompanyRouter);
 rootRouter.use('/rate', rateRoute);
 rootRouter.use('/rate/express', rateExpressRouter);
 rootRouter.use('/rate/freight', rateFreightRouter);

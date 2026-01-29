@@ -1,8 +1,10 @@
 export default interface ShipRoutePayload {
     id?: number;
-    shipId: number;
+    carrierCompanyId: number;
     fromPortId: number;
     toPortId: number;
-    shipScheduleId?: number | null;
+    sailingDate?: any;
+    arrivalDate?: any;
+    shipScheduleId?: number;
     status?: boolean;
 }

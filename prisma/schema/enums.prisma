@@ -10,6 +10,12 @@ enum InventoryType {
   TYPE_Z
 }
 
+enum CarrierType {
+  SEA
+  AIR
+}
+
+
 enum WarehouseStatus {
   OPERATIONAL
   MAINTENANCE

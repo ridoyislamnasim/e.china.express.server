@@ -1,70 +1,77 @@
-
 model Container {
-  id            Int     @id @default(autoincrement())
-//   relations
+  id           Int           @id @default(autoincrement())
+  //   relations
   freightRates FreightRate[]
 
   // Identity
-  code          String  @unique   // 20FT, 40FT, 40HC, 45HC
-  name          String            // Standard Dry, High Cube, Reefer etc
-  description   String?
+  code        String  @unique // 20FT, 40FT, 40HC, 45HC
+  name        String // Standard Dry, High Cube, Reefer etc
+  description String?
 
   // Size & Capacity
-  lengthFt      Int               // 20, 40, 45
-  heightFt      Decimal? @db.Decimal(4,2)  // 8.6, 9.6 (HC)
-  widthFt       Decimal? @db.Decimal(4,2)
+  lengthFt Int // 20, 40, 45
+  heightFt Decimal? @db.Decimal(4, 2) // 8.6, 9.6 (HC)
+  widthFt  Decimal? @db.Decimal(4, 2)
 
-  internalVolumeCbm Decimal? @db.Decimal(6,2) // ≈ 33, 67 CBM
-  maxPayloadKg      Int?                     // weight limit
-  tareWeightKg      Int?                     // empty container weight
+  internalVolumeCbm Decimal? @db.Decimal(6, 2) // ≈ 33, 67 CBM
+  maxPayloadKg      Int? // weight limit
+  tareWeightKg      Int? // empty container weight
 
   // Type flags
-  containerClass ContainerClass // DRY, HC, REEFER, OPEN_TOP
-  isReefer       Boolean @default(false)
-  isHazmatAllowed Boolean @default(true)
+  containerClass  ContainerClass // DRY, HC, REEFER, OPEN_TOP
+  isReefer        Boolean        @default(false)
+  isHazmatAllowed Boolean        @default(true)
 
   // System
-  isActive      Boolean @default(true)
+  isActive Boolean @default(true)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+model CarrierCompany {
+  id          Int         @id @default(autoincrement())
+  name        String // Maersk Line, Emirates Airlines
+  shortName   String? // MAERSK, EMIRATES
+  code        String?     @unique // MSK, EK
+  carrierType CarrierType // SEA / AIR
 
-model Ship {
-    id        Int         @id @default(autoincrement())
-    name      String
-    code      String
-    status    Boolean     @default(true)
-    routes    ShipRoute[]
-    createdAt DateTime    @default(now())
-    updatedAt DateTime    @updatedAt
+  // Industry Codes
+  scacCode String? @unique // SEA only (MSC, MAEU)
+  iataCode String? @unique // AIR only (EK, QR)
+  icaoCode String? // AIR only
+
+  logoUrl     String?
+  description String?
+  status      Boolean     @default(true)
+  routes      ShipRoute[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model ShipRoute {
-    id              Int           @id @default(autoincrement())
-    shipId          Int
-    fromPortId      Int
-    toPortId        Int
-    shipScheduleId Int?
-    shipSchedule    ShipSchedule? @relation(fields: [shipScheduleId], references: [id])
+  id             Int           @id @default(autoincrement())
+  fromPortId     Int
+  toPortId       Int
+  shipScheduleId Int?
+  shipSchedule   ShipSchedule? @relation(fields: [shipScheduleId], references: [id])
 
-    ship     Ship  @relation(fields: [shipId], references: [id])
-    fromPort Ports @relation("FromPort", fields: [fromPortId], references: [id])
-    toPort   Ports @relation("ToPort", fields: [toPortId], references: [id])
+  carrierCompanyId Int?
+  carrierCompany   CarrierCompany? @relation(fields: [carrierCompanyId], references: [id])
+  fromPort         Ports          @relation("FromPort", fields: [fromPortId], references: [id])
+  toPort           Ports          @relation("ToPort", fields: [toPortId], references: [id])
 
-    freightRates FreightRate[]
-    createdAt    DateTime      @default(now())
-    updatedAt    DateTime      @updatedAt
+  freightRates FreightRate[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model ShipSchedule {
-    id          Int         @id @default(autoincrement())
-    sailingDate DateTime // কবে ছাড়বে
-    arrivalDate DateTime // কবে পৌঁছাবে
-    //   shipRoute
-    shipRoutes  ShipRoute[]
-    createdAt   DateTime    @default(now())
-    updatedAt   DateTime    @updatedAt
-
+  id          Int         @id @default(autoincrement())
+  sailingDate DateTime // কবে ছাড়বে
+  arrivalDate DateTime // কবে পৌঁছাবে
+  //   shipRoute
+  shipRoutes  ShipRoute[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }

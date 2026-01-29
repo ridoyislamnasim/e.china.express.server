@@ -28,12 +28,18 @@ export class ShipRouteRepository {
 
 
 
-  async getAllShipRoutes() {
-    // include ports
+  async getAllShipRoutes(payload?: any) {
+    // payload can have carrierCompanyId to filter qurey add
+    const condition: any = {};
+    if (payload && payload.carrierCompanyId) {
+      condition.carrierCompanyId = Number(payload.carrierCompanyId);
+    }
+
     return await this.prisma.shipRoute.findMany(
       {
+        where: condition,
         include: {
-          ship: true,
+          // ship: true,
           fromPort: true,
           toPort: true,
           shipSchedule: true,
@@ -55,20 +61,29 @@ export class ShipRouteRepository {
   async getShipRouteWithPagination(payload: any, tx: any) {
     const prismaClient: PrismaClient = tx || this.prisma;
 
+    // payload can have carrierCompanyId to filter qurey add
+    const carrierCompanyId = payload.carrierCompanyId ? Number(payload.carrierCompanyId) : undefined;
+    const condition: any = {};
+    if (carrierCompanyId) {
+      condition.carrierCompanyId = carrierCompanyId;
+    }
+
     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
       const [doc, totalDoc] = await Promise.all([
+
         prismaClient.shipRoute.findMany({
+          where: condition,
           skip: offset, // Use the offset passed by the pagination callback
           take: limit,  // Use the limit passed by the pagination callback
           orderBy: { createdAt: sortOrder },
           include: {
-            ship: true,
+            // ship: true,
             fromPort: true,
             toPort: true,
             shipSchedule: true,
           },
         }),
-        prismaClient.shipRoute.count(),
+        prismaClient.shipRoute.count({ where: condition }),
       ]);
       return { doc, totalDoc };
     });

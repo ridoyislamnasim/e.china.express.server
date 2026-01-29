@@ -10,12 +10,13 @@ const shipRouteService = new ShipRouteService(shipRouteRepository);
 class ShipRouteController {
   createShipRoute = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
-      const { shipId, fromPortId, toPortId, shipScheduleId } = req.body;
+      const { carrierCompanyId, fromPortId, toPortId, sailingDate, arrivalDate, } = req.body;
       const payload = {
-        shipId,
+        carrierCompanyId,
         fromPortId,
         toPortId,
-        shipScheduleId
+        sailingDate,
+        arrivalDate,
       };
       const shipRoute = await shipRouteService.createShipRoute(payload);
       const resDoc = responseHandler(201, 'ShipRoute Created successfully', shipRoute);
@@ -27,7 +28,10 @@ class ShipRouteController {
 
   getAllShipRoutes = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const shipRoutes = await shipRouteService.getAllShipRoutes();
+      const payload = {
+        carrierCompanyId: req.query.carrierCompanyId,
+      }
+      const shipRoutes = await shipRouteService.getAllShipRoutes(payload);
       const resDoc = responseHandler(200, 'ShipRoutes retrieved successfully', shipRoutes);
       res.status(resDoc.statusCode).json(resDoc);
     } catch (error) {
@@ -40,7 +44,8 @@ class ShipRouteController {
   getShipRouteWithPagination = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 10;
-      const payload = { page, limit };
+      const carrierCompanyId = Number(req.query.carrierCompanyId);
+      const payload = { page, limit, carrierCompanyId };
       const countries = await shipRouteService.getShipRouteWithPagination(payload, tx);
       const resDoc = responseHandler(200, 'Countries retrieved successfully with pagination', countries);
       res.status(resDoc.statusCode).json(resDoc);
@@ -49,12 +54,13 @@ class ShipRouteController {
   updateShipRoute = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const { shipId, fromPortId, toPortId, shipScheduleId } = req.body;
+      const { carrierCompanyId, fromPortId, toPortId, sailingDate,arrivalDate, } = req.body;
       const payload = {
-        shipId,
+        carrierCompanyId,
         fromPortId,
         toPortId,
-        shipScheduleId
+        sailingDate,
+        arrivalDate,
       };
       // Implement update logic here using shipRouteService
       const updatedShipRoute = await shipRouteService.updateShipRoute(id, payload, tx);
