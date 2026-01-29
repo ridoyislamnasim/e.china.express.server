@@ -33,6 +33,21 @@ class WalletController {
     },
   );
 
+  getMainWallet = catchError(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const userId = getAuthUserId(req);
+
+      const wallet = await walletService.getMainWallet(userId);
+
+      const resDoc = responseHandler(
+        200,
+        "Main wallet retrieved successfully",
+        wallet,
+      );
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
+
   getWallets = catchError(
     async (req: Request, res: Response, next: NextFunction) => {
       const userId = getAuthUserId(req);

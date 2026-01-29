@@ -11,6 +11,8 @@ WalletRoute.route("/")
   .post(walletController.createWallet)
   .get(walletController.getWallets);
 
+WalletRoute.get("/main", walletController.getMainWallet);
+
 WalletRoute.route("/:id").get(walletController.getSingleWallet);
 
 WalletRoute.patch("/status/:id/", walletController.updateWalletStatus);

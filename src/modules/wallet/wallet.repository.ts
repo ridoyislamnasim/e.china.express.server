@@ -15,6 +15,22 @@ class WalletRepository {
     });
   }
 
+  async getMainWallet(userId: number) {
+    return await prisma.wallet.findFirst({
+      where: {
+        userId,
+        category: "main",
+        status: "active",
+      },
+      include: {
+        transactions: {
+          take: 5,
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+  }
+
   async getWalletsByUser(userId: number) {
     return await prisma.wallet.findMany({
       where: { userId },

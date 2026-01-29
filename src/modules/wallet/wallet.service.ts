@@ -23,6 +23,21 @@ export class WalletService extends BaseService<typeof walletRepository> {
     return await this.repository.createWallet(walletData, tx);
   }
 
+  async getMainWallet(userId: number) {
+    try {
+      const wallet = await this.repository.getMainWallet(userId);
+
+      if (!wallet) {
+        return null;
+      }
+
+      return wallet;
+    } catch (error) {
+      console.error("Error fetching main wallet:", error);
+      throw error;
+    }
+  }
+
   async getWalletsByUserId(userId: number) {
     return await this.repository.getWalletsByUser(userId);
   }
