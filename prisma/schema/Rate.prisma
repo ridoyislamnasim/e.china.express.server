@@ -65,18 +65,24 @@ model FreightRate {
   price         Decimal        @db.Decimal(10, 2)
   currency String @default("USD")
 
-  // LCL
-  cbm Decimal? @db.Decimal(10, 2)
-
-  // FCL
-  containerId Int?
-  container   Container?    @relation(fields: [containerId], references: [id])
-
   shippingMethodId Int
   shippingMethod   RateShippingMethod  @relation(fields: [shippingMethodId], references: [id])
 
   routeId      Int
   route    ShipRoute    @relation(fields: [routeId], references: [id])
+
+  shipScheduleId Int
+  shipSchedule   ShipSchedule @relation(fields: [shipScheduleId], references: [id])
+
+  carrierCompanyId Int
+  carrierCompany   CarrierCompany @relation(fields: [carrierCompanyId], references: [id])
+
+    // LCL
+  cbm Decimal? @db.Decimal(10, 2)
+  
+  // FCL
+  containerId Int?
+  container   Container?    @relation(fields: [containerId], references: [id])
   createdAt DateTime @default(now())
 }
 

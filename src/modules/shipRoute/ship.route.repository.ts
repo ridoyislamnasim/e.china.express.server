@@ -42,7 +42,6 @@ export class ShipRouteRepository {
           // ship: true,
           fromPort: true,
           toPort: true,
-          shipSchedule: true,
         },
       }
     );
@@ -76,11 +75,13 @@ export class ShipRouteRepository {
           skip: offset, // Use the offset passed by the pagination callback
           take: limit,  // Use the limit passed by the pagination callback
           orderBy: { createdAt: sortOrder },
-          include: {
+            include: {
             // ship: true,
             fromPort: true,
             toPort: true,
-            shipSchedule: true,
+            carrierCompany: true,
+            // relation updated: include multiple schedules for a route
+            shipSchedules: true,
           },
         }),
         prismaClient.shipRoute.count({ where: condition }),
@@ -100,7 +101,14 @@ export class ShipRouteRepository {
   }
 
   async deleteShipRoute(id: number): Promise<void> { // Corrected method name
-    await this.prisma.shipRoute.delete({ where: { id } });
+    const prismaClient: PrismaClient = this.prisma;
+
+    // delete dependent records first to avoid FK constraint errors
+    await prismaClient.$transaction(async (tx) => {
+      await tx.freightRate.deleteMany({ where: { routeId: id } });
+      await tx.shipSchedule.deleteMany({ where: { shipRouteId: id } });
+      await tx.shipRoute.delete({ where: { id } });
+    });
   }
 
 }

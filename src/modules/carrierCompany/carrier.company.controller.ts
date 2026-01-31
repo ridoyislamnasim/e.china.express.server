@@ -71,8 +71,9 @@ class CarrierCompanyController {
         description,
         status,
       };
-      // Implement update logic here using carrierCompanyService
-      const updatedCarrierCompany = await carrierCompanyService.updateCarrierCompany(id, payload, tx);
+      // If files are provided, pass them to the service so it can upload and update logoUrl
+      const files = (req as any).files;
+      const updatedCarrierCompany = await carrierCompanyService.updateCarrierCompany(id, payload, tx, files);
       const resDoc = responseHandler(200, `CarrierCompany with id ${id} updated successfully`, updatedCarrierCompany);
       res.status(resDoc.statusCode).json(resDoc);
     } catch (error) {

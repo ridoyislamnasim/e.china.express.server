@@ -60,6 +60,7 @@ export class ShipRouteService {
     }
 
 
+    // Build ship schedule payload
     let shipSchedulePayload: Partial<ShipSchedulePayload> = {};
     if (sailingDate) {
       shipSchedulePayload.sailingDate = new Date(sailingDate);
@@ -67,34 +68,74 @@ export class ShipRouteService {
     if (arrivalDate) {
       shipSchedulePayload.arrivalDate = new Date(arrivalDate);
     }
-    const createSchedule = await ShipScheduleRepository.createShipSchedule(shipSchedulePayload);
-    if (!createSchedule) {
-      const error = new Error('Failed to create ship schedule with the given sailingDate and arrivalDate');
-      (error as any).statusCode = 404;
-      throw error;
-    }
 
+    // Check if a ShipRoute with same carrier/from/to already exists
     const existingShipRoutes = await this.repository.getShipRouteWithCondition({
       carrierCompanyId,
       fromPortId,
       toPortId,
-      shipScheduleId: createSchedule.id
     });
+
     if (existingShipRoutes.length > 0) {
-      const error = new Error('ShipRoute with the same carrierCompanyId, fromPortId, toPortId, and shipScheduleId already exists');
-      (error as any).statusCode = 409;
-      throw error;
+      // use the first matching route
+      const existingRoute = existingShipRoutes[0];
+
+      // Prevent duplicate schedules for the same route (same sailing & arrival)
+      const duplicateSchedules = await ShipScheduleRepository.getShipScheduleWithCondition({
+        shipRouteId: existingRoute.id,
+        sailingDate: shipSchedulePayload.sailingDate,
+        arrivalDate: shipSchedulePayload.arrivalDate,
+      });
+
+      if (duplicateSchedules && duplicateSchedules.length > 0) {
+        const error = new Error('Ship schedule for this route with the same sailing and arrival dates already exists');
+        (error as any).statusCode = 409;
+        throw error;
+      }
+
+      // create schedule linked to existing route
+      const createdSchedule = await ShipScheduleRepository.createShipSchedule({
+        ...shipSchedulePayload,
+        shipRouteId: existingRoute.id,
+      });
+
+      if (!createdSchedule) {
+        const error = new Error('Failed to create ship schedule for the existing route');
+        (error as any).statusCode = 500;
+        throw error;
+      }
+
+      // return the route (optionally include the new schedule)
+      return { ...existingRoute, createdSchedule };
     }
 
+    // No existing route: create a new ShipRoute first, then attach the schedule
     const shipRoutePayload: ShipRoutePayload = {
       carrierCompanyId,
       fromPortId,
       toPortId,
-      shipScheduleId: createSchedule.id
     };
 
     const shipRoute = await this.repository.createShipRoute(shipRoutePayload);
-    return shipRoute;
+
+    if (!shipRoute) {
+      const error = new Error('Failed to create ship route');
+      (error as any).statusCode = 500;
+      throw error;
+    }
+
+    const createdSchedule = await ShipScheduleRepository.createShipSchedule({
+      ...shipSchedulePayload,
+      shipRouteId: shipRoute.id,
+    });
+
+    if (!createdSchedule) {
+      const error = new Error('Failed to create ship schedule for the new route');
+      (error as any).statusCode = 500;
+      throw error;
+    }
+
+    return { ...shipRoute, createdSchedule };
   }
 
 

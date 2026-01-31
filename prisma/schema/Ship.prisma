@@ -35,6 +35,7 @@ model CarrierCompany {
   shortName   String? // MAERSK, EMIRATES
   code        String?     @unique // MSK, EK
   carrierType CarrierType // SEA / AIR
+  freightRates FreightRate[]
 
   // Industry Codes
   scacCode String? @unique // SEA only (MSC, MAEU)
@@ -53,8 +54,8 @@ model ShipRoute {
   id             Int           @id @default(autoincrement())
   fromPortId     Int
   toPortId       Int
-  shipScheduleId Int?
-  shipSchedule   ShipSchedule? @relation(fields: [shipScheduleId], references: [id])
+  // A route can have multiple schedules (one-to-many)
+  shipSchedules  ShipSchedule[]
 
   carrierCompanyId Int?
   carrierCompany   CarrierCompany? @relation(fields: [carrierCompanyId], references: [id])
@@ -70,8 +71,11 @@ model ShipSchedule {
   id          Int         @id @default(autoincrement())
   sailingDate DateTime // কবে ছাড়বে
   arrivalDate DateTime // কবে পৌঁছাবে
-  //   shipRoute
-  shipRoutes  ShipRoute[]
+  // relation back to ShipRoute: each schedule belongs to a route
+  shipRouteId Int?
+  shipRoute   ShipRoute? @relation(fields: [shipRouteId], references: [id])
+
+  shipScheduleFreightRates FreightRate[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }

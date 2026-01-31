@@ -10,9 +10,25 @@ export class RateFreightRepository {
 
   async createRateFreight(payload: any, tx?: PrismaClient): Promise<any> {
     const client = tx || this.prisma;
+    console.log("payload in repo ----- ", payload);
+
+    const data: any = {
+      price: payload.price,
+      cargoType: payload.cargoType,
+      shipmentMode: payload.shipmentMode,
+      shippingMethod: { connect: { id: Number(payload.shippingMethodId) } },
+      route: { connect: { id: Number(payload.routeId) } },
+      carrierCompany: { connect: { id: Number(payload.carrierCompanyId) } },
+      shipSchedule: payload.shipScheduleId ? { connect: { id: Number(payload.shipScheduleId) } } : undefined
+    };
+
+
+    if (payload.cbm !== undefined && payload.cbm !== null) data.cbm = Number(payload.cbm);
+    if (payload.containerId !== undefined && payload.containerId !== null) data.container = { connect: { id: Number(payload.containerId) } };
+console.log("data in repo", data);
     const newRateFreightShippingMethod = await client.freightRate.create({
-      data: payload
-    })
+      data
+    });
     return newRateFreightShippingMethod
   }
 

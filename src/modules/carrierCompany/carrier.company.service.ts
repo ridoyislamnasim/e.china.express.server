@@ -2,6 +2,7 @@
 import CarrierCompanyPayload from '../../types/carrierCompany.type';
 import carrierCompanyRepository, { CarrierCompanyRepository } from './carrier.company.repository';
 import ImgUploader from '../../middleware/upload/ImgUploder';
+import { bool } from 'sharp';
 // import { CarrierCompanyPayload } from '../../types/carrierCompany.type';
 
 
@@ -28,11 +29,11 @@ export class CarrierCompanyService {
     let finalLogoUrl = logoUrl;
     if (files && files.length) {
       const images = await ImgUploader(files);
-      // take first uploaded image value
+      let image = '';
       for (const key in images) {
-        finalLogoUrl = images[key];
-        break;
+        image = images[key];
       }
+      if (image) finalLogoUrl = image;
     }
 
     const carrierCompanyPayload: CarrierCompanyPayload = {
@@ -41,8 +42,8 @@ export class CarrierCompanyService {
       code,
       carrierType,
       scacCode,
-      iataCode,
-      icaoCode,
+      // include IATA/ICAO only for AIR carrier type
+      ...(carrierType === 'AIR' ? { iataCode, icaoCode } : {}),
       logoUrl: finalLogoUrl,
       description,
       status
@@ -52,8 +53,18 @@ export class CarrierCompanyService {
     return carrierCompany;
   }
 
-  async updateCarrierCompany(id: number, payload: CarrierCompanyPayload, tx: any): Promise<any> {
+  async updateCarrierCompany(id: number, payload: CarrierCompanyPayload, tx: any, files?: any): Promise<any> {
     const { name, shortName, code, carrierType, scacCode, iataCode, icaoCode, logoUrl, description, status } = payload;
+
+    let finalLogoUrl = logoUrl;
+    if (files && Array.isArray(files) && files.length > 0) {
+      const images = await ImgUploader(files);
+      let image = '';
+      for (const key in images) {
+        image = images[key];
+      }
+      if (image) finalLogoUrl = image;
+    }
 
     const carrierCompanyPayload: CarrierCompanyPayload = {
       name,
@@ -61,14 +72,12 @@ export class CarrierCompanyService {
       code,
       carrierType,
       scacCode,
-      iataCode,
-      icaoCode,
-      logoUrl,
+      ...(carrierType === 'AIR' ? { iataCode, icaoCode } : {}),
+      logoUrl: finalLogoUrl,
       description,
-      status
+      status: Boolean(status),
     };
     const updatedCarrierCompany = await this.repository.updateCarrierCompany(id, carrierCompanyPayload, tx);
-
 
     return updatedCarrierCompany;
   }

@@ -3,7 +3,7 @@ import category1688Repository from "../category1688/category.1688.repository";
 import countryRepository, { CountryRepository } from "../country/country.repository";
 import shippingMethodRepository, { ShippingMethodRepository } from "../rateShippingMethod/shippingMethod.repository";
 import rateRepository, { RateFreightRepository } from "./rate.freight.repository";
-import cartRepository, { CartRepository } from '../cart/cart.repository';
+import carrierCompanyRepository from '../carrierCompany/carrier.company.repository';
 
 /** Result type for bulk rate processing */
 interface RateFreightProcessResult {
@@ -19,8 +19,8 @@ export class RateFreightService {
   private repository: RateFreightRepository;
   private category1688Repository: typeof category1688Repository;
   private countryRepository: CountryRepository;
-  private cartRepository: CartRepository;
   private shippingMethodRepository: ShippingMethodRepository;
+  private carrierCompanyRepository: typeof carrierCompanyRepository;
   private prisma: any;
 
   constructor(repository: RateFreightRepository = rateRepository) {
@@ -28,26 +28,28 @@ export class RateFreightService {
     this.category1688Repository = category1688Repository;
     this.countryRepository = countryRepository;
     this.shippingMethodRepository = shippingMethodRepository;
-    this.cartRepository = cartRepository;
+    this.carrierCompanyRepository = carrierCompanyRepository;
     this.prisma = (repository as any).prisma || (repository as any).db;
   }
 
-  async createRateFreight(payload: 
-    { 
-      price: number; 
-      routeId: number; 
-      cargoType: string;  
-      shippingMethodId: number;  
+  async createRateFreight(payload:
+    {
+      price: number;
+      routeId: number;
+      cargoType: string;
+      shippingMethodId: number;
       shipmentMode: string;
+      carrierCompanyId: number;
       cbm?: number;
       containerId?: number;
+      shipScheduleId?: number;
     }): Promise<any> {
-    const { price, routeId, cargoType, shippingMethodId, shipmentMode, containerId } = payload;
+    const { price, routeId, cargoType, shippingMethodId, shipmentMode, carrierCompanyId, containerId, shipScheduleId } = payload;
     console.log("payload service", payload);
     // Validate required fields
     if (
       price === undefined || price === null ||
-      !cargoType || !shippingMethodId || !shipmentMode || !routeId ||
+      !cargoType || !shippingMethodId || !shipmentMode || !routeId || !carrierCompanyId || shipScheduleId === undefined || shipScheduleId === null ||
       (shipmentMode === 'FCL' && !containerId) ||
       (shipmentMode === 'LCL' && (payload.cbm === undefined || payload.cbm === null))
     ) {
@@ -68,6 +70,21 @@ export class RateFreightService {
         (error as any).statusCode = 404;
         throw error;
       }
+    }
+
+    // shipScheduleId id is exits check
+    const shipSchedule = await this.prisma.shipSchedule.findUnique({ where: { id: shipScheduleId } });
+    console.log("shipSchedule", shipSchedule);
+    if (!shipSchedule) {
+      const error = new Error('Ship Schedule not found');
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+    // check carrier company id exists
+    const existCarrierCompany = await this.carrierCompanyRepository.getCarrierCompanyById(carrierCompanyId);
+    if (!existCarrierCompany) {
+      throw Object.assign(new Error('Carrier company not found'), { statusCode: 404 });
     }
 
     // shippingMethodId is exits check
@@ -93,7 +110,9 @@ export class RateFreightService {
       routeId,
       cargoType,
       shippingMethodId,
-      shipmentMode
+      carrierCompanyId,
+      shipmentMode,
+      shipScheduleId
     };
     if (shipmentMode === 'FCL') {
       existFreightRatePayload.containerId = containerId;
@@ -106,14 +125,16 @@ export class RateFreightService {
       const rateId = existFreightRate[0].id;
       const updatedRate = await this.repository.updateRateFreight(rateId, { price });
       return updatedRate;
-    } 
+    }
     // create new rate
     const createPayload: any = {
       price,
       routeId,
       cargoType,
       shippingMethodId,
-      shipmentMode
+      carrierCompanyId,
+      shipmentMode,
+      shipScheduleId
     };
     if (shipmentMode === 'FCL') {
       createPayload.containerId = containerId;
@@ -155,7 +176,7 @@ export class RateFreightService {
       throw error;
     }
     // find weight category id based on weight
-   
+
 
     const payloadWithCombinationId = {
       shippingMethodId
