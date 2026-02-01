@@ -36,8 +36,8 @@ import shipScheduleRouter from "./routes/ship.schedule.route";
 import shipRouteRouter from "./routes/ship.route.route";
 import rateFreightRouter from "./routes/rateFreight.route";
 
-import WalletRoute from "./routes/wallet.route";
 import carrierCompanyRouter from "./routes/carrierCompany.route";
+import WalletRoute from "./routes/wallet.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -80,6 +80,7 @@ rootRouter.use("/rate/product", rateProductRoute);
 rootRouter.use("/rate", rateRoute);
 
 // booking
+rootRouter.use("/booking", BookingRouter);
 rootRouter.use("/booking/air", AirBookingRouter);
 rootRouter.use("/booking/sea", SeaBookingRouter);
 rootRouter.use("/booking/express", WishlistRouter);

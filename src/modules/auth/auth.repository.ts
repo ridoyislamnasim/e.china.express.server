@@ -85,9 +85,9 @@ export class AuthRepository {
   }
 
   async getUserById(id: number) {
-    return await this.prisma.user.findUnique({ 
-      where: { id }
-     });
+    return await this.prisma.user.findUnique({
+      where: { id },
+    });
   }
 
   async getUserBy(id: number) {
@@ -212,43 +212,48 @@ export class AuthRepository {
   }
 
   // ====================================================
-// user repository services 
-// ====================================================
+  // user repository services
+  // ====================================================
   async getUserWithPagination(payload: any) {
-    return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
-      const [doc, totalDoc] = await Promise.all([
-        this.prisma.user.findMany({
-          skip: offset,
-          take: limit,
-          // orderBy: sortOrder,
-          include: {
-            role: true,
-          },
-        }),
-        this.prisma.user.count(),
-      ]);
-      return { doc, totalDoc };    
-    });
+    return await pagination(
+      payload,
+      async (limit: number, offset: number, sortOrder: any) => {
+        const [doc, totalDoc] = await Promise.all([
+          this.prisma.user.findMany({
+            skip: offset,
+            take: limit,
+            // orderBy: sortOrder,
+            include: {
+              role: true,
+            },
+          }),
+          this.prisma.user.count(),
+        ]);
+        return { doc, totalDoc };
+      },
+    );
   }
 
   async updateUserRole(userId: number, roleId: number) {
-    return await this.prisma.user.update({ 
-      where: { id: userId }, 
-      data: { roleId } ,
-      include: { role: true }
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { roleId },
+      include: { role: true },
     });
   }
 
   async getUserRoleById(userId: number) {
-    const user =  await this.prisma.user.findUnique({ 
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { role: {
-        include: {
-          permission: true
-        }
-      } }
-     });
-     return user?.role;
+      include: {
+        role: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    });
+    return user?.role;
   }
 // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
 }

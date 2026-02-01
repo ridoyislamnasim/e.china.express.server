@@ -23,14 +23,40 @@ export class WalletService extends BaseService<typeof walletRepository> {
     return await this.repository.createWallet(walletData, tx);
   }
 
+  async getMainWallet(userId: number) {
+    try {
+      const wallet = await this.repository.getMainWallet(userId);
+
+      if (!wallet) {
+        return null;
+      }
+
+      return wallet;
+    } catch (error) {
+      console.error("Error fetching main wallet:", error);
+      throw error;
+    }
+  }
+
   async getWalletsByUserId(userId: number) {
     return await this.repository.getWalletsByUser(userId);
   }
 
   async getSingleWallet(id: string, userId: number) {
+    console.log("Service - Looking for wallet:", { id, userId });
+
     const wallet = await this.repository.getWalletById(id);
-    if (!wallet || wallet.userId !== userId)
+
+    console.log("Service - Found wallet:", wallet);
+
+    if (!wallet) {
       throw new NotFoundError("Wallet not found");
+    }
+
+    if (wallet.userId !== userId) {
+      throw new NotFoundError("Wallet not found or unauthorized");
+    }
+
     return wallet;
   }
 
