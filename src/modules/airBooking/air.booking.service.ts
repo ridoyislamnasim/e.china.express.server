@@ -72,7 +72,6 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
       exportWarehouseRef: { connect: { id: String(payload.warehouseExportId) }, },
       bookingNo: Math.floor(Date.now() / 1000),   
       bookingDate: new Date(),
-      shippingDate: payload.shippingDate ? new Date(payload.shippingDate): undefined,
       arrivalDate: payload.arrivalDate ? new Date(payload.arrivalDate) : null,
       totalWeightkg: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       totalProductCost: payload.totalCost ? new Prisma.Decimal(payload.totalCost) : undefined,

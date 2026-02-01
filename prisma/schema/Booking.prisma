@@ -32,7 +32,7 @@ model ShipmentBooking {
   price                    Decimal?                 @db.Decimal(10, 2)
   discount                 Decimal?                 @db.Decimal(10, 2)
   discountType             DiscountType?
-  discountedPrice           Decimal?                 @db.Decimal(10, 2)
+  discountedPrice          Decimal?                 @db.Decimal(10, 2)
   finalPrice               Decimal?                 @db.Decimal(10, 2)
   bookingAddress           BookingAddress[]
   customerRef              User?                    @relation("ShipmentCustomer", fields: [customerId], references: [id])

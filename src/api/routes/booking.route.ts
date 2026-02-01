@@ -7,7 +7,7 @@ const BookingRouter = Router();
 // BookingRouter.use(jwtAuth());
 
 BookingRouter.route("/")
-  .post(upload, jwtAuth(), controller.createBooking)
+  .post(upload, jwtAuth(), controller.createBooking) // not use now
   // .get(jwtAuth(), controller.getAllBookingByFilterWithPagination);
 
 BookingRouter.get("/pagination", jwtAuth(), controller.getAllBookingByFilterWithPagination);

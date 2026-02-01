@@ -11,7 +11,6 @@ class SeaBookingController {
     };
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const payload = {
-      shippingDate: new Date(req.body.shippingDate),
       cartonQuantity: req.body.cartonQuantity,
       
       shippingRateId: req.body.shippingRateId,

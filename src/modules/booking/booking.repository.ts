@@ -41,7 +41,9 @@ class BookingRepository {
               where: filter,
               skip: offset,
               take: limit,
-              // orderBy: sortOrder,
+              orderBy: {
+                id: sortOrder,
+              },
               include: {
                 rateRef: {
                   include: {

@@ -11,7 +11,6 @@ class BookingController {
     };
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const payload = {
-      shippingDate: new Date(req.body.shippingDate),
       cartonQuantity: req.body.cartonQuantity,
       
       shippingRateId: req.body.shippingRateId,
@@ -49,7 +48,7 @@ class BookingController {
       BookingStatus: req.query.BookingStatus as string,
       page: Number(req.query.page) || 1,
       limit: Number(req.query.limit) || 10,
-      sortOrder: req.query.sortOrder === 'asc' ? 'asc' : 'desc',
+      order: req.query.order === 'asc' ? 'asc' : 'desc',
     };
     const BookingResult = await BookingService. getAllBookingByFilterWithPagination(payload);
     const resDoc = responseHandler(200, "Get All Bookings", BookingResult);
