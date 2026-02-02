@@ -34,6 +34,10 @@ export class PackageService extends BaseService<any> {
     return await this.repository.getAllPackages(payload);
   }
 
+  async getAllPackagesGrouped(payload: any) {
+    return await this.repository.getAllPackagesGrouped(payload);
+  }
+
   async getPackagesWithPagination(payload: any) {
     return await this.repository.getPackagesWithPagination(payload);
   }

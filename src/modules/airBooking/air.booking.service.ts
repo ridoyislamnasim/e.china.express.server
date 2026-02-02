@@ -4,7 +4,7 @@ import airBookingRepository from "./air.booking.repository";
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
 
 import ImgUploader from "../../middleware/upload/ImgUploder";
-import { idGenerate } from "../../utils/IdGenerator";
+import { bookingIdGenerate } from "../../utils/bookingIdGenerator";
 import { Prisma, PrismaClient } from "@prisma/client";
 import rateRepository from "../rate/rate.repository";
 
@@ -45,9 +45,14 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
     const price = Number(rate[0].price) * (payload.weight ? Number(payload.weight) : 0);
 
 
-    // Generate sequential order number using latest shipmentBooking.orderNumber
+    // Generate method-wise daily booking order number
     const prisma = new PrismaClient();
-    const orderNumber = await idGenerate('ABK', 'orderNumber', (tx?.shipmentBooking ?? prisma.shipmentBooking));
+    const shippingMethodName = rate?.[0]?.shippingMethod?.name;
+    const orderNumber = await bookingIdGenerate({
+      model: (tx?.shipmentBooking ?? prisma.shipmentBooking),
+      shippingMethodId: Number(payload.shippingMethodId),
+      shippingMethodName,
+    });
 
     // shippingRateId: payload.shippingRateId,
     // bookerName: payload.bookerName,

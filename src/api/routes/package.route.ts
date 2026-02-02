@@ -9,6 +9,8 @@ PackageRoute.route("/")
   .post( packageController.createPackage)
   .get(packageController.getAllPackages);
 
+PackageRoute.route("/group")
+  .get( packageController.getAllPackagesByGroup);
 PackageRoute.get("/pagination", packageController.getPackagesWithPagination);
 PackageRoute.get("/by-type/:type", packageController.getPackagesByType);
 PackageRoute.get("/by-status/:status", packageController.getPackagesByStatus);

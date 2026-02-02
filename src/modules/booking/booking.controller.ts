@@ -5,39 +5,47 @@ import withTransaction from "../../middleware/transactions/withTransaction";
 import BookingService from "./booking.service";
 
 class BookingController {
-  createBooking = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
-    const payloadFiles = {
-      files: req.files,
-    };
+  createSupplierInformation = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const payload = {
-      cartonQuantity: req.body.cartonQuantity,
-      
-      shippingRateId: req.body.shippingRateId,
-      importCountryId: req.body.importCountryId,
-      exportCountryId: req.body.exportCountryId,
-      shippingMethodId: req.body.shippingMethodId,
-      category1688Id: req.body.category1688Id,
-      weight: req.body.weight,
-      totalCost: req.body.totalCost,
-      rateId: req.body.rateId,
-      categoryId: req.body.categoryId,
-      subCategoryId: req.body.subCategoryId,
-      userRef: userRef,
-      warehouseImportId: req.body.warehouseImportId,
-      warehouseExportId: req.body.warehouseExportId,
-      packingId: req.body.packingId,
-      brandingId: req.body.brandingId,
-      arrivalDate: req.body.arrivalDate ? new Date(req.body.arrivalDate) : null,
-      countryExportId: req.body.countryExportId,
-      countryImportId: req.body.countryImportId,
-      productQuantity: req.body.productQuantity,
-     
+      // supplier fields
+      bookingId: req.body.bookingId ,
+      supplierId: req.body.supplierId ,
+      customerId: userRef ? Number(userRef) : undefined,
+      supplierNo: req.body.supplierNo ,
+      contact_person: req.body.contact_person ,
+      supplierEmail: req.body.supplierEmail,
+      supplierPhone: req.body.supplierPhone,
+      supplierAddress: req.body.supplierAddress,
     };
     console.log("Booking Create request body:", payload);
-    console.log("Booking Create request files:", payloadFiles);
-    const BookingResult = await BookingService.createBooking(payload, payloadFiles, tx);
+    const BookingResult = await BookingService.createSupplierInformation(payload, tx);
     const resDoc = responseHandler(201, "Booking Created successfully", BookingResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  createBookingPackage = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const payload = {
+      customerId: userRef ? Number(userRef) : undefined,
+      bookingId: req.body.bookingId ,
+      packageId: req.body.packageId ,
+      quantity: req.body.quantity ,
+    };
+    console.log("Booking Create request body:", payload);
+    const BookingResult = await BookingService.createBookingPackage(payload, tx);
+    const resDoc = responseHandler(201, "Booking Created successfully", BookingResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getAllSupplierInformation = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const payload = {
+      search: req.query.search as string,
+    }
+    const BookingResult = await BookingService.getAllSupplierInformation(payload);
+    const resDoc = responseHandler(200, "Get All Supplier Information", BookingResult);
     res.status(resDoc.statusCode).json(resDoc);
   });
 

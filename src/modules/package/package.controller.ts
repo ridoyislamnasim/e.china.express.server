@@ -41,6 +41,15 @@ class PackageController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+  getAllPackagesByGroup = catchError(async (req: Request, res: Response) => {
+    const payload = {
+      type: req.query.type as string,
+    };
+    const packages = await packageService.getAllPackagesGrouped(payload);
+    const resDoc = responseHandler(200, 'Get all packages grouped by type', packages);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
   getPackagesWithPagination = catchError(async (req: Request, res: Response) => {
     const payload = {
       type: req.query.type as string,

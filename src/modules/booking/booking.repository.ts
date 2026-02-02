@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import { pagination } from '../../utils/pagination';
+import { NotFoundError } from '../../utils/errors';
 
 const prisma = new PrismaClient();
 
@@ -15,10 +16,10 @@ export interface BookingDoc {
 
 class BookingRepository {
     private prisma = prisma;
-  async createBooking(BookingPayload: any, tx?: any) {
+  async createSupplierInformation(supplierData: any, tx?: any) {
     const prismaClient: PrismaClient = tx || this.prisma;
-    const newBooking = await prismaClient.shipmentBooking.create({
-      data: BookingPayload,
+    const newBooking = await prismaClient.suppliers.create({
+      data: supplierData,
     });
     return newBooking;
     // make tx than use tx
@@ -45,6 +46,7 @@ class BookingRepository {
                 id: sortOrder,
               },
               include: {
+                supplierRef: true,
                 rateRef: {
                   include: {
                     category1688: true,
@@ -88,6 +90,26 @@ class BookingRepository {
         });
   }
 
+  async getAllSupplierInformation(payload: any) {
+    const { search } = payload;
+    const filter: any = {};
+    if (search) {
+      filter.OR = [
+        { supplierNo: { contains: search, mode: 'insensitive' } },
+        { supplierEmail: { contains: search, mode: 'insensitive' } },
+        { supplierPhone: { contains: search, mode: 'insensitive' } },
+        { contact_person: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    const suppliers = await this.prisma.suppliers.findMany({
+      where: filter,
+      orderBy: {
+        id: 'desc',
+      },
+    });
+    return suppliers;
+  }
+
   async getSingleBooking(id: number) {
     const Booking = await prisma.shipmentBooking.findUnique({
       where: { id },
@@ -95,12 +117,20 @@ class BookingRepository {
     return Booking;
   }
 
-  async updateBooking(id: number, payload: Prisma.ShipmentBookingUpdateInput) {
-    const updatedBooking = await prisma.shipmentBooking.update({
-      where: { id },
-      data: payload,
-    });
-    return updatedBooking;
+  async updateBooking(id: number, payload: Prisma.ShipmentBookingUpdateInput, tx?: any) {
+    console.log("Update Booking Payload:",id, payload);
+    const prismaClient: PrismaClient = tx || this.prisma;
+    try {
+      const updatedBooking = await prismaClient.shipmentBooking.update({
+        where: { id },
+        data: payload,
+      });
+      return updatedBooking;
+    } catch (err: any) {
+      // Prisma throws P2025 when record to update is not found
+      if (err?.code === 'P2025') throw new NotFoundError('Booking Not Find');
+      throw err;
+    }
   }
 
   async deleteBooking(id: number) {

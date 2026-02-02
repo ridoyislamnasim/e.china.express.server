@@ -6,9 +6,12 @@ import jwtAuth from "../../middleware/auth/jwtAuth";
 const BookingRouter = Router();
 // BookingRouter.use(jwtAuth());
 
-BookingRouter.route("/")
-  .post(upload, jwtAuth(), controller.createBooking) // not use now
-  // .get(jwtAuth(), controller.getAllBookingByFilterWithPagination);
+BookingRouter.route("/supplier")
+  .post( jwtAuth(), controller.createSupplierInformation) // not use now
+  .get(jwtAuth(), controller.getAllSupplierInformation);
+
+BookingRouter.route("/package")
+  .post( jwtAuth(), controller.createBookingPackage)
 
 BookingRouter.get("/pagination", jwtAuth(), controller.getAllBookingByFilterWithPagination);
 

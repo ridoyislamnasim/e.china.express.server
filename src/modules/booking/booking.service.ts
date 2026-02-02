@@ -4,87 +4,128 @@ import BookingRepository from "./booking.repository";
 // import { removeUploadFile } from '../../middleware/upload/removeUploadFile';
 
 import ImgUploader from "../../middleware/upload/ImgUploder";
-import { idGenerate } from "../../utils/IdGenerator";
+import { bookingIdGenerate } from "../../utils/bookingIdGenerator";
 import { Prisma, PrismaClient } from "@prisma/client";
 import rateRepository from "../rate/rate.repository";
+import prisma from "../../config/prismadatabase";
+import { idGenerate } from "../../utils/IdGenerator";
+import packageRepository from "../package/package.repository";
 
 export class BookingService extends BaseService<typeof BookingRepository> {
   private repository: typeof BookingRepository;
+  private packageRepository: typeof packageRepository;
   constructor(repository: typeof BookingRepository, serviceName: string) {
     super(repository);
     this.repository = repository;
+    this.packageRepository = packageRepository;
   }
 
-  async createBooking(payload: any, payloadFiles: any, tx?: any) {
-    const { files } = payloadFiles;
-    if (files?.length) {
-      const images = await ImgUploader(files);
-      for (const key in images) {
-        payload[key] = images[key];
+  async createSupplierInformation(payload: any, tx?: any) {
+    const { supplierId, bookingId, supplierNo, contact_person, supplierEmail, supplierPhone, supplierAddress } = payload;
+    console.log("Create Supplier Information Payload:", payload);
+    //  check bookingId Exits
+    const bookingExists = await prisma.shipmentBooking.findUnique({
+      where: { id: Number(bookingId) },
+    });
+    console.log("Booking Exists Check:", bookingExists);
+    if (!bookingExists) {
+      throw new NotFoundError("Booking ID does not exist");
+    }
+
+
+    const prismaClient: any = tx || prisma;
+
+    // Prepare supplier data
+    const supplierData = {
+      supplierNo: supplierNo || undefined,
+      contact_person: contact_person || undefined,
+      supplierEmail: supplierEmail || undefined,
+      supplierPhone: supplierPhone || undefined,
+      supplierAddress: supplierAddress || undefined,
+    };
+
+    // Idempotent upsert behavior:
+    // 1) If supplierId provided, validate and use
+    // 2) Else try to find by supplierNo (unique) or by email/phone
+    // 3) If found -> update, else create. Handle race with unique constraint fallback.
+
+    let supplierRecord: any = null;
+
+    if (supplierId) {
+      supplierRecord = await prismaClient.suppliers.findUnique({ where: { id: Number(supplierId) } });
+      if (!supplierRecord) throw new NotFoundError("Supplier ID does not exist");
+      // Optionally update existing supplier with provided fields
+      supplierRecord = await prismaClient.suppliers.update({ where: { id: supplierRecord.id }, data: supplierData });
+    } else {
+      // Try supplierNo first (preferred, unique)
+      if (supplierData.supplierNo) {
+        supplierRecord = await prismaClient.suppliers.findUnique({ where: { supplierNo: supplierData.supplierNo } });
+      }
+
+      // If not found by supplierNo, try email or phone
+      if (!supplierRecord && (supplierData.supplierEmail || supplierData.supplierPhone)) {
+        supplierRecord = await prismaClient.suppliers.findFirst({ where: { OR: [{ supplierEmail: supplierData.supplierEmail }, { supplierPhone: supplierData.supplierPhone }] } });
+      }
+
+      if (supplierRecord) {
+        // update existing
+        supplierRecord = await prismaClient.suppliers.update({ where: { id: supplierRecord.id }, data: supplierData });
+      } else {
+        // create new - guard against race by catching unique constraint error
+        try {
+          supplierRecord = await prismaClient.suppliers.create({ data: supplierData });
+        } catch (err: any) {
+          // P2002 = unique constraint failed
+          if (err?.code === 'P2002') {
+            // Another transaction created the supplier concurrently - fetch it
+            supplierRecord = await prismaClient.suppliers.findFirst({ where: { OR: [{ supplierNo: supplierData.supplierNo }, { supplierEmail: supplierData.supplierEmail }, { supplierPhone: supplierData.supplierPhone }] } });
+            if (!supplierRecord) throw err; // unexpected
+            // update with any provided fields
+            supplierRecord = await prismaClient.suppliers.update({ where: { id: supplierRecord.id }, data: supplierData });
+          } else {
+            throw err;
+          }
+        }
       }
     }
 
-    // find shipping rate to get price
-    // find country combination
-    console.log("Payload received in Booking Service:", payload);
-    const countryCombination = await rateRepository.existingCountryConbination({
-      importCountryId: Number(payload.importCountryId),
-      exportCountryId: Number(payload.exportCountryId),
-    });
-    // findWeightCategoryByWeight
-    const weightCategory = await rateRepository.findWeightCategoryByWeight(Number(payload.weight));
-    console.log("Country Combination found in Booking Service:", countryCombination);
-    const rate = await rateRepository.findRateByCriteria({
-      countryCombinationId: countryCombination?.id,
-      weightCategoryId: weightCategory?.id,
-      shippingMethodId: Number(payload.shippingMethodId),
-      category1688Id: Number(payload.category1688Id)
-    });
-    console.log("Rate found in Booking Service:", rate);
+    // Ensure we have supplier id
+    if (!supplierRecord || !supplierRecord.id) throw new Error("Failed to resolve supplier record");
 
-    const price = Number(rate[0].price) * (payload.weight ? Number(payload.weight) : 0);
+    // Attach supplier to booking using the same tx client so it's atomic
+    const BookingData = await this.repository.updateBooking(Number(bookingId), { supplierRef: { connect: { id: Number(supplierRecord.id) } } }, tx);
 
-
-    // Generate sequential order number using latest shipmentBooking.orderNumber
-    const prisma = new PrismaClient();
-    const orderNumber = await idGenerate('ABK', 'orderNumber', (tx?.shipmentBooking ?? prisma.shipmentBooking));
-
-    // shippingRateId: payload.shippingRateId,
-    // bookerName: payload.bookerName,
-    // bookerPhone: payload.bookerPhone,
-    // bookerEmail: payload.bookerEmail,
-    // bookerAddress: payload.bookerAddress,
-    // shippingMethodId: payload.shippingMethodId,
-    // category1688Id: payload.category1688Id,
-    // categoryId: payload.categoryId,
-    // subCategoryId: payload.subCategoryId,
-
-    const BookingPayload = {
-      rateRef: { connect: { id: Number(payload.rateId) } },
-      weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
-      orderNumber,
-      warehouseReceivingStatus: "PENDING",
-      customerRef: payload.userRef? { connect: { id: Number(payload.userRef) } }: undefined,
-      // 🔥 REQUIRED RELATIONS
-      importCountryRef: {connect: { id: Number(payload.importCountryId) },},
-      exportCountryRef: {connect: { id: Number(payload.exportCountryId) },},
-      importWarehouseRef: {connect: { id: String(payload.warehouseImportId) }},
-      exportWarehouseRef: { connect: { id: String(payload.warehouseExportId) }, },
-      bookingNo: Math.floor(Date.now() / 1000),   
-      bookingDate: new Date(),
-      arrivalDate: payload.arrivalDate ? new Date(payload.arrivalDate) : null,
-      totalWeightkg: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
-      totalProductCost: payload.totalCost ? new Prisma.Decimal(payload.totalCost) : undefined,
-      cartonQuantity: payload.cartonQuantity ? Number(payload.cartonQuantity) : undefined,
-      productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
-      price: price ? new Prisma.Decimal(price) : undefined,
-      // totalProductCost: 
-      // price: rate
-    };
-    console.log("Booking Payload in Service:", BookingPayload);
-    // return BookingPayload;
-    const BookingData = await this.repository.createBooking(BookingPayload, tx);
     return BookingData;
+  }
+
+  async createBookingPackage(payload: any, tx?: any) {
+    const { bookingId, packageId, quantity } = payload;
+    console.log("Create Booking Package Payload:", payload);
+    //  check bookingId Exits
+    const bookingExists = await this.repository.getSingleBooking(Number(bookingId));
+    console.log("Booking Exists Check:", bookingExists);
+    if (!bookingExists) {
+      throw new NotFoundError("Booking ID does not exist");
+    }
+    // check packaging Id Exits
+    const packageExists = await  this.packageRepository.getSinglePackage(String(packageId));
+    console.log("Package Exists Check:", String(packageId), packageExists);
+    if (!packageExists) {
+      throw new NotFoundError("Package ID does not exist");
+    }
+    const updateData: any = {
+      packageRef: { connect: { id: String(packageId) } },
+      packagingCharge: Number(packageExists.price) * (quantity ? Number(quantity) : 1),
+      packageQuantity: quantity ? Number(quantity) : 1,
+    };
+    // update Booking with package relation
+    const BookingData = await this.repository.updateBooking(Number(bookingId), updateData, tx);
+    return BookingData;
+  }
+
+  async getAllSupplierInformation(payload: any) {
+    const suppliers = await this.repository.getAllSupplierInformation(payload);
+    return suppliers;
   }
 
   async getAllBookingByFilterWithPagination(payload: any) {

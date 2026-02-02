@@ -25,7 +25,6 @@ model ShipmentBooking {
   productQuantity          Int?
   rateId                   Int?
   shippingDate             DateTime?
-  supplierId               Int?
   warehouseReceivingStatus WarehouseReceivingStatus
   weight                   Decimal?                 @db.Decimal(10, 2)
   // price relation
@@ -34,6 +33,17 @@ model ShipmentBooking {
   discountType             DiscountType?
   discountedPrice          Decimal?                 @db.Decimal(10, 2)
   finalPrice               Decimal?                 @db.Decimal(10, 2)
+
+  // packaging relation
+  packagingCharge          Decimal?                 @db.Decimal(10, 2)
+  packageQuantity          Int?                     @default(1)
+  packageId                String?
+  packageRef               Package?                 @relation(fields: [packageId], references: [id])
+  
+  // suppliers relation
+  supplierId               Int?
+  supplierRef              Suppliers?               @relation(fields: [supplierId], references: [id])
+
   bookingAddress           BookingAddress[]
   customerRef              User?                    @relation("ShipmentCustomer", fields: [customerId], references: [id])
   exportCountryRef         Country                  @relation("ShipmentExportCountry", fields: [exportCountryId], references: [id])
@@ -41,7 +51,6 @@ model ShipmentBooking {
   importCountryRef         Country                  @relation("ShipmentImportCountry", fields: [inportCountryId], references: [id])
   importWarehouseRef       Warehouse                @relation("ShipmentImportWarehouse", fields: [inportWarehouseId], references: [id])
   rateRef                  Rate?                    @relation(fields: [rateId], references: [id])
-  supplierRef              Suppliers?               @relation(fields: [supplierId], references: [id])
   shipmentBookingItems     BookingProduct[]
   shippingInfos            ShippingInfo[]
 

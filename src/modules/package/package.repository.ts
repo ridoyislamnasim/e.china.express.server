@@ -29,6 +29,28 @@ class PackageRepository {
     });
   }
 
+  async getAllPackagesGrouped(payload: any) {
+    const { type } = payload;
+    const query: any = {};
+    if (type) {
+      query.type = type as PackageType; // Cast to PackageType
+    }
+    const packages = await prisma.package.findMany({
+      where: query,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Group packages by type
+    const grouped: Record<string, any[]> = packages.reduce((acc: Record<string, any[]>, pkg: any) => {
+      const key = pkg.type || 'UNKNOWN';
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(pkg);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    return grouped;
+  }
+
   async getAllPackages(payload: any) {
     const { type, status, search } = payload;
     const query: any = {};
