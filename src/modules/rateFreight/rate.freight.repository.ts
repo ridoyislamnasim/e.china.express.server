@@ -61,15 +61,52 @@ console.log("data in repo", data);
 
   async findRateFreightByCriteria(payload: any, tx?: PrismaClient): Promise<any> {
     console.log("payload in repo", payload);
+    const { toPortId, fromPortId, date,maxPrice, minPrice, shipmentMode, cargoType } = payload;
+    // Build where condition based on provided criteria
+    const whereCondition: any = {};
+    if (toPortId || fromPortId) {
+      whereCondition.route = {
+        ...(toPortId ? { toPortId: Number(toPortId) } : {}),
+        ...(fromPortId ? { fromPortId: Number(fromPortId) } : {})
+      };
+    }
+    if (date) {
+      whereCondition.shipSchedule = {
+        sailingDate: {
+          // Use lte (less than or equal) to find schedules on or before the given date
+          gte: new Date(date),
+        }
+      };
+    }
+    if (maxPrice !== undefined) {
+      whereCondition.price = {
+        ...whereCondition.price,
+        lte: Number(maxPrice)
+      };
+    }
+    if (minPrice !== undefined) {
+      whereCondition.price = {
+        ...whereCondition.price,
+        gte: Number(minPrice)
+      };
+    }
+    if (shipmentMode) {
+      whereCondition.shipmentMode = shipmentMode;
+    }
+    if (cargoType) {
+      whereCondition.cargoType = cargoType;
+    }
     const client = tx || this.prisma;
     const rates = await client.freightRate.findMany({
       where: {
-       ...payload
+       ...whereCondition
       },
       include: {
         shippingMethod: true,
         route: true,
-        container: true
+        container: true,
+        shipSchedule: true,
+        carrierCompany: true
 
       }
     });

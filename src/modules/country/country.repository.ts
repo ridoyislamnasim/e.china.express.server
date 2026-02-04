@@ -115,7 +115,7 @@ export class CountryRepository {
     await prismaClient.ports.delete({ where: { id } });
   }
 
-  async getAllPorts(payload?: { portType?: string; countryId?: any }): Promise<any> {
+  async getAllPorts(payload?: { portType?: string; countryId?: any , search?: string }): Promise<any> {
     const where: any = {};
     if (payload) {
       if (payload.portType) {
@@ -123,6 +123,9 @@ export class CountryRepository {
       }
       if (payload.countryId) {
         where.countryId = payload.countryId;
+      }
+      if (payload.search) {
+        where.portName = { contains: payload.search, mode: 'insensitive' };
       }
     }
 

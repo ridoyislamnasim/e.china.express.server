@@ -151,18 +151,57 @@ export class RateFreightService {
   }
 
   async findRateFreightByCriteria(payload: any): Promise<any> {
-    const { countryZoneId, shippingMethodId, weight } = payload;
-    // all fields are required
-    if (!countryZoneId || !shippingMethodId || !weight) {
-      const error = new Error('countryZoneId, shippingMethodId, weight are required');
-      (error as any).statusCode = 400;
-      throw error;
+    const { toPortId, fromPortId,cargoType, shipmentMode,maxPrice, minPrice } = payload;
+    // this port are exits check
+    if (toPortId) {
+      const toPort = await this.prisma.ports.findUnique({ where: { id: Number(toPortId) } });
+      if (!toPort) {
+        const error = new Error('To Port not found');
+        (error as any).statusCode = 404;
+        throw error;
+      }
     }
-    const payloadWithCombinationId = {
-      shippingMethodId,
-      countryZoneId
-    };
-    const rate = await this.repository.findRateFreightByCriteria(payloadWithCombinationId);
+    if (fromPortId) {
+      const fromPort = await this.prisma.ports.findUnique({ where: { id: Number(fromPortId) } });
+      if (!fromPort) {
+        const error = new Error('From Port not found');
+        (error as any).statusCode = 404;
+        throw error;
+      }
+    }
+    if(cargoType){
+      const validCargoTypes = ['DG', 'NON_DG'];
+      if (!validCargoTypes.includes(cargoType)) {
+        const error = new Error('Invalid cargo type');
+        (error as any).statusCode = 400;
+        throw error;
+      }
+    }
+    if(shipmentMode){
+      const validShipmentModes = ['FCL', 'LCL'];
+      if (!validShipmentModes.includes(shipmentMode)) {
+        const error = new Error('Invalid shipment mode');
+        (error as any).statusCode = 400;
+        throw error;
+      }
+    }
+    // maxPrice and minPrice validation
+    if (maxPrice !== undefined && minPrice !== undefined) {
+      const max = Number(maxPrice);
+      const min = Number(minPrice);
+      if (Number.isNaN(max) || Number.isNaN(min)) {
+        const error = new Error('maxPrice and minPrice must be valid numbers');
+        (error as any).statusCode = 400;
+        throw error;
+      }
+      if (min > max) {
+        const error = new Error('minPrice cannot be greater than maxPrice');
+        (error as any).statusCode = 400;
+        throw error;
+      }
+    }
+
+    const rate = await this.repository.findRateFreightByCriteria(payload);
     return rate;
   }
 

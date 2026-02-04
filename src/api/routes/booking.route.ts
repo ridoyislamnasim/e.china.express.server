@@ -5,15 +5,18 @@ import jwtAuth from "../../middleware/auth/jwtAuth";
 
 const BookingRouter = Router();
 // BookingRouter.use(jwtAuth());
-
+// customer
 BookingRouter.route("/supplier")
   .post( jwtAuth(), controller.createSupplierInformation) // not use now
   .get(jwtAuth(), controller.getAllSupplierInformation);
+BookingRouter.route("/package").post( jwtAuth(), controller.createBookingPackage)
+BookingRouter.patch("/customer/tracking-number", jwtAuth(), controller.updateBookingTrackingNumberByCustomer);
 
-BookingRouter.route("/package")
-  .post( jwtAuth(), controller.createBookingPackage)
+// admin Update Booking Status
+BookingRouter.patch("/admin/status/:id", jwtAuth(), controller.updateBookingApprovedRejectByAdmin);
 
 BookingRouter.get("/pagination", jwtAuth(), controller.getAllBookingByFilterWithPagination);
+BookingRouter.get("/admin/pagination", jwtAuth(), controller.getAllBookingForAdminByFilterWithPagination);
 
 BookingRouter.route("/:id")
   .get(jwtAuth(), controller.getSingleBooking)

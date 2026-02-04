@@ -27,12 +27,12 @@ class BookingRepository {
   }
 
   async getAllBookingByFilterWithPagination(payload: any) {
-    const { BookingStatus , userRef} = payload;
+    const { bookingStatus , userRef} = payload;
     const filter: any = {};
-    if (BookingStatus == "CUSTOMER_ALL"){
-      filter.warehouseReceivingStatus = { in: ["PENDING", "RECEIVED"] };
+    if (bookingStatus == "CUSTOMER_ALL"){
+      filter.warehouseReceivingStatus = { in: ["PENDING", "REJECTED_AT_WAREHOUSE", "APPROVE"] };
     } else {
-      filter.warehouseReceivingStatus = BookingStatus;
+      filter.warehouseReceivingStatus = bookingStatus.toUpperCase();
     }
     if (userRef) filter.customerId = Number(userRef);
 
@@ -47,6 +47,79 @@ class BookingRepository {
               },
               include: {
                 supplierRef: true,
+                packageRef: true,
+                rateRef: {
+                  include: {
+                    category1688: true,
+                    shippingMethod: true,
+                  },
+                },
+                importWarehouseRef: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+                exportWarehouseRef: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+                importCountryRef: {
+                  select: {
+                    id: true,
+                    name: true,
+                    isoCode: true,
+                    zone: true,
+                  },
+                },
+                exportCountryRef: {
+                  select: {
+                    id: true,
+                    name: true,
+                    isoCode: true,
+                    zone: true,
+                  },
+                },
+                // customer: true,
+              },
+            }),
+            this.prisma.shipmentBooking.count({ where: filter }), // total count with filter
+          ]);
+          return { doc, totalDoc };
+        });
+  }
+
+    async getAllBookingForAdminByFilterWithPagination(payload: any) {
+    const { bookingStatus } = payload;
+    const filter: any = {};
+    if (bookingStatus == "PENDING_REJECTED_AT_WAREHOUSE_APPROVE"){
+      filter.warehouseReceivingStatus = { in: ["PENDING", "REJECTED_AT_WAREHOUSE", "APPROVE"] };
+    } else {
+      filter.warehouseReceivingStatus = bookingStatus.toUpperCase();
+    }
+
+     return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+          const [doc, totalDoc] = await Promise.all([
+            this.prisma.shipmentBooking.findMany({
+              where: filter,
+              skip: offset,
+              take: limit,
+              orderBy: {
+                id: sortOrder,
+              },
+              include: {
+                supplierRef: true,
+                packageRef: true,
+                customerRef:{
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true,
+                  }
+                },
                 rateRef: {
                   include: {
                     category1688: true,
@@ -115,6 +188,15 @@ class BookingRepository {
       where: { id },
     });
     return Booking;
+  }
+
+  async findByConditionAndUpdate(where: object, data: Partial<BookingDoc>, tx?: any) {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    const updatedBooking = await prismaClient.shipmentBooking.updateMany({
+      where,
+      data,
+    });
+    return updatedBooking;
   }
 
   async updateBooking(id: number, payload: Prisma.ShipmentBookingUpdateInput, tx?: any) {

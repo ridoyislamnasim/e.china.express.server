@@ -14,12 +14,12 @@ rateFreightRouter.route("/")
     .get(controller.getAllRateFreight);
 
 rateFreightRouter.route("/find").get(controller.findRateFreightByCriteria);
-rateFreightRouter.route("/find/booking-shipping-rateFreight").post(controller.findBookingShippingRateFreight);
-rateFreightRouter.route("/method-wise-rateFreight").get(controller.countryMethodWiseRateFreight);
+rateFreightRouter.route("/find/booking-shipping-rateFreight").post(controller.findBookingShippingRateFreight);// not use now
+rateFreightRouter.route("/method-wise-rateFreight").get(controller.countryMethodWiseRateFreight); // not use now
 
 // rateFreight/bulk-adjust
-rateFreightRouter.route("/bulk-adjust").post(controller.bulkAdjustRateFreight);
-rateFreightRouter.route("/find/shipping-rateFreight").post(jwtAuth(), controller.findShippingRateFreightForProduct);
+rateFreightRouter.route("/bulk-adjust").post(controller.bulkAdjustRateFreight); // not use now
+rateFreightRouter.route("/find/shipping-rateFreight").post(jwtAuth(), controller.findShippingRateFreightForProduct); // new for product rate fetch
 // rateFreightRoute.route("/:rateFreightId")
 //     .put(controller.updateRateFreight);
 

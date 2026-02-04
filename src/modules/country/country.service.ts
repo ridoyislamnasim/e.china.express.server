@@ -160,12 +160,14 @@ export class CountryService {
   }
 
 
-  async getAllPorts(payload: { portType?: string } = {}): Promise<any> {
+  async getAllPorts(payload: { portType?: string, search?: string } = {}): Promise<any> {
     // get all freight countries
     const freightCountries = await this.repository.getCountryWithCondition({ isFreight: true });
     const freightCountryIds = freightCountries.map((country: any) => country.id);
 
-    const repoPayload: any = {};
+    const repoPayload: any = {
+      search: payload.search || undefined
+    };
     if (payload.portType) repoPayload.portType = payload.portType;
     if (freightCountryIds && freightCountryIds.length > 0) {
       repoPayload.countryId = { in: freightCountryIds };
@@ -173,6 +175,7 @@ export class CountryService {
       // If there are no freight countries, return empty set early
       return [];
     }
+
 
     return await this.repository.getAllPorts(repoPayload);
   }

@@ -63,9 +63,12 @@ class CountryController {
       // Normalize query param which may be string | string[] | undefined
       const portTypeRaw = req.query.portType;
       const portType = Array.isArray(portTypeRaw) ? portTypeRaw[0] : portTypeRaw;
-      const payload: any = {};
+      const payload: any = {
+        search: req.query.search || undefined
+      };
       if (typeof portType === 'string' && portType.trim().length > 0) {
         payload.portType = portType.trim();
+        
       }
 
       const ports = await countryService.getAllPorts(payload);

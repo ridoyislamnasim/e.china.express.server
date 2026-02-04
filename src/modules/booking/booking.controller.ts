@@ -40,6 +40,32 @@ class BookingController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+  updateBookingTrackingNumberByCustomer = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const payload = {
+      customerId: userRef ? Number(userRef) : undefined,
+      bookingId: req.body.bookingId ,
+      trackingNumber: req.body.trackingNumber ,
+    };
+    console.log("Booking Update Tracking Number request body:", payload);
+    const BookingResult = await BookingService.updateBookingTrackingNumberByCustomer(payload, tx);
+    const resDoc = responseHandler(201, "Booking Tracking Number Updated successfully", BookingResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  updateBookingApprovedRejectByAdmin = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+
+    const payload = {
+      adminId: req.user?.user_info_encrypted?.id ? Number(req.user.user_info_encrypted.id) : undefined,
+      status: req.body.status ,
+      adminRemarks: req.body.adminRemarks ,
+    };
+    const BookingResult = await BookingService.updateBookingApprovedRejectByAdmin(req.params.id, payload, tx);
+    const resDoc = responseHandler(201, "Booking Status Updated successfully", BookingResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
   getAllSupplierInformation = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const payload = {
       search: req.query.search as string,
@@ -49,16 +75,32 @@ class BookingController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+
+
   getAllBookingByFilterWithPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
     const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
     const payload = {
       userRef: userRef,
-      BookingStatus: req.query.BookingStatus as string,
+      bookingStatus: req.query.bookingStatus as string,
       page: Number(req.query.page) || 1,
       limit: Number(req.query.limit) || 10,
       order: req.query.order === 'asc' ? 'asc' : 'desc',
     };
     const BookingResult = await BookingService. getAllBookingByFilterWithPagination(payload);
+    const resDoc = responseHandler(200, "Get All Bookings", BookingResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+    getAllBookingForAdminByFilterWithPagination = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const payload = {
+      userRef: userRef,
+      bookingStatus: req.query.bookingStatus as string,
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || 10,
+      order: req.query.order === 'asc' ? 'asc' : 'desc',
+    };
+    const BookingResult = await BookingService. getAllBookingForAdminByFilterWithPagination(payload);
     const resDoc = responseHandler(200, "Get All Bookings", BookingResult);
     res.status(resDoc.statusCode).json(resDoc);
   });

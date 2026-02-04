@@ -24,7 +24,7 @@ const rateService = new RateFreightService(rateRepository);
 class RateFreightController {
   createRateFreight = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { price, routeId, cargoType, shippingMethodId, shipmentMode,containerId, carrierCompanyId, cbm, shipScheduleId } = req.body;
+      const { price, routeId, cargoType, shippingMethodId, shipmentMode, containerId, carrierCompanyId, cbm, shipScheduleId } = req.body;
       const payload = {
         price: Number(price),
         routeId: Number(routeId),
@@ -35,7 +35,7 @@ class RateFreightController {
         cbm: cbm ? Number(cbm) : 0,
         containerId: Number(containerId),
         shipScheduleId: shipScheduleId ? Number(shipScheduleId) : undefined
-      };  
+      };
       const shippingMethod = await rateService.createRateFreight(payload);
       const resDoc = responseHandler(201, 'RateFreight created successfully', shippingMethod);
       res.status(resDoc.statusCode).json(resDoc);
@@ -57,11 +57,15 @@ class RateFreightController {
 
   findRateFreightByCriteria = catchError(async (req: Request, res: Response, next: NextFunction) => {
     console.log("req.body", req.body);
-    const { shipmentMode, weight, shippingMethodId } = req.body;
+    const { toPortId, fromPortId, date, maxPrice, minPrice, cargoType,shipmentMode } = req.query;
     const payload: any = {
-      shipmentMode,
-      weight,
-      shippingMethodId
+      toPortId,
+      fromPortId,
+      date,
+      maxPrice,
+      minPrice,
+      cargoType,
+      shipmentMode
     };
     const rates = await rateService.findRateFreightByCriteria(payload);
     const resDoc = responseHandler(200, 'RateFreights retrieved successfully', rates);

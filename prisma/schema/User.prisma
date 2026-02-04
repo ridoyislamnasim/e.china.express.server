@@ -4,6 +4,8 @@ model User {
   phone             String?         @unique
   password          String
   name              String?
+  avatar            String?
+  bio               String?
   isVerified        Boolean         @default(false)
   // Relations
   wishlist          Wishlist[]

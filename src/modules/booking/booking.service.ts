@@ -10,14 +10,17 @@ import rateRepository from "../rate/rate.repository";
 import prisma from "../../config/prismadatabase";
 import { idGenerate } from "../../utils/IdGenerator";
 import packageRepository from "../package/package.repository";
+import authRepository from "../auth/auth.repository";
 
 export class BookingService extends BaseService<typeof BookingRepository> {
   private repository: typeof BookingRepository;
   private packageRepository: typeof packageRepository;
+  private authRepository = authRepository;
   constructor(repository: typeof BookingRepository, serviceName: string) {
     super(repository);
     this.repository = repository;
     this.packageRepository = packageRepository;
+    this.authRepository = authRepository;
   }
 
   async createSupplierInformation(payload: any, tx?: any) {
@@ -131,6 +134,56 @@ export class BookingService extends BaseService<typeof BookingRepository> {
   async getAllBookingByFilterWithPagination(payload: any) {
     const Bookings = await this.repository.getAllBookingByFilterWithPagination(payload);
     return Bookings;
+  }
+
+  async updateBookingTrackingNumberByCustomer(payload: any, tx?: any) {
+    const { customerId, bookingId, trackingNumber } = payload;
+    // bookingid and trackingnumber required
+    if (!bookingId || !trackingNumber) {
+      throw new Error("bookingId and trackingNumber are required");
+    }
+    console.log("Update Booking Tracking Number by Customer Payload:", payload);
+    const condition ={
+      id: Number(bookingId),
+      customerId: customerId ? Number(customerId) : undefined,
+    }
+    const updateData: any = {
+      trackingNumber: trackingNumber || undefined,
+      // customerRef: userRef ? { connect: { id: Number(userRef) } } : undefined,
+    };
+    const BookingData = await this.repository.findByConditionAndUpdate(condition, updateData, tx);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    return BookingData;
+  }
+
+  async getAllBookingForAdminByFilterWithPagination(payload: any) {
+    // check userRef roleId if customer then return with error msg
+    const userRef = payload.userRef;
+    const user = await this.authRepository.getUserRoleById(Number(userRef));
+    console.log("Admin Booking List Access Check User:", user);
+    // Assuming roleId 3 is 'customer', adjust as needed
+    if (user?.role.toLowerCase() === 'customer') {
+      throw new Error('Customers are not allowed to access this booking list.');
+    }
+    const Bookings = await this.repository.getAllBookingForAdminByFilterWithPagination(payload);
+    return Bookings;
+  }
+
+  async updateBookingApprovedRejectByAdmin(id: string, payload: any, session?: any) {
+    console.log("Update Booking Status by Admin Payload:", id, payload);
+    const { status } = payload;
+    if (!status || (status.toUpperCase() !== 'APPROVE' && status.toUpperCase() !== 'REJECTED_AT_WAREHOUSE')) {
+      throw new Error('Status must be either "APPROVE" or "REJECT".');
+    }
+    const updateData: any = {
+      mainStatus: status.toUpperCase(),
+      warehouseReceivingStatus: status.toUpperCase(),
+      // adminRemarks: payload.adminRemarks || undefined,
+      // adminRef: payload.adminId ? { connect: { id: Number(payload.adminId) } } : undefined,
+    };
+    const BookingData = await this.repository.updateBooking(Number(id), updateData, session);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    return BookingData;
   }
 
 

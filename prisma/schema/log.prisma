@@ -1,0 +1,29 @@
+model BookingLog {
+  id          Int      @id @default(autoincrement())
+
+  bookingId  Int
+  action     LogAction
+
+  changes    Json      // 🔥 all field changes here
+
+  message    String?
+  performedBy Int?
+  createdAt  DateTime @default(now())
+}
+
+
+// function getChanges(oldData: any, newData: any) {
+//   const changes: any = {};
+
+//   for (const key in newData) {
+//     if (oldData[key] !== newData[key]) {
+//       changes[key] = {
+//         old: oldData[key] ?? null,
+//         new: newData[key] ?? null
+//       };
+//     }
+//   }
+
+//   return changes;
+// }
+
