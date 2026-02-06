@@ -103,7 +103,12 @@ console.log("data in repo", data);
       },
       include: {
         shippingMethod: true,
-        route: true,
+        route: {
+          include: {
+            fromPort: true,
+            toPort: true
+          }
+        },
         container: true,
         shipSchedule: true,
         carrierCompany: true

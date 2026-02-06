@@ -40,11 +40,11 @@ class RateExpressController {
 
   findRateExpressByCriteria = catchError(async (req: Request, res: Response, next: NextFunction) => {
     console.log("req.body", req.body);
-    const { countryZoneId, weight, shippingMethodId } = req.body;
+    const { countryId, weight, shippingMethodId } = req.query;
     const payload: any = {
-      countryZoneId,
-      weight,
-      shippingMethodId
+      countryId:Number(countryId),
+      weight: Number(weight),
+      shippingMethodId: Number(shippingMethodId)
     };
     const rates = await rateService.findRateExpressByCriteria(payload);
     const resDoc = responseHandler(200, 'RateExpresss retrieved successfully', rates);

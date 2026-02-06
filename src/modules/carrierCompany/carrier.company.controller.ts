@@ -36,7 +36,10 @@ class CarrierCompanyController {
 
   getAllCarrierCompanys = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const carrierCompanys = await carrierCompanyService.getAllCarrierCompanys();
+      const payload ={
+        carrierType: req.query.carrierType as string | undefined,
+      }
+      const carrierCompanys = await carrierCompanyService.getAllCarrierCompanys(payload);
       const resDoc = responseHandler(200, 'CarrierCompanys retrieved successfully', carrierCompanys);
       res.status(resDoc.statusCode).json(resDoc);
     } catch (error) {

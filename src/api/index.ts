@@ -38,6 +38,7 @@ import rateFreightRouter from "./routes/rateFreight.route";
 
 import carrierCompanyRouter from "./routes/carrierCompany.route";
 import WalletRoute from "./routes/wallet.route";
+import ExpressBookingRouter from "./routes/express.booking.route";
 // import other routers here
 
 const rootRouter = Router();
@@ -83,7 +84,7 @@ rootRouter.use("/rate", rateRoute);
 rootRouter.use("/booking", BookingRouter);
 rootRouter.use("/booking/air", AirBookingRouter);
 rootRouter.use("/booking/sea", SeaBookingRouter);
-rootRouter.use("/booking/express", WishlistRouter);
+rootRouter.use("/booking/express", ExpressBookingRouter);
 rootRouter.use("/booking/inventory", WishlistRouter);
 
 // WarehouseSpace masud

@@ -41,12 +41,12 @@ export class CarrierCompanyService {
       shortName,
       code,
       carrierType,
-      scacCode,
+      ...(carrierType === 'SEA' ? { scacCode } : {}),
       // include IATA/ICAO only for AIR carrier type
       ...(carrierType === 'AIR' ? { iataCode, icaoCode } : {}),
       logoUrl: finalLogoUrl,
       description,
-      status
+      status: Boolean(status),
     };
 
     const carrierCompany = await this.repository.createCarrierCompany(carrierCompanyPayload);
@@ -71,7 +71,7 @@ export class CarrierCompanyService {
       shortName,
       code,
       carrierType,
-      scacCode,
+      ...(carrierType === 'SEA' ? { scacCode } : {}),
       ...(carrierType === 'AIR' ? { iataCode, icaoCode } : {}),
       logoUrl: finalLogoUrl,
       description,
@@ -85,7 +85,7 @@ export class CarrierCompanyService {
 
 
   async getAllCarrierCompanys(payload?: any){
-    const carrierCompanys = await this.repository.getAllCarrierCompanys();
+    const carrierCompanys = await this.repository.getAllCarrierCompanys(payload);
     console.log("Fetched CarrierCompanys: ", carrierCompanys);
     return carrierCompanys;
   }

@@ -77,7 +77,8 @@ export class RateExpressRepository {
             id: true,
             label: true,
             min_weight: true,
-            max_weight: true
+            max_weight: true,
+            boxSize: true,
           }
         },
         shippingMethod: {

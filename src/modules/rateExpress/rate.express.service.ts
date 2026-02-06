@@ -70,14 +70,16 @@ export class RateExpressService {
   }
 
   async findRateExpressByCriteria(payload: any): Promise<any> {
-    const { countryZoneId, shippingMethodId, weight } = payload;
+    const { countryId, shippingMethodId, weight } = payload;
     // all fields are required
-    if (!countryZoneId || !shippingMethodId || !weight) {
-      const error = new Error('countryZoneId, shippingMethodId, weight are required');
+    if (!countryId || !shippingMethodId || !weight) {
+      const error = new Error('countryId, shippingMethodId, weight are required');
       (error as any).statusCode = 400;
       throw error;
     }
-
+    // find country 
+    const country = await this.countryRepository.getCountryById(Number(countryId));
+    // return country;
     // find weight category id based on weight
     const weightCategory = await this.repository.findWeightCategoryByWeight(weight);
     if (!weightCategory) {
@@ -89,8 +91,9 @@ export class RateExpressService {
     const payloadWithCombinationId = {
       weightCategoryId: weightCategory.id,
       shippingMethodId,
-      countryZoneId
+      countryZoneId: country?.countryZoneId
     };
+    console.log("payloadWithCombinationId", payloadWithCombinationId);
     const rate = await this.repository.findRateExpressByCriteria(payloadWithCombinationId);
     return rate;
   }
