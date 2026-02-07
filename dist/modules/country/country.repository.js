@@ -9,32 +9,26 @@ const pagination_1 = require("../../utils/pagination");
 class CountryRepository {
     constructor() {
         this.prisma = prismadatabase_1.default;
-        this.createCustomRoleIfNotExists = async (roleName, tx) => {
-            const prismaClient = tx || this.prisma;
-            // Try to find existing role first
-            let role = await prismaClient.role.findUnique({ where: { role: roleName } });
-            if (role)
-                return role;
-            const permission = await prismaClient.permission.create({});
-            role = await prismaClient.role.create({ data: { role: roleName, permissionId: permission.id } });
-            return role;
-        };
         // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
     }
-    async createPort(payload) {
-        const newPort = await this.prisma.ports.create({
+    // portexits 
+    async createPort(payload, tx) {
+        const prismaClient = tx || this.prisma;
+        const newPort = await prismaClient.ports.create({
             data: payload
         });
         return newPort;
     }
-    async createCountry(payload) {
-        const newCountry = await this.prisma.country.create({
+    async createCountry(payload, tx) {
+        const prismaClient = tx || this.prisma;
+        const newCountry = await prismaClient.country.create({
             data: payload
         });
         return newCountry;
     }
-    async getCountryByCondition(condition) {
-        return await this.prisma.country.findFirst({
+    async getCountryByCondition(condition, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.country.findFirst({
             where: condition,
         });
     }
@@ -44,11 +38,17 @@ class CountryRepository {
             include: { ports: true, warehouses: true, countryHsCodes: true },
         });
     }
-    async updateCountryByCondition(id, payload) {
-        return await this.prisma.country.update({
+    async updateCountryByCondition(id, payload, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.country.update({
             where: { id },
             data: payload,
         });
+    }
+    // Check if a port exists by a given condition
+    async portExists(condition) {
+        const port = await this.prisma.ports.findFirst({ where: condition });
+        return !!port;
     }
     async getAllCountries() {
         // include ports
@@ -59,37 +59,22 @@ class CountryRepository {
             }
         });
     }
-    async getCountryById(id) {
-        return await this.prisma.country.findUnique({
+    async getCountryById(id, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.country.findUnique({
             where: { id },
             include: { ports: true, warehouses: true, countryHsCodes: true },
         });
     }
     //  async getCountryWithPagination(payload: { limit: number; offset: number }, tx: any): Promise<any> {
     async getCountryWithPagination(payload, tx) {
-        const { limit, offset } = payload;
-        // const prismaClient: PrismaClient = tx || this.prisma;
-        console.log("Pagination Payload: ", payload);
-        // return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
-        //     const [doc, totalDoc] = await Promise.all([
-        //     this.prisma.country.findMany({
-        //       where: {  },
-        //       skip: offset,
-        //       take: limit,
-        //       // orderBy: sortOrder,
-        //       include: { ports: true, warehouses: true },
-        //     }),
-        //     prisma.country.count({ where: {  } }),
-        //   ]);
-        //   return { doc, totalDoc };
-        // });
         return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
             const [doc, totalDoc] = await Promise.all([
                 await this.prisma.country.findMany({
                     skip: payload.offset,
                     take: payload.limit,
                     orderBy: { createdAt: sortOrder },
-                    include: { ports: true, warehouses: true },
+                    include: { ports: true, warehouses: true, countryHsCodes: true, countryZone: true },
                 }),
                 await this.prisma.country.count(),
             ]);
@@ -105,11 +90,36 @@ class CountryRepository {
         });
         return updatedCountry;
     }
-    async deleteCountry(id) {
-        await this.prisma.country.delete({ where: { id } });
+    async deleteCountry(id, tx) {
+        const prismaClient = tx || this.prisma;
+        await prismaClient.country.delete({ where: { id } });
     }
-    async deletePort(id) {
-        await this.prisma.ports.delete({ where: { id } });
+    async updatePort(id, payload, tx) {
+        const prismaClient = tx || this.prisma;
+        const updatedPort = await prismaClient.ports.update({
+            where: { id },
+            data: payload,
+        });
+        return updatedPort;
+    }
+    async deletePort(id, tx) {
+        const prismaClient = tx || this.prisma;
+        await prismaClient.ports.delete({ where: { id } });
+    }
+    async getAllPorts(payload) {
+        const where = {};
+        if (payload) {
+            if (payload.portType) {
+                where.portType = payload.portType;
+            }
+            if (payload.countryId) {
+                where.countryId = payload.countryId;
+            }
+            if (payload.search) {
+                where.portName = { contains: payload.search, mode: 'insensitive' };
+            }
+        }
+        return await this.prisma.ports.findMany({ where });
     }
 }
 exports.CountryRepository = CountryRepository;

@@ -14,8 +14,11 @@ model ShipmentBooking {
 
   cartonQuantity           Int?
   productQuantity          Int?
-  rateId                   Int?
   weight                   Decimal?                 @db.Decimal(10, 2)
+
+  // method relation
+  shippingMethodId         Int?
+  shippingMethodRef        RateShippingMethod?      @relation(fields: [shippingMethodId], references: [id])
   
   // note
   warehouseReceivingNote   String?
@@ -62,10 +65,18 @@ model ShipmentBooking {
   exportWarehouseRef       Warehouse                @relation("ShipmentExportWarehouse", fields: [exportWarehouseId], references: [id])
   importWarehouseRef       Warehouse?                @relation("ShipmentImportWarehouse", fields: [importWarehouseId], references: [id])
 
-  bookingAddress           BookingAddress[]
+  // rate relation
+  rateId                   Int?
   rateRef                  Rate?                    @relation(fields: [rateId], references: [id])
+  expressRateId            Int?
+  expressRateRef           ExpressRate?                    @relation("ExpressRate", fields: [expressRateId], references: [id])
+  freightRateId            Int?
+  freightRateRef           FreightRate?                    @relation("FreightRate", fields: [freightRateId], references: [id])
+
+  bookingAddress           BookingAddress[]
   shipmentBookingItems     BookingProduct[]
   shippingInfos            ShippingInfo[]
+  bookingProductVariants   BookingProductVariant[]
 
   createdAt                DateTime                 @default(now())
   @@map("ShipmentBooking")
@@ -188,6 +199,7 @@ model BookingProduct {
   createdAt              DateTime                @default(now())
   inventoryBookingId     Int?
   suppliersId            Int?
+  // shipping Booking relations
   bookingProductVariants BookingProductVariant[]
   agent                  User?                   @relation("UserAgentBookingProducts", fields: [agentId], references: [id])
   customerRef            User                    @relation("CustomerBookingProduct", fields: [customer], references: [id])
@@ -205,6 +217,9 @@ model BookingProductVariant {
   id                  Int            @id @default(autoincrement())
   skuId               String?
   specId              String?
+  colorHex              String?
+  colorName            String?
+  sizeName             String?
   quantity            Int            @default(1)
   amountOnSale        Int?
   attributeName       String?
@@ -215,8 +230,12 @@ model BookingProductVariant {
   skuImageUrl         String?
   shippingRateId      Int?
   rate                Int?
-  bookingProductId    Int
-  bookingProduct      BookingProduct @relation(fields: [bookingProductId], references: [id], onDelete: Cascade)
+  // ShipmentBooking relation
+  shipmentBookingId   Int?
+  shippingRate        ShipmentBooking? @relation(fields: [shipmentBookingId], references: [id])
+
+  bookingProductId    Int?
+  bookingProduct      BookingProduct? @relation(fields: [bookingProductId], references: [id], onDelete: Cascade)
 }
 
 model Suppliers {

@@ -52,7 +52,7 @@ AuthRouter
     .get('/', (0, jwtAuth_1.default)(), controller.getUserBy);
 AuthRouter.post("/super-admin", (0, jwtAuth_1.default)(), controller.createSuperAdminRole);
 // user routes
-AuthRouter.get('/users/pagination', (0, jwtAuth_1.default)(), controller.getUserWithPagination);
+// AuthRouter.get('/users/pagination', jwtAuth(), controller.getUserWithPagination)
 AuthRouter.put('/user/role', (0, jwtAuth_1.default)(["superAdmin"]), controller.updateUserRole);
 // .put('/', upload.any(), jwtAuth('admin', 'student'), controller.updateUser) // Uncomment if upload middleware is ready
 // .get('/user',jwtAuth(["superAdmin"]), controller.getAllUser)

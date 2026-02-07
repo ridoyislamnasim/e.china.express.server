@@ -7,6 +7,7 @@ async function pagination(query, callback) {
     const perPageLimit = parseInt(limit);
     const sortOrder = order.toUpperCase() === "ASC" ? "asc" : "desc";
     const offset = (pageIndex - 1) * perPageLimit;
+    console.log("Pagination parameters:", query, { pageIndex, perPageLimit, sortOrder, offset });
     try {
         const { doc, totalDoc } = await callback(perPageLimit, offset, sortOrder);
         const pagination = {

@@ -12,6 +12,7 @@ class ShippingMethodService {
         this.repository = repository;
     }
     async createShippingMethod(payload) {
+        var _a;
         const { name, description } = payload;
         // Validate required fields
         if (!name) {
@@ -22,7 +23,9 @@ class ShippingMethodService {
         // Ensure description is optional
         const shippingMethodPayload = {
             name,
-            description: description !== null && description !== void 0 ? description : null
+            description: description !== null && description !== void 0 ? description : null,
+            boxSize: (_a = payload.boxSize) !== null && _a !== void 0 ? _a : null,
+            cbmToKgRatio: payload.cbmToKgRatio !== undefined ? parseFloat(payload.cbmToKgRatio) : undefined,
         };
         const shippingMethod = await this.repository.createShippingMethod(shippingMethodPayload);
         return shippingMethod;
@@ -45,6 +48,7 @@ class ShippingMethodService {
         return shippingMethod;
     }
     async updateShippingMethod(id, payload) {
+        var _a, _b, _c;
         //  GET GY ID THAN CHECK IF EXISTS
         const existingShippingMethod = await this.repository.getSingleShippingMethod(id);
         if (!existingShippingMethod) {
@@ -52,7 +56,13 @@ class ShippingMethodService {
             error.statusCode = 404;
             throw error;
         }
-        const updatedShippingMethod = await this.repository.updateShippingMethod(id, payload);
+        const payloadData = {
+            name: (_a = payload.name) !== null && _a !== void 0 ? _a : existingShippingMethod.name,
+            description: (_b = payload.description) !== null && _b !== void 0 ? _b : existingShippingMethod.description,
+            boxSize: (_c = payload.boxSize) !== null && _c !== void 0 ? _c : existingShippingMethod.boxSize,
+            cbmToKgRatio: payload.cbmToKgRatio !== undefined ? parseFloat(payload.cbmToKgRatio) : existingShippingMethod.cbmToKgRatio,
+        };
+        const updatedShippingMethod = await this.repository.updateShippingMethod(id, payloadData);
         return updatedShippingMethod;
     }
     async deleteShippingMethod(id) {

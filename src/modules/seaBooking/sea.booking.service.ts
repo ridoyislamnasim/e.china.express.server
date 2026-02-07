@@ -66,6 +66,7 @@ export class SeaBookingService extends BaseService<typeof seaBookingRepository> 
 
     const seaBookingPayload = {
       rateRef: { connect: { id: Number(payload.rateId) } },
+            shippingMethodRef: { connect: { id: Number(payload.shippingMethodId) } },
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       orderNumber,
       warehouseReceivingStatus: "PENDING",

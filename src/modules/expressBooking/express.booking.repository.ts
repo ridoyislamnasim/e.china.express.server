@@ -25,6 +25,41 @@ class ExpressBookingRepository {
 
   }
 
+  async createVariant(variantPayload: any, tx?: any) {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    // Normalize payload to match Prisma create input (use nested connect for relations)
+    const data: any = {
+      skuId: variantPayload.skuId,
+      specId: variantPayload.specId,
+      colorHex: variantPayload.colorHex,
+      colorName: variantPayload.colorName,
+      sizeName: variantPayload.size ?? variantPayload.sizeName,
+      quantity: variantPayload.quantity,
+      amountOnSale: variantPayload.amountOnSale,
+      attributeName: variantPayload.attributeName,
+      attributeNameSecond: variantPayload.attributeNameSecond,
+      weight: variantPayload.weight,
+      dimensions: variantPayload.dimensions,
+      price: variantPayload.price,
+      skuImageUrl: variantPayload.skuImageUrl,
+    };
+
+    // Attach relation to ShipmentBooking if provided
+    if (variantPayload.shipmentBookingId) {
+      data.shippingRate = { connect: { id: Number(variantPayload.shipmentBookingId) } };
+    }
+
+    // Attach relation to BookingProduct if provided
+    if (variantPayload.bookingProductId) {
+      data.bookingProduct = { connect: { id: Number(variantPayload.bookingProductId) } };
+    }
+
+    const newVariant = await prismaClient.bookingProductVariant.create({
+      data,
+    });
+    return newVariant;
+  }
+
   async getAllExpressBookingByFilterWithPagination(payload: any) {
     const { expressBookingStatus , userRef} = payload;
     const filter: any = {};

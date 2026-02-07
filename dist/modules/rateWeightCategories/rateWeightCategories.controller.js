@@ -11,9 +11,9 @@ class RateWeightCategoriesController {
     constructor() {
         this.createRateWeightCategories = async (req, res, next) => {
             try {
-                const { label, min_weight, max_weight } = req.body;
+                const { label, min_weight, max_weight, boxSize } = req.body;
                 const payload = {
-                    label, min_weight, max_weight
+                    label, min_weight, max_weight, boxSize
                 };
                 const shippingMethod = await rateWeightCategoriesService.createRateWeightCategories(payload);
                 const resDoc = (0, responseHandler_1.responseHandler)(201, 'Rate weight categories created successfully', shippingMethod);
@@ -51,9 +51,9 @@ class RateWeightCategoriesController {
     }
     async updateRateWeightCategories(req, res, next) {
         const { id } = req.params;
-        const { label, min_weight, max_weight } = req.body;
+        const { label, min_weight, max_weight, boxSize } = req.body;
         const payload = {
-            label, min_weight, max_weight
+            label, min_weight, max_weight, boxSize
         };
         const updatedCategory = await rateWeightCategoriesService.updateRateWeightCategories(id, payload);
         const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate weight categories updated successfully', updatedCategory);

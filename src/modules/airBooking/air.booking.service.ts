@@ -66,16 +66,17 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
 
     const airBookingPayload = {
       rateRef: { connect: { id: Number(payload.rateId) } },
+      shippingMethodRef: { connect: { id: Number(payload.shippingMethodId) } },
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       orderNumber,
       warehouseReceivingStatus: "PENDING",
-      customerRef: payload.userRef? { connect: { id: Number(payload.userRef) } }: undefined,
+      customerRef: payload.userRef ? { connect: { id: Number(payload.userRef) } } : undefined,
       // 🔥 REQUIRED RELATIONS
-      importCountryRef: {connect: { id: Number(payload.importCountryId) },},
-      exportCountryRef: {connect: { id: Number(payload.exportCountryId) },},
-      importWarehouseRef: {connect: { id: String(payload.warehouseImportId) }},
+      importCountryRef: { connect: { id: Number(payload.importCountryId) }, },
+      exportCountryRef: { connect: { id: Number(payload.exportCountryId) }, },
+      importWarehouseRef: { connect: { id: String(payload.warehouseImportId) } },
       exportWarehouseRef: { connect: { id: String(payload.warehouseExportId) }, },
-      bookingNo: Math.floor(Date.now() / 1000),   
+      bookingNo: Math.floor(Date.now() / 1000),
       bookingDate: new Date(),
       arrivalDate: payload.arrivalDate ? new Date(payload.arrivalDate) : null,
       totalWeightkg: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,

@@ -34,6 +34,15 @@ const services_route_1 = __importDefault(require("./routes/services.route"));
 const role_route_1 = __importDefault(require("./routes/role.route"));
 const sea_booking_route_1 = __importDefault(require("./routes/sea.booking.route"));
 const booking_route_1 = __importDefault(require("./routes/booking.route"));
+const countryZone_route_1 = __importDefault(require("./routes/countryZone.route"));
+const rateExpress_route_1 = __importDefault(require("./routes/rateExpress.route"));
+const container_route_1 = __importDefault(require("./routes/container.route"));
+const ship_schedule_route_1 = __importDefault(require("./routes/ship.schedule.route"));
+const ship_route_route_1 = __importDefault(require("./routes/ship.route.route"));
+const rateFreight_route_1 = __importDefault(require("./routes/rateFreight.route"));
+const carrierCompany_route_1 = __importDefault(require("./routes/carrierCompany.route"));
+const wallet_route_1 = __importDefault(require("./routes/wallet.route"));
+const express_booking_route_1 = __importDefault(require("./routes/express.booking.route"));
 // import other routers here
 const rootRouter = (0, express_1.Router)();
 rootRouter.use("/example", example_route_1.default);
@@ -49,21 +58,37 @@ rootRouter.use("/coupon", coupon_route_1.default);
 rootRouter.use("/order", order_route_1.default);
 rootRouter.use("/cart", cart_route_1.default); // cart routes
 rootRouter.use('/country', country_route_1.default);
+rootRouter.use('/country/zone', countryZone_route_1.default);
 rootRouter.use('/rate/shippingmethod', rateShippingMethod_route_1.default);
 rootRouter.use('/rate/weightcategories', rateWaightCategories_route_1.default);
 rootRouter.use('/rate/product', rateProduct_route_1.default);
+// Container
+rootRouter.use('/rate/container', container_route_1.default);
+rootRouter.use('/rate/ship/schedule', ship_schedule_route_1.default);
+rootRouter.use('/rate/ship/route', ship_route_route_1.default);
+rootRouter.use('/rate/carrier-company', carrierCompany_route_1.default);
 rootRouter.use('/rate', rate_route_1.default);
+rootRouter.use('/rate/express', rateExpress_route_1.default);
+rootRouter.use('/rate/freight', rateFreight_route_1.default);
 // booking 
+rootRouter.use("/booking", booking_route_1.default);
+rootRouter.use("/country", country_route_1.default);
+rootRouter.use("/rate/shippingmethod", rateShippingMethod_route_1.default);
+rootRouter.use("/rate/weightcategories", rateWaightCategories_route_1.default);
+rootRouter.use("/rate/product", rateProduct_route_1.default);
+rootRouter.use("/rate", rate_route_1.default);
+// booking
 rootRouter.use("/booking", booking_route_1.default);
 rootRouter.use("/booking/air", air_booking_route_1.default);
 rootRouter.use("/booking/sea", sea_booking_route_1.default);
-rootRouter.use("/booking/express", wishlist_route_1.default);
+rootRouter.use("/booking/express", express_booking_route_1.default);
 rootRouter.use("/booking/inventory", wishlist_route_1.default);
 // WarehouseSpace masud
-rootRouter.use('/warehouses', warehouse_route_1.default);
-rootRouter.use('/warehouse-spaces', warehouseSpace_route_1.default);
-rootRouter.use('/packages', package_route_1.default);
-rootRouter.use('/banding', banding_route_1.default);
+rootRouter.use("/warehouses", warehouse_route_1.default);
+rootRouter.use("/warehouse-spaces", warehouseSpace_route_1.default);
+rootRouter.use("/packages", package_route_1.default);
+rootRouter.use("/banding", banding_route_1.default);
+rootRouter.use("/wallets", wallet_route_1.default);
 //done by rafi
 rootRouter.use("/policies", policies_route_1.default);
 rootRouter.use("/services", services_route_1.default);

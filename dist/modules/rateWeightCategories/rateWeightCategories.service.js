@@ -20,7 +20,7 @@ class RateWeightCategoriesService {
         this.repository = repository;
     }
     async createRateWeightCategories(payload) {
-        const { label, min_weight, max_weight } = payload;
+        const { label, min_weight, max_weight, boxSize } = payload;
         console.log("payload service", payload);
         // Validate required fields.
         // Allow min_weight = 0 (so test for undefined/null rather than falsy)
@@ -47,6 +47,7 @@ class RateWeightCategoriesService {
             label,
             min_weight: min,
             max_weight: max,
+            boxSize
         };
         const shippingMethod = await this.repository.createRateWeightCategories(weightCategoriesPayload);
         return shippingMethod;
@@ -62,7 +63,7 @@ class RateWeightCategoriesService {
         return rateWeightCategories;
     }
     async updateRateWeightCategories(id, payload) {
-        const { label, min_weight, max_weight } = payload;
+        const { label, min_weight, max_weight, boxSize } = payload;
         // Validate required fields
         if (!label || min_weight === undefined || min_weight === null || max_weight === undefined || max_weight === null) {
             const error = new Error('label, min_weight and max_weight are required');
@@ -114,7 +115,8 @@ class RateWeightCategoriesService {
         const updatedPayload = {
             label,
             min_weight: min,
-            max_weight: max
+            max_weight: max,
+            boxSize
         };
         const updatedCategory = await this.repository.updateRateWeightCategories(id, updatedPayload);
         return updatedCategory;

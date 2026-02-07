@@ -48,6 +48,7 @@ class BookingRepository {
               include: {
                 supplierRef: true,
                 packageRef: true,
+                shippingMethodRef: true,
                 rateRef: {
                   include: {
                     category1688: true,

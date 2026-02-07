@@ -13,8 +13,9 @@ class WarehouseController {
         this.createWarehouse = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
                 const payload = req.body;
+                console.log("payload", payload);
                 const warehouse = await warehouseService.createWarehouse(payload);
-                const resDoc = (0, responseHandler_1.responseHandler)(201, 'Warehouse created successfully', warehouse);
+                const resDoc = (0, responseHandler_1.responseHandler)(201, "Warehouse created successfully", warehouse);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -26,11 +27,13 @@ class WarehouseController {
                 const filter = {
                     status: req.query.status,
                     type: req.query.type,
-                    countryId: req.query.countryId ? parseInt(req.query.countryId) : undefined,
+                    countryId: req.query.countryId
+                        ? parseInt(req.query.countryId)
+                        : undefined,
                     search: req.query.search,
                 };
                 const warehouses = await warehouseService.getAllWarehouses(filter);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouses retrieved successfully', warehouses);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouses retrieved successfully", warehouses);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -40,7 +43,7 @@ class WarehouseController {
         this.getWarehousesForClient = async (req, res, next) => {
             try {
                 const warehouses = await warehouseService.getWarehousesForClient();
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouses retrieved successfully', warehouses);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouses retrieved successfully", warehouses);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -51,7 +54,7 @@ class WarehouseController {
             try {
                 const { id } = req.params;
                 const warehouse = await warehouseService.getWarehouseById(id);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse retrieved successfully', warehouse);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouse retrieved successfully", warehouse);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -67,11 +70,13 @@ class WarehouseController {
                     limit,
                     status: req.query.status,
                     type: req.query.type,
-                    countryId: req.query.countryId ? parseInt(req.query.countryId) : undefined,
+                    countryId: req.query.countryId
+                        ? parseInt(req.query.countryId)
+                        : undefined,
                     search: req.query.search,
                 };
                 const warehouses = await warehouseService.getWarehousesWithPagination(filter, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouses retrieved successfully with pagination', warehouses);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouses retrieved successfully with pagination", warehouses);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -106,12 +111,12 @@ class WarehouseController {
                 const { id } = req.params;
                 const { usedCapacity } = req.body;
                 if (!usedCapacity && usedCapacity !== 0) {
-                    const error = new Error('usedCapacity is required');
+                    const error = new Error("usedCapacity is required");
                     error.statusCode = 400;
                     throw error;
                 }
                 const warehouse = await warehouseService.updateWarehouseCapacity(id, usedCapacity, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse capacity updated successfully', warehouse);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouse capacity updated successfully", warehouse);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -121,7 +126,7 @@ class WarehouseController {
         this.getWarehouseStats = async (req, res, next) => {
             try {
                 const stats = await warehouseService.getWarehouseStats();
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse statistics retrieved successfully', stats);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouse statistics retrieved successfully", stats);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -132,7 +137,7 @@ class WarehouseController {
             try {
                 const { managerId } = req.params;
                 const warehouses = await warehouseService.getWarehousesByManager(parseInt(managerId));
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouses retrieved successfully', warehouses);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouses retrieved successfully", warehouses);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -145,7 +150,7 @@ class WarehouseController {
                     ? parseInt(req.query.minAvailableCapacity)
                     : 0;
                 const warehouses = await warehouseService.getAvailableCapacityWarehouses(minAvailableCapacity);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Available warehouses retrieved successfully', warehouses);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Available warehouses retrieved successfully", warehouses);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -156,12 +161,12 @@ class WarehouseController {
             try {
                 const { search } = req.query;
                 if (!search) {
-                    const error = new Error('Search term is required');
+                    const error = new Error("Search term is required");
                     error.statusCode = 400;
                     throw error;
                 }
                 const warehouses = await warehouseService.searchWarehouses(search);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouses retrieved successfully', warehouses);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouses retrieved successfully", warehouses);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -173,12 +178,12 @@ class WarehouseController {
                 const { id } = req.params;
                 const { status } = req.body;
                 if (!status) {
-                    const error = new Error('Status is required');
+                    const error = new Error("Status is required");
                     error.statusCode = 400;
                     throw error;
                 }
                 const warehouse = await warehouseService.changeWarehouseStatus(id, status);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Warehouse status updated successfully', warehouse);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Warehouse status updated successfully", warehouse);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {

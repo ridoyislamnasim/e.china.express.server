@@ -7,15 +7,21 @@ import ImgUploader from "../../middleware/upload/ImgUploder";
 import { bookingIdGenerate } from "../../utils/bookingIdGenerator";
 import { Prisma, PrismaClient } from "@prisma/client";
 import rateRepository from "../rate/rate.repository";
+import  rateExpressRepository  from "../rateExpress/rate.express.repository";
 
 export class ExpressBookingService extends BaseService<typeof expressBookingRepository> {
   private repository: typeof expressBookingRepository;
+  private rateExpressRepository: typeof rateExpressRepository;
+  private rateRepository = rateRepository;
   constructor(repository: typeof expressBookingRepository, serviceName: string) {
     super(repository);
     this.repository = repository;
+    this.rateExpressRepository = rateExpressRepository;
+    this.rateRepository = rateRepository;
   }
 
   async createExpressBooking(payload: any, payloadFiles: any, tx?: any) {
+    const {exportCountryId, importCountryId, weight, shippingMethodId, variants} =payload
     const { files } = payloadFiles;
     if (files?.length) {
       const images = await ImgUploader(files);
@@ -27,18 +33,19 @@ export class ExpressBookingService extends BaseService<typeof expressBookingRepo
     // find shipping rate to get price
     // find country combination
     console.log("Payload received in ExpressBooking Service:", payload);
-    const countryCombination = await rateRepository.existingCountryConbination({
-      importCountryId: Number(payload.importCountryId),
-      exportCountryId: Number(payload.exportCountryId),
-    });
+
+    //  const payload: any = {
+    //   countryId:Number(countryId),
+    //   weight: Number(weight),
+    //   shippingMethodId: Number(shippingMethodId)
+    // };
+
     // findWeightCategoryByWeight
-    const weightCategory = await rateRepository.findWeightCategoryByWeight(Number(payload.weight));
-    console.log("Country Combination found in ExpressBooking Service:", countryCombination);
-    const rate = await rateRepository.findRateByCriteria({
-      countryCombinationId: countryCombination?.id,
-      weightCategoryId: weightCategory?.id,
-      shippingMethodId: Number(payload.shippingMethodId),
-      category1688Id: Number(payload.category1688Id)
+    const weightCategory = await this.rateRepository.findWeightCategoryByWeight(Number(weight));
+    const rate = await this.rateExpressRepository.findRateExpressByCriteria({
+      countryId: Number(exportCountryId),
+      weight: weightCategory?.id,
+      shippingMethodId: Number(shippingMethodId)
     });
     console.log("Rate found in ExpressBooking Service:", rate);
 
@@ -54,18 +61,10 @@ export class ExpressBookingService extends BaseService<typeof expressBookingRepo
       shippingMethodName,
     });
 
-    // shippingRateId: payload.shippingRateId,
-    // bookerName: payload.bookerName,
-    // bookerPhone: payload.bookerPhone,
-    // bookerEmail: payload.bookerEmail,
-    // bookerAddress: payload.bookerAddress,
-    // shippingMethodId: payload.shippingMethodId,
-    // category1688Id: payload.category1688Id,
-    // categoryId: payload.categoryId,
-    // subCategoryId: payload.subCategoryId,
-
     const expressBookingPayload = {
-      rateRef: { connect: { id: Number(payload.rateId) } },
+      expressRateRef: { connect: { id: Number(rate[0].id) } },
+      shippingMethodRef: { connect: { id: Number(payload.shippingMethodId) } },
+
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       orderNumber,
       warehouseReceivingStatus: "PENDING",
@@ -89,6 +88,41 @@ export class ExpressBookingService extends BaseService<typeof expressBookingRepo
     console.log("ExpressBooking Payload in Service:", expressBookingPayload);
     // return expressBookingPayload;
     const expressBookingData = await this.repository.createExpressBooking(expressBookingPayload, tx);
+
+    // Handle variants if present. Frontend sends `variants` as JSON string in FormData
+    const parsedVariants = typeof variants === 'string' ? (variants ? JSON.parse(variants) : []) : (variants || []);
+
+    // Collect uploaded variant images. ImgUploader may attach files as keys like
+    // 'variantImages[0]', 'variantImages[1]' or as an array `payload.variantImages`.
+    const variantImagesArr: string[] = [];
+    if (Array.isArray(payload.variantImages)) {
+      variantImagesArr.push(...payload.variantImages);
+    } else {
+      let vi = 0;
+      while (payload[`variantImages[${vi}]`]) {
+        variantImagesArr.push(payload[`variantImages[${vi}]`]);
+        vi++;
+      }
+    }
+
+    if (parsedVariants && parsedVariants.length > 0) {
+      for (let i = 0; i < parsedVariants.length; i++) {
+        const variant = parsedVariants[i];
+        // "color":"Black","colorHex":"#000000","colorName":"Black","quantity":7,"size":"",
+        const { color, colorHex, colorName, size, quantity } = variant as any;
+        const variantPayload = {
+          shipmentBookingId: expressBookingData.id,
+          color,
+          colorHex,
+          colorName,
+          size,
+          quantity: Number(quantity),
+          skuImageUrl: variantImagesArr[i] ?? null,
+        };
+        await this.repository.createVariant(variantPayload, tx);
+      }
+    }
+
     return expressBookingData;
   }
 

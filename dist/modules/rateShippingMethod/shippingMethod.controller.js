@@ -10,10 +10,13 @@ const rateShippingMethodService = new shippingMethod_service_1.ShippingMethodSer
 class RateShippingMethodController {
     constructor() {
         this.createShippingMethod = async (req, res, next) => {
+            var _a;
             try {
                 const { name, description } = req.body;
                 const payload = {
                     name,
+                    boxSize: (_a = req.body.boxSize) !== null && _a !== void 0 ? _a : null,
+                    cbmToKgRatio: req.body.cbmToKgRatio ? parseFloat(req.body.cbmToKgRatio) : undefined,
                     description: description !== null && description !== void 0 ? description : null
                 };
                 const shippingMethod = await rateShippingMethodService.createShippingMethod(payload);
@@ -61,10 +64,14 @@ class RateShippingMethodController {
             }
         };
         this.updateShippingMethod = async (req, res, next) => {
+            var _a, _b;
             try {
                 const id = req.params.id;
                 const payload = {
                     name: req.body.name,
+                    boxSize: (_a = req.body.boxSize) !== null && _a !== void 0 ? _a : null,
+                    cbmToKgRatio: req.body.cbmToKgRatio ? parseFloat(req.body.cbmToKgRatio) : undefined,
+                    description: (_b = req.body.description) !== null && _b !== void 0 ? _b : null
                 };
                 await rateShippingMethodService.updateShippingMethod(id, payload);
                 const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping method updated successfully');

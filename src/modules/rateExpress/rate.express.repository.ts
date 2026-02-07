@@ -106,5 +106,5 @@ export class RateExpressRepository {
 }
 
 // Export a singleton instance, similar to module.exports = new CountryRepository(UserSchema)
-const rateRepository = new RateExpressRepository();
-export default rateRepository;
+const rateExpressRepository = new RateExpressRepository();
+export default rateExpressRepository;

@@ -4,45 +4,78 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthRepository = void 0;
+const pagination_1 = require("../../utils/pagination");
 const prismadatabase_1 = __importDefault(require("../../config/prismadatabase"));
 const OTPGenerate_1 = require("../../utils/OTPGenerate");
-const pagination_1 = require("../../utils/pagination");
 class AuthRepository {
     constructor() {
         this.prisma = prismadatabase_1.default;
         this.createCustomRoleIfNotExists = async (roleName, tx) => {
             const prismaClient = tx || this.prisma;
             // Try to find existing role first
-            let role = await prismaClient.role.findUnique({ where: { role: roleName } });
+            let role = await prismaClient.role.findUnique({
+                where: { role: roleName },
+            });
             if (role)
                 return role;
             const permission = await prismaClient.permission.create({});
-            role = await prismaClient.role.create({ data: { role: roleName, permissionId: permission.id } });
+            role = await prismaClient.role.create({
+                data: { role: roleName, permissionId: permission.id },
+            });
             return role;
         };
         // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
     }
+    // async createUser(payload: AuthUserSignUpPayload, tx?: any) {
+    //   const { name, email, password, roleId, phone } = payload;
+    //   if (!name || !password) {
+    //     const error = new Error('name and password are required');
+    //     (error as any).statusCode = 400;
+    //     throw error;
+    //   }
+    //   const userData: any = {
+    //     name,
+    //     email: email || '',
+    //     password,
+    //   };
+    //   if (phone) userData.phone = phone;
+    //   if (roleId) userData.roleId = roleId;
+    //   console.log('Creating user with data:', userData);
+    //   const newUser = await this.prisma.user.create({
+    //     data: userData,
+    //   });
+    //   console.log('User created successfully:', newUser);
+    //   return newUser;
+    // }
     async createUser(payload, tx) {
         const { name, email, password, roleId, phone } = payload;
-        if (!name || !password) {
-            const error = new Error('name and password are required');
-            error.statusCode = 400;
-            throw error;
-        }
+        const prismaClient = tx || this.prisma; // Use transaction client if provided
         const userData = {
             name,
-            email: email || '',
+            email: email || "",
             password,
+            wallets: {
+                create: {
+                    name: "Default RMB Wallet",
+                    currency: "RMB",
+                    balance: 0,
+                    status: "active",
+                    monthlyLimit: 50000,
+                    category: "Main",
+                    cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`,
+                    expiryDate: "12/29",
+                    cvv: "123",
+                },
+            },
         };
         if (phone)
             userData.phone = phone;
         if (roleId)
             userData.roleId = roleId;
-        console.log('Creating user with data:', userData);
-        const newUser = await this.prisma.user.create({
+        const newUser = await prismaClient.user.create({
             data: userData,
+            include: { wallets: true }, // Return user with their new wallet
         });
-        console.log('User created successfully:', newUser);
         return newUser;
     }
     async getUser() {
@@ -50,25 +83,25 @@ class AuthRepository {
     }
     async getUserById(id) {
         return await this.prisma.user.findUnique({
-            where: { id }
+            where: { id },
         });
     }
     async getUserBy(id) {
-        console.log('Fetching user by ID:', id);
+        console.log("Fetching user by ID:", id);
         return await this.prisma.user.findUnique({
             where: { id },
             include: {
                 role: {
                     include: {
-                        permission: true
-                    }
-                }
-            }
+                        permission: true,
+                    },
+                },
+            },
         });
     }
     async saveOTP(userId, otp, expiresInMinutes = 5) {
         const otpHash = await (0, OTPGenerate_1.hashOTP)(otp);
-        console.log('Saving OTP hash:', otpHash, 'for otp:', otp);
+        console.log("Saving OTP hash:", otpHash, "for otp:", otp);
         const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
         return await this.prisma.oTP.create({
             data: {
@@ -81,52 +114,66 @@ class AuthRepository {
         });
     }
     async updateUserPassword(userId, password) {
-        return await this.prisma.user.update({ where: { id: userId }, data: { password } });
+        return await this.prisma.user.update({
+            where: { id: userId },
+            data: { password },
+        });
     }
     async verifyOTP(userId, otp) {
         const otpRecord = await this.prisma.oTP.findFirst({
             where: { userRefId: userId },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: "desc" },
         });
         if (!otpRecord)
-            return { success: false, reason: 'no_otp' };
+            return { success: false, reason: "no_otp" };
         const now = new Date();
         if (otpRecord.expiresAt && new Date(otpRecord.expiresAt) < now) {
-            return { success: false, reason: 'expired' };
+            return { success: false, reason: "expired" };
         }
         // The OTP was stored using hashOTP (HMAC SHA256). Recompute and compare.
         const providedHash = (0, OTPGenerate_1.hashOTP)(String(otp));
         const isMatch = providedHash === otpRecord.otpHash;
-        console.log('OTP match result:', isMatch, { otpRecord }, otp);
+        console.log("OTP match result:", isMatch, { otpRecord }, otp);
         if (isMatch) {
-            await this.prisma.oTP.update({ where: { id: otpRecord.id }, data: { verified: true } });
+            await this.prisma.oTP.update({
+                where: { id: otpRecord.id },
+                data: { verified: true },
+            });
             return { success: true };
         }
         // increment attempts and apply lockout if threshold reached
         const prevAttempts = otpRecord.attempts || 0;
         const newAttempts = prevAttempts + 1;
         const updates = { attempts: newAttempts };
-        let reason = 'invalid';
+        let reason = "invalid";
         const MAX_ATTEMPTS = 5;
         if (newAttempts >= MAX_ATTEMPTS) {
             // lock for 1 hour by setting expiresAt to 1 hour from now
             const lockUntil = new Date(Date.now() + 60 * 60 * 1000);
             updates.expiresAt = lockUntil;
-            reason = 'locked';
+            reason = "locked";
             console.warn(`OTP locked for userRefId=${otpRecord.userRefId} until ${lockUntil.toISOString()} after ${newAttempts} attempts`);
         }
-        await this.prisma.oTP.update({ where: { id: otpRecord.id }, data: updates });
+        await this.prisma.oTP.update({
+            where: { id: otpRecord.id },
+            data: updates,
+        });
         return { success: false, reason };
     }
     async isOTPLocked(userId) {
-        const otpRecord = await this.prisma.oTP.findFirst({ where: { userRefId: userId }, orderBy: { createdAt: 'desc' } });
+        const otpRecord = await this.prisma.oTP.findFirst({
+            where: { userRefId: userId },
+            orderBy: { createdAt: "desc" },
+        });
         if (!otpRecord)
             return { locked: false, attempts: 0 };
         const attempts = otpRecord.attempts || 0;
         const MAX_ATTEMPTS = 5;
         const now = new Date();
         // We used expiresAt as lockUntil when attempts exceeded MAX_ATTEMPTS.
-        if (attempts >= MAX_ATTEMPTS && otpRecord.expiresAt && new Date(otpRecord.expiresAt) > now) {
+        if (attempts >= MAX_ATTEMPTS &&
+            otpRecord.expiresAt &&
+            new Date(otpRecord.expiresAt) > now) {
             return { locked: true, unlockTime: otpRecord.expiresAt, attempts };
         }
         return { locked: false, attempts };
@@ -153,7 +200,7 @@ class AuthRepository {
         });
     }
     // ====================================================
-    // user repository services 
+    // user repository services
     // ====================================================
     async getUserWithPagination(payload) {
         return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
@@ -175,17 +222,19 @@ class AuthRepository {
         return await this.prisma.user.update({
             where: { id: userId },
             data: { roleId },
-            include: { role: true }
+            include: { role: true },
         });
     }
     async getUserRoleById(userId) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            include: { role: {
+            include: {
+                role: {
                     include: {
-                        permission: true
-                    }
-                } }
+                        permission: true,
+                    },
+                },
+            },
         });
         return user === null || user === void 0 ? void 0 : user.role;
     }

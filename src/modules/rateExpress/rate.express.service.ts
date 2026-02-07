@@ -131,11 +131,6 @@ export class RateExpressService {
     if (!importCountryId || !exportCountryId || !shippingMethodId) {
       return [];
     }
-    // find the country combination id first  
-    const countryCombinationPayload = {
-      importCountryId: Number(importCountryId),
-      exportCountryId: Number(exportCountryId)
-    };
     const payloadWithCombinationId = {
       shippingMethodId: Number(shippingMethodId),
     };
@@ -168,13 +163,6 @@ export class RateExpressService {
       throw error;
     }
 
-
-
-    // Ensure country combination exists (create if missing)
-    const countryCombinationPayload = {
-      importCountryId: Number(importCountryId),
-      exportCountryId: Number(exportCountryId),
-    };
     // small helper to compute the adjusted price
     const computeNewPrice = (existingPrice: number | null) => {
       if (existingPrice !== null && existingPrice !== undefined) {

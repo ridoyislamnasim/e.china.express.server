@@ -15,6 +15,13 @@ const role_repository_1 = __importDefault(require("../role/role.repository"));
 class AuthService {
     // private roleRepository: RoleRepository;
     constructor(repository = auth_repository_1.default) {
+        // ====================================================
+        // user services 
+        // ====================================================
+        //  async getUserWithPagination(payload: any, session?: any) {
+        //     const users = await this.repository.getUserWithPagination(payload);
+        //     return users;
+        //   }
         this.updateUserRole = async (payload) => {
             const { userId, roleId } = payload;
             // superAdmin role cannot be updated and assigned to any user
@@ -31,8 +38,8 @@ class AuthService {
                 error.statusCode = 400;
                 throw error;
             }
-            const user = await this.repository.updateUserRole(userId, roleId);
-            return user;
+            // const user = await this.repository.updateUserRole(userId, roleId);
+            // return user;
         };
         this.repository = repository;
     }
@@ -246,13 +253,6 @@ class AuthService {
         };
         const role = await this.repository.createUser(superAdminUserPayload, session);
         return role;
-    }
-    // ====================================================
-    // user services 
-    // ====================================================
-    async getUserWithPagination(payload, session) {
-        const users = await this.repository.getUserWithPagination(payload);
-        return users;
     }
 }
 exports.AuthService = AuthService;

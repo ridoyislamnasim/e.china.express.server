@@ -62,10 +62,10 @@ app.listen(PORT, () => {
 =========================================
  🚀  Server Started Successfully
 -----------------------------------------
- 🌐  URL:        http://localhost:${PORT}
- 🏷️  Mode:       ${process.env.NODE_ENV}
- ⏰  Started At:  ${new Date().toLocaleString()}
- 💾  Memory:     ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB
+//  🌐  URL:        http://localhost:${PORT}
+//  🏷️  Mode:       ${process.env.NODE_ENV}
+//  ⏰  Started At:  ${new Date().toLocaleString()}
+//  💾  Memory:     ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB
 =========================================
 
 ⚡  Ready to receive requests!  

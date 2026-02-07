@@ -17,12 +17,10 @@ class ExpressBookingController {
       importCountryId: req.body.importCountryId,
       exportCountryId: req.body.exportCountryId,
       shippingMethodId: req.body.shippingMethodId,
-      category1688Id: req.body.category1688Id,
       weight: req.body.weight,
       totalCost: req.body.totalCost,
       rateId: req.body.rateId,
       categoryId: req.body.categoryId,
-      subCategoryId: req.body.subCategoryId,
       userRef: userRef,
       warehouseImportId: req.body.warehouseImportId,
       warehouseExportId: req.body.warehouseExportId,
@@ -32,6 +30,9 @@ class ExpressBookingController {
       countryExportId: req.body.countryExportId,
       countryImportId: req.body.countryImportId,
       productQuantity: req.body.productQuantity,
+
+      // variants
+      variants: req.body.variants ? JSON.parse(req.body.variants) : undefined,
      
     };
     console.log("ExpressBooking Create request body:", payload);
