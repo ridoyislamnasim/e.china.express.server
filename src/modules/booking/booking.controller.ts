@@ -54,6 +54,39 @@ class BookingController {
     res.status(resDoc.statusCode).json(resDoc);
   });
 
+  updateBookingInvoiceByCustomer = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const payload = {
+      customerId: userRef ? Number(userRef) : undefined,
+      bookingId: req.body.bookingId
+    };
+    const payloadFiles = {
+      files: req.files,
+    };
+    console.log("Booking Update Invoice request body:", payload);
+    const BookingResult = await BookingService.updateBookingInvoiceByCustomer(payload, payloadFiles, tx);
+    const resDoc = responseHandler(201, "Booking Invoice Updated successfully", BookingResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  updateBookingPackingListByCustomer = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
+
+    const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+    const payload = {
+      customerId: userRef ? Number(userRef) : undefined,
+      bookingId: req.body.bookingId ,
+      packingList: req.body.packingList ,
+    };
+        const payloadFiles = {
+      files: req.files,
+    };
+    console.log("Booking Update Packing List request body:", payload);
+    const BookingResult = await BookingService.updateBookingPackingListByCustomer(payload, payloadFiles, tx);
+    const resDoc = responseHandler(201, "Booking Packing List Updated successfully", BookingResult);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
   updateBookingApprovedRejectByAdmin = withTransaction(async (req: Request, res: Response, next: NextFunction, tx: any) => {
 
     const payload = {

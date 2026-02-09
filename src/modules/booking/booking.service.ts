@@ -156,6 +156,64 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     return BookingData;
   }
 
+  async updateBookingInvoiceByCustomer(payload: any, payloadFiles: any, tx?: any) {
+    const { customerId, bookingId } = payload;
+    console.log("Update Booking Invoice by Customer Payload before file processing:", payload);
+
+    const { files } = payloadFiles || {};
+        if (files?.length) {
+          const images = await ImgUploader(files);
+          // console.log('Images uploaded is images ater upload:', images);
+          for (const key in images) {
+            payload[key] = images[key];
+          }
+        }else {
+          return;
+        }
+    // bookingid and invoice required
+    if (!bookingId) {
+      throw new Error("bookingId and invoice are required");
+    }
+    console.log("Update Booking Invoice by Customer Payload:", payload);
+    const condition ={
+      id: Number(bookingId)
+    }
+    const updateData: any = {
+      invoicePhotos: payload.invoicePhotos || undefined,
+      // customerRef: userRef ? { connect: { id: Number(userRef) } } : undefined,
+    };
+    const BookingData = await this.repository.findByConditionAndUpdate(condition, updateData, tx);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    return BookingData;
+  }
+
+  async updateBookingPackingListByCustomer(payload: any, payloadFiles: any, tx?: any) {
+    const { customerId, bookingId } = payload;
+    const { files } = payloadFiles || {};
+        if (files?.length) {
+          const images = await ImgUploader(files);
+          // console.log('Images uploaded is images ater upload:', images);
+          for (const key in images) {
+            payload[key] = images[key];
+          }
+        } 
+    // bookingid and packingList required
+    if (!bookingId) {
+      throw new Error("bookingId is required");
+    }
+    console.log("Update Booking Packing List by Customer Payload:", payload);
+    const condition ={
+      id: Number(bookingId),
+    }
+    const updateData: any = {
+      packingListPhotos: payload.packingListPhotos || undefined,
+      // customerRef: userRef ? { connect: { id: Number(userRef) } } : undefined,
+    };
+    const BookingData = await this.repository.findByConditionAndUpdate(condition, updateData, tx);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    return BookingData;
+  }
+
   async getAllBookingForAdminByFilterWithPagination(payload: any) {
     // check userRef roleId if customer then return with error msg
     const userRef = payload.userRef;

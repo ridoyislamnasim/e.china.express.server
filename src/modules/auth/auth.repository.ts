@@ -1,4 +1,4 @@
-import { pagination } from '../../utils/pagination';
+import { pagination } from "../../utils/pagination";
 import prisma from "../../config/prismadatabase";
 import { PrismaClient } from "@prisma/client";
 import { AuthUserSignUpPayload } from "../../types/auth";
@@ -256,6 +256,8 @@ export class AuthRepository {
     return user?.role;
   }
 // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+  // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+  // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
 }
 
 // Export a singleton instance, similar to module.exports = new AuthRepository(UserSchema)

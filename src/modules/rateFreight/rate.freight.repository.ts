@@ -118,6 +118,26 @@ console.log("data in repo", data);
     return rates;
   }
 
+  async existFreightRate(payload: any, tx?: PrismaClient): Promise<any> {
+    console.log("payload in repo", payload);
+    const { routeId, cargoType, shipmentMode, shippingMethodId, carrierCompanyId, cbm, containerId } = payload;
+    const whereCondition: any = {
+      routeId: Number(routeId),
+      cargoType,
+      shipmentMode,
+      shippingMethodId: Number(shippingMethodId),
+      carrierCompanyId: Number(carrierCompanyId),
+    };
+    if (cbm !== undefined && cbm !== null) whereCondition.cbm = Number(cbm);
+    if (containerId !== undefined && containerId !== null) whereCondition.containerId = Number(containerId);
+    const client = tx || this.prisma;
+    const rate = await client.freightRate.findFirst({
+      where: whereCondition
+    });
+    return rate;
+  }
+
+
   async countryMethodWiseRateFreight(payload: any, tx?: PrismaClient): Promise<any> {
     const { shippingMethodId, countryCombinationId } = payload;
     const client = tx || this.prisma;

@@ -7,7 +7,6 @@ model ShipmentBooking {
   bookingNo                Int
   invoice                  String?
   packingList              String?
-  productPhotos            String?
   totalWeightkg            Decimal?                 @db.Decimal(10, 2)
   total_cbm                Decimal?                 @db.Decimal(10, 2)
   totalProductCost         Decimal?                 @db.Decimal(10, 2)
@@ -15,6 +14,10 @@ model ShipmentBooking {
   cartonQuantity           Int?
   productQuantity          Int?
   weight                   Decimal?                 @db.Decimal(10, 2)
+  // 
+  productPhotos            String?
+  invoicePhotos             String?
+  packingListPhotos         String?
 
   // method relation
   shippingMethodId         Int?
@@ -77,6 +80,7 @@ model ShipmentBooking {
   shipmentBookingItems     BookingProduct[]
   shippingInfos            ShippingInfo[]
   bookingProductVariants   BookingProductVariant[]
+  localDeliveryInfo        LocalDeliveryInfo? 
 
   createdAt                DateTime                 @default(now())
   @@map("ShipmentBooking")
@@ -281,3 +285,23 @@ model ShippingInfo {
   shippingMethod    RateShippingMethod? @relation(fields: [shippingMethodId], references: [id])
   toCountry         Country?            @relation("ShippingToCountry", fields: [toCountryId], references: [id])
 }
+
+
+model LocalDeliveryInfo {
+  id Int @id @default(autoincrement())
+
+  deliveryDate   DateTime
+  timeSlot       String        // e.g. "Evening (3PM - 6PM)"
+
+  contactPerson  String
+  phoneNumber    String
+  deliveryAddress String
+  specialInstructions String?
+
+  shipmentBookingId Int
+  shipmentBooking   ShipmentBooking @relation(fields: [shipmentBookingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

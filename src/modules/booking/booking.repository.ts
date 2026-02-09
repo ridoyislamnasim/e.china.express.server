@@ -55,6 +55,18 @@ class BookingRepository {
                     shippingMethod: true,
                   },
                 },
+                expressRateRef: {
+                  include: {
+                    weightCategory: true,
+                    shippingMethod: true,
+                  },
+                },
+                freightRateRef: {
+                  include: {
+                    shippingMethod: true,
+                  },
+                },
+                
                 importWarehouseRef: {
                   select: {
                     id: true,

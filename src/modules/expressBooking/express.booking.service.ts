@@ -68,6 +68,7 @@ export class ExpressBookingService extends BaseService<typeof expressBookingRepo
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       orderNumber,
       warehouseReceivingStatus: "PENDING",
+      mainStatus: "PENDING",
       customerRef: payload.userRef? { connect: { id: Number(payload.userRef) } }: undefined,
       // 🔥 REQUIRED RELATIONS
       importCountryRef: {connect: { id: Number(payload.importCountryId) },},
@@ -82,6 +83,7 @@ export class ExpressBookingService extends BaseService<typeof expressBookingRepo
       cartonQuantity: payload.cartonQuantity ? Number(payload.cartonQuantity) : undefined,
       productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
       price: price ? new Prisma.Decimal(price) : undefined,
+      finalPrice: price ? new Prisma.Decimal(price) : undefined,
       // totalProductCost: 
       // price: rate
     };

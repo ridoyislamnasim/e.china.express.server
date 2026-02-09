@@ -111,7 +111,7 @@ export class RateFreightService {
       cargoType,
       shippingMethodId,
       carrierCompanyId,
-      shipmentMode,
+      shipmentMode, 
       shipScheduleId
     };
     if (shipmentMode === 'FCL') {
@@ -119,10 +119,13 @@ export class RateFreightService {
     } else if (shipmentMode === 'LCL') {
       existFreightRatePayload.cbm = payload.cbm;
     }
-    const existFreightRate = await this.repository.findRateFreightByCriteria(existFreightRatePayload);
+    console.log("existFreightRatePayload", existFreightRatePayload);
+    const existFreightRate = await this.repository.existFreightRate(existFreightRatePayload);
+    console.log("existFreightRate", existFreightRate);
     if (existFreightRate && existFreightRate.length > 0) {
       // than update price
       const rateId = existFreightRate[0].id;
+      console.log("Existing freight rate found with ID", rateId, " - updating price to ", price);
       const updatedRate = await this.repository.updateRateFreight(rateId, { price });
       return updatedRate;
     }
@@ -141,6 +144,7 @@ export class RateFreightService {
     } else if (shipmentMode === 'LCL') {
       createPayload.cbm = payload.cbm;
     }
+    console.log("createPayload", createPayload);
     const newRate = await this.repository.createRateFreight(createPayload);
     return newRate;
   }

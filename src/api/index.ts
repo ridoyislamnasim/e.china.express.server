@@ -39,6 +39,7 @@ import rateFreightRouter from "./routes/rateFreight.route";
 import carrierCompanyRouter from "./routes/carrierCompany.route";
 import WalletRoute from "./routes/wallet.route";
 import ExpressBookingRouter from "./routes/express.booking.route";
+
 // import other routers here
 
 const rootRouter = Router();
@@ -58,22 +59,22 @@ rootRouter.use("/coupon", CouponRouter);
 rootRouter.use("/order", OrderRouter);
 
 rootRouter.use("/cart", CartRouter); // cart routes
-rootRouter.use('/country', countryRouter);
-rootRouter.use('/country/zone', countryZoneRouter);
-rootRouter.use('/rate/shippingmethod', rateShippingMethodRoute);
-rootRouter.use('/rate/weightcategories', rateWeightCategoriesRoute);
-rootRouter.use('/rate/product', rateProductRoute);
+rootRouter.use("/country", countryRouter);
+rootRouter.use("/country/zone", countryZoneRouter);
+rootRouter.use("/rate/shippingmethod", rateShippingMethodRoute);
+rootRouter.use("/rate/weightcategories", rateWeightCategoriesRoute);
+rootRouter.use("/rate/product", rateProductRoute);
 // Container
-rootRouter.use('/rate/container', containerRouter);
-rootRouter.use('/rate/ship/schedule', shipScheduleRouter);
-rootRouter.use('/rate/ship/route', shipRouteRouter);
-rootRouter.use('/rate/carrier-company', carrierCompanyRouter);
-rootRouter.use('/rate', rateRoute);
-rootRouter.use('/rate/express', rateExpressRouter);
-rootRouter.use('/rate/freight', rateFreightRouter);
+rootRouter.use("/rate/container", containerRouter);
+rootRouter.use("/rate/ship/schedule", shipScheduleRouter);
+rootRouter.use("/rate/ship/route", shipRouteRouter);
+rootRouter.use("/rate/carrier-company", carrierCompanyRouter);
+rootRouter.use("/rate", rateRoute);
+rootRouter.use("/rate/express", rateExpressRouter);
+rootRouter.use("/rate/freight", rateFreightRouter);
 
-// booking 
-rootRouter.use("/booking", BookingRouter); 
+// booking
+rootRouter.use("/booking", BookingRouter);
 rootRouter.use("/country", countryRouter);
 rootRouter.use("/rate/shippingmethod", rateShippingMethodRoute);
 rootRouter.use("/rate/weightcategories", rateWeightCategoriesRoute);

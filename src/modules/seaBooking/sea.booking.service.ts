@@ -7,6 +7,7 @@ import ImgUploader from "../../middleware/upload/ImgUploder";
 import { bookingIdGenerate } from "../../utils/bookingIdGenerator";
 import { Prisma, PrismaClient } from "@prisma/client";
 import rateRepository from "../rate/rate.repository";
+import { fi } from "zod/v4/locales";
 
 export class SeaBookingService extends BaseService<typeof seaBookingRepository> {
   private repository: typeof seaBookingRepository;
@@ -70,6 +71,7 @@ export class SeaBookingService extends BaseService<typeof seaBookingRepository> 
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       orderNumber,
       warehouseReceivingStatus: "PENDING",
+      mainStatus: "PENDING",
       customerRef: payload.userRef? { connect: { id: Number(payload.userRef) } }: undefined,
       // 🔥 REQUIRED RELATIONS
       importCountryRef: {connect: { id: Number(payload.importCountryId) },},
@@ -84,6 +86,7 @@ export class SeaBookingService extends BaseService<typeof seaBookingRepository> 
       cartonQuantity: payload.cartonQuantity ? Number(payload.cartonQuantity) : undefined,
       productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
       price: price ? new Prisma.Decimal(price) : undefined,
+      finalPrice: price ? new Prisma.Decimal(price) : undefined,
       // totalProductCost: 
       // price: rate
     };
