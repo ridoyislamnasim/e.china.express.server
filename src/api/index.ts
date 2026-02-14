@@ -38,6 +38,7 @@ import rateFreightRouter from "./routes/rateFreight.route";
 
 import WalletRoute from "./routes/wallet.route";
 import carrierCompanyRouter from "./routes/carrierCompany.route";
+import TransactionRoute from "./routes/transaction.routes";
 
 // import other routers here
 
@@ -95,6 +96,7 @@ rootRouter.use("/packages", PackageRoute);
 rootRouter.use("/banding", BandingRoute);
 
 rootRouter.use("/wallets", WalletRoute);
+rootRouter.use("/transactions", TransactionRoute);
 
 //done by rafi
 rootRouter.use("/policies", policiesRoute);
