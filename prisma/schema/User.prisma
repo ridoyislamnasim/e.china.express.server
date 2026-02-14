@@ -41,7 +41,10 @@ model User {
 
   cartProductShippings CartProductShipping[] @relation("CartProductShippingUser")
 
-  wallets   Wallet[]
+  wallets   Wallet[] 
+  sentTransactions     Transaction[] @relation("Sender")
+  receivedTransactions Transaction[] @relation("Receiver")
+
 }
 
 model Role {

@@ -7,10 +7,8 @@ import transactionService from "./transaction.service";
 import { getAuthUserId } from "../../utils/auth.helper";
 
 class TransactionController {
-
   createTransaction = withTransaction(
     async (req: Request, res: Response, next: NextFunction, tx: any) => {
-
       const userId = getAuthUserId(req);
 
       const payload = {
@@ -18,41 +16,79 @@ class TransactionController {
         fromId: userId,
       };
 
-      const transaction = await transactionService.createTransaction(payload, tx);
+      const transaction = await transactionService.createTransaction(
+        payload,
+        tx,
+      );
 
       const resDoc = responseHandler(
         201,
         "Transaction completed successfully",
-        transaction
+        transaction,
       );
 
       res.status(resDoc.statusCode).json(resDoc);
-    }
+    },
   );
 
-  getUserTransactions = catchError(
-    async (req: Request, res: Response) => {
-
+  createExpenseTransaction = catchError(
+    async (req: Request, res: Response, next: NextFunction) => {
       const userId = getAuthUserId(req);
 
-      const transactions = await transactionService.getUserTransactions(userId);
+      const payload = {
+        ...req.body,
+        fromId: userId, // logged-in user
+        toId: userId, // self expense (no receiver)
+        category: "EXPENSE",
+      };
 
-      const resDoc = responseHandler(200, "Transactions retrieved", transactions);
+      const transaction =
+        await transactionService.createExpenseTransaction(payload);
+
+      const resDoc = responseHandler(
+        201,
+        "Expense created successfully",
+        transaction,
+      );
+
       res.status(resDoc.statusCode).json(resDoc);
-    }
+    },
   );
 
-  getSingleTransaction = catchError(
-    async (req: Request, res: Response) => {
+  getExpenses = async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
 
-      const id = req.params.id;
-
-      const transaction = await transactionService.getSingleTransaction(id);
-
-      const resDoc = responseHandler(200, "Transaction retrieved", transaction);
-      res.status(resDoc.statusCode).json(resDoc);
+    try {
+      const result = await transactionService.getExpenses(page, limit);
+      res.status(200).json({
+        statusCode: 200,
+        message: "Expenses retrieved successfully",
+        ...result,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ statusCode: 500, message: "Server error" });
     }
-  );
+  };
+
+  getUserTransactions = catchError(async (req: Request, res: Response) => {
+    const userId = getAuthUserId(req);
+
+    const transactions = await transactionService.getUserTransactions(userId);
+
+    const resDoc = responseHandler(200, "Transactions retrieved", transactions);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
+  getSingleTransaction = catchError(async (req: Request, res: Response) => {
+    const id = req.params.id;
+
+    const transaction = await transactionService.getSingleTransaction(id);
+
+    const resDoc = responseHandler(200, "Transaction retrieved", transaction);
+    res.status(resDoc.statusCode).json(resDoc);
+  });
 }
 
 export default new TransactionController();

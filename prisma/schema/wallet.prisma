@@ -20,7 +20,7 @@ model Wallet {
 
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions  Transaction[]
+
 
   @@index([userId])
 }
@@ -42,23 +42,7 @@ enum Currency {
   DOGE
 }
 
-model Transaction {
-  id          String            @id @default(cuid())
-  walletId    String
-  amount      Float
-  type        TransactionType
-  status      TransactionStatus @default(pending)
-  currency    Currency
-  description String
-  merchant    String?
-  category    String
-  date        DateTime          @default(now())
-  createdAt   DateTime          @default(now())
 
-  wallet      Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
-
-  @@index([walletId])
-}
 
 enum TransactionType {
   credit   

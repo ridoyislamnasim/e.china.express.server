@@ -12,6 +12,12 @@ TransactionRoute.route("/")
   .post(transactionController.createTransaction)
   .get(transactionController.getUserTransactions);
 
+TransactionRoute.post(
+  "/expense",
+  transactionController.createExpenseTransaction,
+);
+TransactionRoute.get("/expenses", transactionController.getExpenses);
+
 TransactionRoute.get("/:id", transactionController.getSingleTransaction);
 
 export default TransactionRoute;
