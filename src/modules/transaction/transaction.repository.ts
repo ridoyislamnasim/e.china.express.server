@@ -11,9 +11,18 @@ class TransactionRepository {
     });
   }
 
-  async createExpenseTransaction(data: any) {
-    return await prisma.transaction.create({
-      data,
+  async createExpenseTransaction(data: any, tx?: any) {
+    const client = tx || prisma;
+
+    return await client.transaction.create({
+      data: {
+        ...data,
+        method: data.method ? String(data.method) : null,
+        dailyCost: data.dailyCost ? String(data.dailyCost) : null,
+        expenseCategory: data.expenseCategory
+          ? String(data.expenseCategory)
+          : null,
+      },
     });
   }
 

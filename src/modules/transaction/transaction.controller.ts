@@ -37,9 +37,8 @@ class TransactionController {
 
       const payload = {
         ...req.body,
-        fromId: userId, // logged-in user
-        toId: userId, // self expense (no receiver)
-        category: "EXPENSE",
+        fromId: userId,
+        toId: userId, // self expense
       };
 
       const transaction =

@@ -49,6 +49,7 @@ export class TransactionService {
     return await transactionRepository.createTransaction({
       ...payload,
       amount: Number(amount),
+      category: "EXPENSE", // enforce category
     });
   }
 

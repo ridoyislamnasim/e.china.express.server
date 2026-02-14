@@ -323,6 +323,7 @@ export class AuthService {
     // const user = await this.repository.updateUserRole(userId, roleId);
     // return user;
   };
+
   async getAllUsersWithWallets() {
     const users = await this.repository.getAllUsersWithWallets();
     return users;
