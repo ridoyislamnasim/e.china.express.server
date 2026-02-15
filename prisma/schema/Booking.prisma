@@ -1,93 +1,103 @@
 model ShipmentBooking {
   // indentifier
-  id                       Int                      @id @default(autoincrement())
-  orderNumber              String                   @unique
-  trackingNumber           String?
+  id             Int     @id @default(autoincrement())
+  orderNumber    String  @unique
+  trackingNumber String?
 
-  bookingNo                Int
-  invoice                  String?
-  packingList              String?
-  totalWeightkg            Decimal?                 @db.Decimal(10, 2)
-  total_cbm                Decimal?                 @db.Decimal(10, 2)
-  totalProductCost         Decimal?                 @db.Decimal(10, 2)
+  bookingNo        Int
+  invoice          String?
+  packingList      String?
+  totalWeightkg    Decimal? @db.Decimal(10, 2)
+  total_cbm        Decimal? @db.Decimal(10, 2)
+  totalProductCost Decimal? @db.Decimal(10, 2)
 
-  cartonQuantity           Int?
-  productQuantity          Int?
-  weight                   Decimal?                 @db.Decimal(10, 2)
-  // 
-  productPhotos            String?
-  invoicePhotos             String?
-  packingListPhotos         String?
+  cartonQuantity    Int?
+  productQuantity   Int?
+  weight            Decimal? @db.Decimal(10, 2)
+  shippingMark      String?
+
+  // category
+  categoryId    Int? @unique
+  categoryRef   Category? @relation(fields: [categoryId], references: [id])
+
+  // files
+  productPhotos     String?
+  invoicePhotos     String?
+  packingListPhotos String?
 
   // method relation
-  shippingMethodId         Int?
-  shippingMethodRef        RateShippingMethod?      @relation(fields: [shippingMethodId], references: [id])
-  
+  shippingMethodId  Int?
+  shippingMethodRef RateShippingMethod? @relation(fields: [shippingMethodId], references: [id])
+
   // note
-  warehouseReceivingNote   String?
-  paymentAgentNote         String?
+  warehouseReceivingNote String?
+  paymentAgentNote       String?
 
   // Date
-  bookingDate              DateTime?
-  arrivalDate              DateTime?
-  shippingDate             DateTime?
+  bookingDate  DateTime?
+  arrivalDate  DateTime?
+  shippingDate DateTime?
 
   // status
   mainStatus               MainStatus?
   paymentStatus            PaymentStatus            @default(UNPAID)
   warehouseReceivingStatus WarehouseReceivingStatus
 
-  // price 
-  price                    Decimal?                 @db.Decimal(10, 2)
-  discount                 Decimal?                 @db.Decimal(10, 2)
-  discountType             DiscountType?
-  discountedPrice          Decimal?                 @db.Decimal(10, 2)
-  finalPrice               Decimal?                 @db.Decimal(10, 2)
+  //shipping price 
+  shippingPrice           Decimal?      @db.Decimal(10, 2)
+  shippingDiscount        Decimal?      @db.Decimal(10, 2)
+  shippingDiscountType    DiscountType?
+  discountedPrice Decimal?      @db.Decimal(10, 2)
+  finalPrice      Decimal?      @db.Decimal(10, 2)
 
   // packaging relation
-  packagingCharge          Decimal?                 @db.Decimal(10, 2)
-  packageQuantity          Int?                     @default(1)
-  packageId                String?
-  packageRef               Package?                 @relation(fields: [packageId], references: [id])
-  
+  packagingCharge     Decimal?      @db.Decimal(10, 2)
+  packageDiscount     Decimal?      @db.Decimal(10, 2)
+  packageDiscountType DiscountType?
+  packageQuantity     Int?          @default(1)
+  packageId           String?
+  packageRef          Package?      @relation(fields: [packageId], references: [id])
+
   // suppliers relation
-  supplierId               Int?
-  supplierRef              Suppliers?               @relation(fields: [supplierId], references: [id])
+  supplierId  Int?
+  supplierRef Suppliers? @relation(fields: [supplierId], references: [id])
 
   // Customer relation
-  customerId               Int?
-  customerRef              User?                    @relation("ShipmentCustomer", fields: [customerId], references: [id])
+  customerId  Int?
+  customerRef User? @relation("ShipmentCustomer", fields: [customerId], references: [id])
 
-// country & warehouse  relation
-  exportCountryId          Int
-  importCountryId          Int?
-  exportCountryRef         Country                  @relation("ShipmentExportCountry", fields: [exportCountryId], references: [id])
-  importCountryRef         Country?                  @relation("ShipmentImportCountry", fields: [importCountryId], references: [id])
-  exportWarehouseId        String
-  importWarehouseId        String?
-  exportWarehouseRef       Warehouse                @relation("ShipmentExportWarehouse", fields: [exportWarehouseId], references: [id])
-  importWarehouseRef       Warehouse?                @relation("ShipmentImportWarehouse", fields: [importWarehouseId], references: [id])
+  // country & warehouse  relation
+  exportCountryId    Int
+  importCountryId    Int?
+  exportCountryRef   Country    @relation("ShipmentExportCountry", fields: [exportCountryId], references: [id])
+  importCountryRef   Country?   @relation("ShipmentImportCountry", fields: [importCountryId], references: [id])
+  exportWarehouseId  String
+  importWarehouseId  String?
+  exportWarehouseRef Warehouse  @relation("ShipmentExportWarehouse", fields: [exportWarehouseId], references: [id])
+  importWarehouseRef Warehouse? @relation("ShipmentImportWarehouse", fields: [importWarehouseId], references: [id])
 
   // rate relation
-  rateId                   Int?
-  rateRef                  Rate?                    @relation(fields: [rateId], references: [id])
-  expressRateId            Int?
-  expressRateRef           ExpressRate?                    @relation("ExpressRate", fields: [expressRateId], references: [id])
-  freightRateId            Int?
-  freightRateRef           FreightRate?                    @relation("FreightRate", fields: [freightRateId], references: [id])
+  rateId         Int?
+  rateRef        Rate?        @relation(fields: [rateId], references: [id])
+  expressRateId  Int?
+  expressRateRef ExpressRate? @relation("ExpressRate", fields: [expressRateId], references: [id])
+  freightRateId  Int?
+  freightRateRef FreightRate? @relation("FreightRate", fields: [freightRateId], references: [id])
 
-  bookingAddress           BookingAddress[]
-  shipmentBookingItems     BookingProduct[]
-  shippingInfos            ShippingInfo[]
-  bookingProductVariants   BookingProductVariant[]
-  localDeliveryInfo        LocalDeliveryInfo? 
+  bookingAddress         BookingAddress[]
+  shipmentBookingItems   BookingProduct[]
+  shippingInfos          ShippingInfo[]
+  bookingProductVariants BookingProductVariant[]
+  shipmentCartons        ShipmentCarton[]
+  localDeliveryInfo      LocalDeliveryInfo?
 
-  createdAt                DateTime                 @default(now())
+
+  createdAt DateTime @default(now())
+updatedAt DateTime @default(now()) @updatedAt
+
+
   @@map("ShipmentBooking")
 }
-
-
-
 
 model ShoppingBooking {
   id                       Int                      @id @default(autoincrement())
@@ -218,13 +228,13 @@ model BookingProduct {
 }
 
 model BookingProductVariant {
-  id                  Int            @id @default(autoincrement())
+  id                  Int              @id @default(autoincrement())
   skuId               String?
   specId              String?
-  colorHex              String?
-  colorName            String?
-  sizeName             String?
-  quantity            Int            @default(1)
+  colorHex            String?
+  colorName           String?
+  sizeName            String?
+  quantity            Int              @default(1)
   amountOnSale        Int?
   attributeName       String?
   attributeNameSecond String?
@@ -238,8 +248,8 @@ model BookingProductVariant {
   shipmentBookingId   Int?
   shippingRate        ShipmentBooking? @relation(fields: [shipmentBookingId], references: [id])
 
-  bookingProductId    Int?
-  bookingProduct      BookingProduct? @relation(fields: [bookingProductId], references: [id], onDelete: Cascade)
+  bookingProductId Int?
+  bookingProduct   BookingProduct? @relation(fields: [bookingProductId], references: [id], onDelete: Cascade)
 }
 
 model Suppliers {
@@ -286,22 +296,41 @@ model ShippingInfo {
   toCountry         Country?            @relation("ShippingToCountry", fields: [toCountryId], references: [id])
 }
 
-
 model LocalDeliveryInfo {
   id Int @id @default(autoincrement())
 
-  deliveryDate   DateTime
-  timeSlot       String        // e.g. "Evening (3PM - 6PM)"
+  deliveryDate DateTime
+  timeSlot     String // e.g. "Evening (3PM - 6PM)"
 
-  contactPerson  String
-  phoneNumber    String
-  deliveryAddress String
+  contactPerson       String
+  phoneNumber         String
+  deliveryAddress     String
   specialInstructions String?
 
-  shipmentBookingId Int
+  shipmentBookingId Int @unique
   shipmentBooking   ShipmentBooking @relation(fields: [shipmentBookingId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+
+model ShipmentCarton {
+  id Int @id @default(autoincrement())
+
+  shipmentBookingId Int
+  shipmentBooking   ShipmentBooking @relation(fields: [shipmentBookingId], references: [id], onDelete: Cascade)
+
+    cartonNumber Int   // 1,2,3,4...
+
+  widthCm  Decimal @db.Decimal(10, 2)
+  heightCm Decimal @db.Decimal(10, 2)
+  lengthCm Decimal @db.Decimal(10, 2)
+
+  cbm Decimal? @db.Decimal(10, 4)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([shipmentBookingId, cartonNumber])
 }
 

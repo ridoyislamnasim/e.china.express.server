@@ -187,6 +187,47 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     return BookingData;
   }
 
+  async updateBookingProductByCustomer(payload: any, payloadFiles: any, tx?: any) {
+    const { customerId, bookingId } = payload;
+    console.log("Update Booking Product by Customer Payload before file processing:", payload);
+    const { files } = payloadFiles || {};
+        if (files?.length) {
+          const images = await ImgUploader(files);
+          // console.log('Images uploaded is images ater upload:', images);
+          for (const key in images) {
+            payload[key] = images[key];
+          }
+        }else {
+          return;
+        }
+    // bookingid and product required
+    if (!bookingId) {
+      throw new Error("bookingId and product are required");
+    }
+    console.log("Update Booking Product by Customer Payload:", payload);
+    const condition ={
+      id: Number(bookingId)
+    }
+    const updateData: any = {
+      productPhotos: payload.productPhotos || undefined,
+      // customerRef: userRef ? { connect: { id: Number(userRef) } } : undefined,
+    };
+    const BookingData = await this.repository.findByConditionAndUpdate(condition, updateData, tx);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    return BookingData;
+  }
+
+
+  async findBookingForWarehouseByTrackingNumberAndOrderNumber(payload: any) {
+    const { query } = payload;
+    if (!query) {
+      throw new Error("query is required");
+    }
+    const BookingData = await this.repository.findBookingForWarehouseByTrackingNumberAndOrderNumber(query);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    return BookingData;
+  }
+
   async updateBookingPackingListByCustomer(payload: any, payloadFiles: any, tx?: any) {
     const { customerId, bookingId } = payload;
     const { files } = payloadFiles || {};

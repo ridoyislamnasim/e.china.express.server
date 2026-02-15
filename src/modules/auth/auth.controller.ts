@@ -221,9 +221,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 export const getAllUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = {
-      page: req.query.page,
-      limit: req.query.limit,
-      order: req.query.order,
+      role: req.query.role,
     };
     const users = await authService.getAllUser(payload);
     res.status(200).json({ message: 'Users get successfully', users });

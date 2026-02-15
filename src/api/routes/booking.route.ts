@@ -12,7 +12,9 @@ BookingRouter.route("/supplier")
 BookingRouter.route("/package").post( jwtAuth(), controller.createBookingPackage)
 BookingRouter.patch("/customer/tracking-number", jwtAuth(), controller.updateBookingTrackingNumberByCustomer);
 BookingRouter.patch("/invoice",upload, jwtAuth(), controller.updateBookingInvoiceByCustomer);
+BookingRouter.patch("/product",upload, jwtAuth(), controller.updateBookingProductByCustomer);
 BookingRouter.patch("/packing-list",upload, jwtAuth(), controller.updateBookingPackingListByCustomer);
+BookingRouter.get("/warehouse/find-booking", jwtAuth(), controller.findBookingForWarehouseByTrackingNumberAndOrderNumber);
 // admin Update Booking Status
 BookingRouter.patch("/admin/status/:id", jwtAuth(), controller.updateBookingApprovedRejectByAdmin);
 

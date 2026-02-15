@@ -203,6 +203,80 @@ class BookingRepository {
     return Booking;
   }
 
+  async findBookingForWarehouseByTrackingNumberAndOrderNumber(query: string) {
+
+    const Booking = await prisma.shipmentBooking.findFirst({
+      where: {
+        OR: [
+          { trackingNumber: { contains: query, mode: 'insensitive' } },
+          { orderNumber: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      include: {
+        supplierRef: true,
+        packageRef: true,
+        shippingMethodRef: true,
+        customerRef:{
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          }
+        },
+        rateRef: {
+          include: {
+            category1688: true,
+            shippingMethod: true,
+          },
+        },
+        expressRateRef: {
+          include: {
+            weightCategory: true,
+            shippingMethod: true,
+          },
+        },
+        freightRateRef: {
+          include: {
+            shippingMethod: true,
+          },
+        },
+        importWarehouseRef: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        exportWarehouseRef: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        importCountryRef: {
+          select: {
+            id: true,
+            name: true,
+            isoCode: true,
+            zone: true,
+          },
+        },
+        exportCountryRef: {
+          select: {
+            id: true,
+            name: true,
+            isoCode: true,
+            zone: true,
+          },
+        },
+        // customer: true,
+      },
+
+    });
+    return Booking;
+  }
+
+
   async findByConditionAndUpdate(where: object, data: Partial<BookingDoc>, tx?: any) {
     const prismaClient: PrismaClient = tx || this.prisma;
     const updatedBooking = await prismaClient.shipmentBooking.updateMany({
