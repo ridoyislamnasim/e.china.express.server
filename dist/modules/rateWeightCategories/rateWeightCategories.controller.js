@@ -13,10 +13,13 @@ class RateWeightCategoriesController {
             try {
                 const { label, min_weight, max_weight, boxSize } = req.body;
                 const payload = {
-                    label, min_weight, max_weight, boxSize
+                    label,
+                    min_weight,
+                    max_weight,
+                    boxSize,
                 };
                 const shippingMethod = await rateWeightCategoriesService.createRateWeightCategories(payload);
-                const resDoc = (0, responseHandler_1.responseHandler)(201, 'Rate weight categories created successfully', shippingMethod);
+                const resDoc = (0, responseHandler_1.responseHandler)(201, "Rate weight categories created successfully", shippingMethod);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -26,7 +29,7 @@ class RateWeightCategoriesController {
         this.getAllRateWeightCategories = async (req, res, next) => {
             try {
                 const rateWeightCategories = await rateWeightCategoriesService.getAllRateWeightCategories();
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate weight categories retrieved successfully', rateWeightCategories);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate weight categories retrieved successfully", rateWeightCategories);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -42,7 +45,7 @@ class RateWeightCategoriesController {
                 order: req.query.order,
             };
             const rateWeightCategories = await rateWeightCategoriesService.getRateWeightCategoriesWithPagination(payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate weight categories retrieved successfully', { ...rateWeightCategories });
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate weight categories retrieved successfully", { ...rateWeightCategories });
             res.status(resDoc.statusCode).json(resDoc);
         }
         catch (error) {
@@ -53,17 +56,20 @@ class RateWeightCategoriesController {
         const { id } = req.params;
         const { label, min_weight, max_weight, boxSize } = req.body;
         const payload = {
-            label, min_weight, max_weight, boxSize
+            label,
+            min_weight,
+            max_weight,
+            boxSize,
         };
         const updatedCategory = await rateWeightCategoriesService.updateRateWeightCategories(id, payload);
-        const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate weight categories updated successfully', updatedCategory);
+        const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate weight categories updated successfully", updatedCategory);
         res.status(resDoc.statusCode).json(resDoc);
     }
     async deleteRateWeightCategories(req, res, next) {
         try {
             const { id } = req.params;
             const deletedCategory = await rateWeightCategoriesService.deleteRateWeightCategories(id);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate weight categories deleted successfully', deletedCategory);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate weight categories deleted successfully", deletedCategory);
             res.status(resDoc.statusCode).json(resDoc);
         }
         catch (error) {

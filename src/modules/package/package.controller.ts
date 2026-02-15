@@ -70,24 +70,34 @@ class PackageController {
       type: req.query.type as string,
     };
     const packages = await packageService.getAllPackagesGrouped(payload);
-    const resDoc = responseHandler(200, 'Get all packages grouped by type', packages);
+    const resDoc = responseHandler(
+      200,
+      "Get all packages grouped by type",
+      packages,
+    );
     res.status(resDoc.statusCode).json(resDoc);
   });
 
-  getPackagesWithPagination = catchError(async (req: Request, res: Response) => {
-    const payload = {
-      type: req.query.type as string,
-      status: req.query.status as string,
-      search: req.query.search as string,
-      page: Number(req.query.page) || 1,
-      limit: Number(req.query.limit) || 10,
-      order: req.query.order as string || 'desc',
-      sortBy: req.query.sortBy as string || 'createdAt',
-    };
-    const packages = await packageService.getPackagesWithPagination(payload);
-    const resDoc = responseHandler(200, 'Packages retrieved successfully', packages);
-    res.status(resDoc.statusCode).json(resDoc);
-  });
+  getPackagesWithPagination = catchError(
+    async (req: Request, res: Response) => {
+      const payload = {
+        type: req.query.type as string,
+        status: req.query.status as string,
+        search: req.query.search as string,
+        page: Number(req.query.page) || 1,
+        limit: Number(req.query.limit) || 10,
+        order: (req.query.order as string) || "desc",
+        sortBy: (req.query.sortBy as string) || "createdAt",
+      };
+      const packages = await packageService.getPackagesWithPagination(payload);
+      const resDoc = responseHandler(
+        200,
+        "Packages retrieved successfully",
+        packages,
+      );
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
 
   getPackagesByType = catchError(async (req: Request, res: Response) => {
     const type = req.params.type;
@@ -105,7 +115,7 @@ class PackageController {
   });
 
   getPackagesByStatus = catchError(async (req: Request, res: Response) => {
-    const status = req.params.status;
+    const status = req.params.status as string;
     const packages = await packageService.getPackagesByStatus(status);
     const resDoc = responseHandler(
       200,
@@ -116,7 +126,7 @@ class PackageController {
   });
 
   getSinglePackage = catchError(async (req: Request, res: Response) => {
-    const id = req.params.id;
+    const id = req.params.id as string;
     const packageData = await packageService.getSinglePackage(id);
     const resDoc = responseHandler(
       200,
@@ -127,7 +137,7 @@ class PackageController {
   });
 
   updatePackage = catchError(async (req: Request, res: Response) => {
-    const id = req.params.id;
+    const id = req.params.id as string;
 
     // Handle file upload if exists
     const payloadFiles = {
@@ -180,7 +190,7 @@ class PackageController {
   });
 
   updatePackageStatus = catchError(async (req: Request, res: Response) => {
-    const id = req.params.id;
+    const id = req.params.id as string;
     const status = req.body.status;
     const packageData = await packageService.updatePackageStatus(id, status);
     const resDoc = responseHandler(
@@ -192,7 +202,7 @@ class PackageController {
   });
 
   deletePackage = catchError(async (req: Request, res: Response) => {
-    const id = req.params.id;
+    const id = req.params.id as string;
     await packageService.deletePackage(id);
     const resDoc = responseHandler(200, "Package deleted successfully");
     res.status(resDoc.statusCode).json(resDoc);

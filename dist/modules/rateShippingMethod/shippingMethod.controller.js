@@ -16,11 +16,13 @@ class RateShippingMethodController {
                 const payload = {
                     name,
                     boxSize: (_a = req.body.boxSize) !== null && _a !== void 0 ? _a : null,
-                    cbmToKgRatio: req.body.cbmToKgRatio ? parseFloat(req.body.cbmToKgRatio) : undefined,
-                    description: description !== null && description !== void 0 ? description : null
+                    cbmToKgRatio: req.body.cbmToKgRatio
+                        ? parseFloat(req.body.cbmToKgRatio)
+                        : undefined,
+                    description: description !== null && description !== void 0 ? description : null,
                 };
                 const shippingMethod = await rateShippingMethodService.createShippingMethod(payload);
-                const resDoc = (0, responseHandler_1.responseHandler)(201, 'Rate shipping method Created successfully', shippingMethod);
+                const resDoc = (0, responseHandler_1.responseHandler)(201, "Rate shipping method Created successfully", shippingMethod);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -30,7 +32,7 @@ class RateShippingMethodController {
         this.getShippingMethod = async (req, res, next) => {
             try {
                 const shippingMethods = await rateShippingMethodService.getShippingMethod();
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping methods retrieved successfully', shippingMethods);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate shipping methods retrieved successfully", shippingMethods);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -45,7 +47,7 @@ class RateShippingMethodController {
                     order: req.query.order,
                 };
                 const shippingMethods = await rateShippingMethodService.getShippingMethodWithPagination(payload);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping methods retrieved successfully', { ...shippingMethods });
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate shipping methods retrieved successfully", { ...shippingMethods });
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -56,7 +58,7 @@ class RateShippingMethodController {
             try {
                 const id = req.params.id;
                 const shippingMethod = await rateShippingMethodService.getSingleShippingMethod(id);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping method retrieved successfully', shippingMethod);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate shipping method retrieved successfully", shippingMethod);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -70,11 +72,13 @@ class RateShippingMethodController {
                 const payload = {
                     name: req.body.name,
                     boxSize: (_a = req.body.boxSize) !== null && _a !== void 0 ? _a : null,
-                    cbmToKgRatio: req.body.cbmToKgRatio ? parseFloat(req.body.cbmToKgRatio) : undefined,
-                    description: (_b = req.body.description) !== null && _b !== void 0 ? _b : null
+                    cbmToKgRatio: req.body.cbmToKgRatio
+                        ? parseFloat(req.body.cbmToKgRatio)
+                        : undefined,
+                    description: (_b = req.body.description) !== null && _b !== void 0 ? _b : null,
                 };
                 await rateShippingMethodService.updateShippingMethod(id, payload);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping method updated successfully');
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate shipping method updated successfully");
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -85,7 +89,7 @@ class RateShippingMethodController {
             try {
                 const id = req.params.id;
                 await rateShippingMethodService.deleteShippingMethod(id);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Rate shipping method deleted successfully');
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Rate shipping method deleted successfully");
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {

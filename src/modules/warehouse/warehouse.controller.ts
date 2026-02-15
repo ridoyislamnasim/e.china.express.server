@@ -76,7 +76,7 @@ class WarehouseController {
   ) => {
     try {
       const { id } = req.params;
-      const warehouse = await warehouseService.getWarehouseById(id);
+      const warehouse = await warehouseService.getWarehouseById(id as string);
       const resDoc = responseHandler(
         200,
         "Warehouse retrieved successfully",
@@ -125,7 +125,7 @@ class WarehouseController {
         const { id } = req.params;
         const payload = req.body;
         const updatedWarehouse = await warehouseService.updateWarehouse(
-          id,
+          id as string,
           payload,
           tx,
         );
@@ -144,7 +144,7 @@ class WarehouseController {
   deleteWarehouse = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      await warehouseService.deleteWarehouse(id);
+      await warehouseService.deleteWarehouse(id as string);
       const resDoc = responseHandler(
         200,
         `Warehouse with id ${id} deleted successfully`,
@@ -169,7 +169,7 @@ class WarehouseController {
         }
 
         const warehouse = await warehouseService.updateWarehouseCapacity(
-          id,
+          id as string,
           usedCapacity,
           tx,
         );
@@ -211,7 +211,7 @@ class WarehouseController {
     try {
       const { managerId } = req.params;
       const warehouses = await warehouseService.getWarehousesByManager(
-        parseInt(managerId),
+        parseInt(managerId as string),
       );
       const resDoc = responseHandler(
         200,
@@ -287,7 +287,7 @@ class WarehouseController {
         }
 
         const warehouse = await warehouseService.changeWarehouseStatus(
-          id,
+          id as string,
           status,
         );
         const resDoc = responseHandler(

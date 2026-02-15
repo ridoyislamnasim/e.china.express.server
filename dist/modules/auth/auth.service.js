@@ -82,13 +82,13 @@ class AuthService {
         return user;
     }
     async getUser(payload, session) {
-        const users = await this.repository.getUser();
-        if (!users) {
-            const error = new Error('No user found');
-            error.statusCode = 404;
-            throw error;
-        }
-        return users;
+        // const users = await this.repository.getUser();
+        // if (!users) {
+        //   const error = new Error('No user found');
+        //   (error as any).statusCode = 404;
+        //   throw error;
+        // }
+        // return users;
     }
     async authUserSignIn(payload) {
         var _a;
@@ -221,7 +221,7 @@ class AuthService {
         return null;
     }
     async getAllUser(payload) {
-        const users = await this.repository.getUser();
+        const users = await this.repository.getUser(payload);
         return users;
     }
     async getSingleUser(id, session) {

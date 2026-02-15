@@ -12,7 +12,7 @@ class CountryController {
     constructor() {
         this.createCountry = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
-                const { name, status, isoCode, ports, countryZoneId, isShippingCountry, isFreight } = req.body;
+                const { name, status, isoCode, ports, countryZoneId, isShippingCountry, isFreight, } = req.body;
                 const payload = {
                     name,
                     status,
@@ -24,7 +24,7 @@ class CountryController {
                 };
                 // Pass the transaction client down to the service so all DB ops are contained in the same transaction
                 const country = await countryService.createCountry(payload, tx);
-                const resDoc = (0, responseHandler_1.responseHandler)(201, 'Country Created successfully', country);
+                const resDoc = (0, responseHandler_1.responseHandler)(201, "Country Created successfully", country);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -34,7 +34,7 @@ class CountryController {
         this.getAllCountry = async (req, res, next) => {
             try {
                 const countries = await countryService.getAllCountries();
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Countries retrieved successfully', countries);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Countries retrieved successfully", countries);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -44,7 +44,7 @@ class CountryController {
         this.getCountryForShipping = async (req, res, next) => {
             try {
                 const country = await countryService.getCountryForShipping();
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Country for shipping retrieved successfully', country);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Country for shipping retrieved successfully", country);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -54,7 +54,7 @@ class CountryController {
         this.exportCountryData = async (req, res, next) => {
             try {
                 const exportResult = await countryService.exportCountryData();
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Country data exported successfully', exportResult);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Country data exported successfully", exportResult);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -65,15 +65,17 @@ class CountryController {
             try {
                 // Normalize query param which may be string | string[] | undefined
                 const portTypeRaw = req.query.portType;
-                const portType = Array.isArray(portTypeRaw) ? portTypeRaw[0] : portTypeRaw;
+                const portType = Array.isArray(portTypeRaw)
+                    ? portTypeRaw[0]
+                    : portTypeRaw;
                 const payload = {
-                    search: req.query.search || undefined
+                    search: req.query.search || undefined,
                 };
-                if (typeof portType === 'string' && portType.trim().length > 0) {
+                if (typeof portType === "string" && portType.trim().length > 0) {
                     payload.portType = portType.trim();
                 }
                 const ports = await countryService.getAllPorts(payload);
-                const resDoc = (0, responseHandler_1.responseHandler)(200, 'Ports retrieved successfully', ports);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Ports retrieved successfully", ports);
                 res.status(resDoc.statusCode).json(resDoc);
             }
             catch (error) {
@@ -85,13 +87,13 @@ class CountryController {
             const limit = parseInt(req.query.limit, 10) || 10;
             const payload = { page, limit };
             const countries = await countryService.getCountryWithPagination(payload, tx);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Countries retrieved successfully with pagination', countries);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Countries retrieved successfully with pagination", countries);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.updateCountry = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             try {
                 const id = parseInt(req.params.id, 10);
-                const { name, status, isoCode, ports, countryZoneId, isShippingCountry, isFreight } = req.body;
+                const { name, status, isoCode, ports, countryZoneId, isShippingCountry, isFreight, } = req.body;
                 const payload = {
                     name,
                     status,

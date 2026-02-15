@@ -25,6 +25,8 @@ class AuthRepository {
             return role;
         };
         // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+        // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+        // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
     }
     // async createUser(payload: AuthUserSignUpPayload, tx?: any) {
     //   const { name, email, password, roleId, phone } = payload;
@@ -78,8 +80,23 @@ class AuthRepository {
         });
         return newUser;
     }
-    async getUser() {
-        return await this.prisma.user.findMany();
+    async getUser(payload) {
+        const { role } = payload;
+        const whereClause = {};
+        if (role)
+            whereClause.role = { role: role };
+        return await this.prisma.user.findMany({
+            where: whereClause,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                createdAt: true,
+                updatedAt: true,
+                role: true,
+            },
+        });
     }
     async getUserById(id) {
         return await this.prisma.user.findUnique({

@@ -264,13 +264,16 @@ class CartRepository extends base_repository_1.BaseRepository {
         const { userId, cartProductId } = payload;
         const client = tx || this.prisma;
         if (payload.shippingMethodId) {
-            const method = await client.rateSippingMethod.findUnique({
+            console.log("Validating shipping method ID: ", payload.shippingMethodId);
+            const method = await client.rateShippingMethod.findUnique({
                 where: { id: Number(payload.shippingMethodId) }
             });
+            console.log("Shipping method found: ", method);
             if (!method) {
                 throw new Error(`Shipping method ${payload.shippingMethodId} not found`);
             }
         }
+        console.log("Shipping method ID validated: ", payload.shippingMethodId);
         // Check if a CartProductShipping entry already exists for the given userId and cartProductId
         const existing = await client.cartProductShipping.findFirst({
             where: {
@@ -278,6 +281,7 @@ class CartRepository extends base_repository_1.BaseRepository {
                 cartProductId: Number(cartProductId),
             },
         });
+        console.log("Existing CartProductShipping entry: ", existing);
         if (existing) {
             // Update the existing ProductShipping entry
             console.log("Updating existing ProductShipping entry:", existing.id);
