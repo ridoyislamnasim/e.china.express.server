@@ -43,6 +43,7 @@ const rateFreight_route_1 = __importDefault(require("./routes/rateFreight.route"
 const carrierCompany_route_1 = __importDefault(require("./routes/carrierCompany.route"));
 const wallet_route_1 = __importDefault(require("./routes/wallet.route"));
 const express_booking_route_1 = __importDefault(require("./routes/express.booking.route"));
+const address_route_1 = __importDefault(require("./routes/address.route"));
 // import other routers here
 const rootRouter = (0, express_1.Router)();
 rootRouter.use("/example", example_route_1.default);
@@ -96,4 +97,6 @@ rootRouter.use("/blog", blog_route_1.default);
 rootRouter.use("/guide", guide_route_1.default);
 rootRouter.use("/contact-us", companyContact_route_1.default);
 rootRouter.use("/team-management", teamManagement_route_1.default);
+//Address Route done by Sourabh
+rootRouter.use("/address", address_route_1.default);
 exports.default = rootRouter;

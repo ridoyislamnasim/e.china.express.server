@@ -1,4 +1,4 @@
-model User {   
+model User {
   id                Int             @id @default(autoincrement())
   email             String          @unique
   phone             String?         @unique
@@ -22,8 +22,6 @@ model User {
 
   roleId                     Int?
   role                       Role?             @relation(fields: [roleId], references: [id])
-  addressId                  Int?
-  address                    Address?          @relation(fields: [addressId], references: [id])
   buyNowCarts                BuyNowCart[]
   otp                        OTP[]
   createdAt                  DateTime          @default(now())
@@ -44,6 +42,7 @@ model User {
   cartProductShippings CartProductShipping[] @relation("CartProductShippingUser")
 
   wallets   Wallet[]
+  addresses Address[]
 }
 
 model Role {
@@ -53,20 +52,25 @@ model Role {
   permission   Permission? @relation(fields: [permissionId], references: [id])
   users        User[]
   text         String?
-  text2        String?  
+  text2        String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
 
-
 model Address {
-  id      Int    @id @default(autoincrement())
-  street  String
-  city    String
-  state   String
-  country String
-  zipCode String
-  users   User[]
+  id             Int     @id @default(autoincrement())
+  userId         Int
+  user           User    @relation(fields: [userId], references: [id])
+  house          String
+  street         String
+  city           String
+  state          String
+  country        String
+  zipCode        String
+  recipientName  String
+  recipientPhone String
+  address        String
+  defaultAddress Boolean
 
   @@map("addresses")
 }
@@ -105,7 +109,7 @@ model OTP {
 // 20. Category1688
 
 model Permission {
-  id Int @id @default(autoincrement())
+  id               Int     @id @default(autoincrement())
   // 0. permission permissions
   permissionAccess Boolean @default(false)
   permissionCreate Boolean @default(false)
@@ -258,5 +262,3 @@ model Permission {
 
   roles Role[]
 }
-
-
