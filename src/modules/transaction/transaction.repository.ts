@@ -28,12 +28,12 @@ class TransactionRepository {
 
   async getTransactionsByUser(userId: number) {
     return await prisma.transaction.findMany({
-      where: {
-        OR: [
-          //   { fromId: userId },
-          //   { toId: userId }
-        ],
-      },
+      // where: {
+      //   OR: [
+      //     //   { fromId: userId },
+      //     //   { toId: userId }
+      //   ],
+      // },
       orderBy: { createdAt: "desc" },
     });
   }
