@@ -156,10 +156,15 @@ enum OrderStatus {
 }
 
 enum PaymentStatus {
+  PENDING
   UNPAID
+  PARTIALLY_PAID
   PAID
   FAILED
+  CANCELLED
   REFUNDED
+  EXPIRED
+  CHARGEBACK
 }
 
 enum ShippingStatus {

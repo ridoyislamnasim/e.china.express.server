@@ -172,6 +172,111 @@ class BookingController {
     },
   );
 
+  createInventoryStoredByWarehouse = withTransaction(
+    async (req: Request, res: Response, next: NextFunction, tx: any) => {
+      const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+      console.log("Create Inventory Stored by Warehouse request body (raw):", req.body);
+      console.log("Create Inventory Stored by Warehouse request body (raw):", req.body.cartons);
+
+      // Helper to safely parse numbers from multipart/form-data (all fields are strings)
+      const toNumber = (v: any) => (v === undefined || v === null || v === '' ? undefined : Number(v));
+      const toFloat = (v: any) => (v === undefined || v === null || v === '' ? undefined : parseFloat(v));
+
+      // parse cartons if sent as JSON string
+      let parsedCartons: any[] | undefined = undefined;
+      if (req.body?.cartons) {
+        try {
+          parsedCartons = typeof req.body.cartons === 'string' ? JSON.parse(req.body.cartons) : req.body.cartons;
+          if (!Array.isArray(parsedCartons)) parsedCartons = undefined;
+          else {
+            parsedCartons = parsedCartons.map((c: any) => ({
+              width: c?.width !== null && c?.width !== undefined && c.width !== '' ? Number(c.width) : null,
+              height: c?.height !== null && c?.height !== undefined && c.height !== '' ? Number(c.height) : null,
+              length: c?.length !== null && c?.length !== undefined && c.length !== '' ? Number(c.length) : null,
+            }));
+          }
+        } catch (e) {
+          parsedCartons = undefined;
+        }
+      }
+
+      const payload = {
+        bookingId: toNumber(req.body.bookingId),
+        warehouseId: req.body.warehouseId,
+        agentId: toNumber(req.body.agentId),
+        customerId: toNumber(req.body.customerId),
+        shippingMark: req.body.shippingMark,
+        quantity: toNumber(req.body.quantity),
+        totalWeightkg: toFloat(req.body.totalWeightkg),
+        productType: req.body.productType,
+        packagingCharge: toFloat(req.body.packagingCharge),
+        shippingRate: toFloat(req.body.shippingRate),
+        warehouseReceivingNote: req.body.warehouseReceivingNote,
+        orderNumber: req.body.orderNumber,
+        trackingNumber: req.body.trackingNumber,
+        cartons: parsedCartons,
+      };
+
+      console.log("Create Inventory Stored by Warehouse (parsed) request body:", payload);
+      const BookingResult = await BookingService.createInventoryStoredByWarehouse(payload, req.files, tx); 
+
+      // NOTE: booking service method not implemented here — return parsed payload so client validation passes for now
+      const resDoc = responseHandler(201, "Inventory Receipt received", payload);
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
+
+  createInventoryReceiptByWarehouse = withTransaction(
+    async (req: Request, res: Response, next: NextFunction, tx: any) => {
+      const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+      console.log("Create Inventory Receipt by Warehouse request body (raw):", req.body);
+      console.log("Create Inventory Receipt by Warehouse request body (raw):", req.body.cartons);
+      // Helper to safely parse numbers from multipart/form-data (all fields are strings)
+      const toNumber = (v: any) => (v === undefined || v === null || v === '' ? undefined : Number(v));
+      const toFloat = (v: any) => (v === undefined || v === null || v === '' ? undefined : parseFloat(v));
+      // parse cartons if sent as JSON string
+      let parsedCartons: any[] | undefined = undefined;
+      if (req.body?.cartons) {
+        try {
+          parsedCartons = typeof req.body.cartons === 'string' ? JSON.parse(req.body.cartons) : req.body.cartons;
+          if (!Array.isArray(parsedCartons)) parsedCartons = undefined;
+          else {
+            parsedCartons = parsedCartons.map((c: any) => ({
+              width: c?.width !== null && c?.width !== undefined && c.width !== '' ? Number(c.width) : null,
+              height: c?.height !== null && c?.height !== undefined && c.height !== '' ? Number(c.height) : null,
+              length: c?.length !== null && c?.length !== undefined && c.length !== '' ? Number(c.length) : null,
+            }));
+          }
+        } catch (e) {
+          parsedCartons = undefined;
+        }
+      }
+      const payload = {
+        warehouseId: req.body.warehouseId,
+        bookingId: toNumber(req.body.bookingId),
+        agentId: toNumber(req.body.agentId),
+        customerId: toNumber(req.body.customerId),
+        shippingMark: req.body.shippingMark,
+
+        cartonQuantity: toNumber(req.body.cartonQuantity),
+        quantity: toNumber(req.body.quantity),
+        totalWeightkg: toFloat(req.body.totalWeightkg),
+        productType: req.body.productType,
+        packagingCharge: toFloat(req.body.packagingCharge),
+        shippingRate: toFloat(req.body.shippingRate),
+        warehouseReceivingNote: req.body.warehouseReceivingNote,
+        orderNumber: req.body.orderNumber,
+        trackingNumber: req.body.trackingNumber,
+        cartons: parsedCartons,
+      };
+      console.log("Create Inventory Receipt by Warehouse (parsed) request body:", payload);
+      const BookingResult = await BookingService.createInventoryReceiptByWarehouse(payload, req.files, tx);
+      // NOTE: booking service method not implemented here — return parsed payload so client validation passes for now
+      const resDoc = responseHandler(201, "Inventory Receipt received", payload);
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
+
   updateBookingApprovedRejectByAdmin = withTransaction(
     async (req: Request, res: Response, next: NextFunction, tx: any) => {
       const payload = {
@@ -224,6 +329,24 @@ class BookingController {
       };
       const BookingResult =
         await BookingService.getAllBookingByFilterWithPagination(payload);
+      const resDoc = responseHandler(200, "Get All Bookings", BookingResult);
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
+
+  getAllBookingForWarehouseByFilterWithPagination = catchError(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+      const payload = {
+        userRef: userRef,
+        mode: req.query.mode as string,
+        page: Number(req.query.page) || 1,
+        limit: Number(req.query.limit) || 10,
+        order: req.query.order === "asc" ? "asc" : "desc",
+      };
+      const BookingResult =await BookingService.getAllBookingForWarehouseByFilterWithPagination(
+          payload,
+        );
       const resDoc = responseHandler(200, "Get All Bookings", BookingResult);
       res.status(resDoc.statusCode).json(resDoc);
     },

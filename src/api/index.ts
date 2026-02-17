@@ -74,7 +74,6 @@ rootRouter.use("/rate/express", rateExpressRouter);
 rootRouter.use("/rate/freight", rateFreightRouter);
 
 // booking
-rootRouter.use("/booking", BookingRouter);
 rootRouter.use("/country", countryRouter);
 rootRouter.use("/rate/shippingmethod", rateShippingMethodRoute);
 rootRouter.use("/rate/weightcategories", rateWeightCategoriesRoute);

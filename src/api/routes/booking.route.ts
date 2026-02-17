@@ -15,10 +15,13 @@ BookingRouter.patch("/invoice",upload, jwtAuth(), controller.updateBookingInvoic
 BookingRouter.patch("/product",upload, jwtAuth(), controller.updateBookingProductByCustomer);
 BookingRouter.patch("/packing-list",upload, jwtAuth(), controller.updateBookingPackingListByCustomer);
 BookingRouter.get("/warehouse/find-booking", jwtAuth(), controller.findBookingForWarehouseByTrackingNumberAndOrderNumber);
+BookingRouter.post("/warehouse/inventory-receipt",upload, jwtAuth(), controller.createInventoryReceiptByWarehouse);
+BookingRouter.post("/warehouse/inventory-stored",upload, jwtAuth(), controller.createInventoryStoredByWarehouse);
 // admin Update Booking Status
 BookingRouter.patch("/admin/status/:id", jwtAuth(), controller.updateBookingApprovedRejectByAdmin);
 
 BookingRouter.get("/pagination", jwtAuth(), controller.getAllBookingByFilterWithPagination);
+BookingRouter.get("/warehouses-management/pagination", jwtAuth(), controller.getAllBookingForWarehouseByFilterWithPagination);
 BookingRouter.get("/admin/pagination", jwtAuth(), controller.getAllBookingForAdminByFilterWithPagination);
 
 BookingRouter.route("/:id")

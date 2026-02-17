@@ -4,21 +4,21 @@ model ShipmentBooking {
   orderNumber    String  @unique
   trackingNumber String?
 
-  bookingNo        Int
+  bookingNo        Int?
   invoice          String?
   packingList      String?
   totalWeightkg    Decimal? @db.Decimal(10, 2)
   total_cbm        Decimal? @db.Decimal(10, 2)
   totalProductCost Decimal? @db.Decimal(10, 2)
 
-  cartonQuantity    Int?
-  productQuantity   Int?
-  weight            Decimal? @db.Decimal(10, 2)
-  shippingMark      String?
+  cartonQuantity  Int?
+  productQuantity Int?
+  weight          Decimal? @db.Decimal(10, 2)
+  shippingMark    String?
 
   // category
-  categoryId    Int? @unique
-  categoryRef   Category? @relation(fields: [categoryId], references: [id])
+  categoryId  Int?      @unique
+  categoryRef Category? @relation(fields: [categoryId], references: [id])
 
   // files
   productPhotos     String?
@@ -44,11 +44,11 @@ model ShipmentBooking {
   warehouseReceivingStatus WarehouseReceivingStatus
 
   //shipping price 
-  shippingPrice           Decimal?      @db.Decimal(10, 2)
-  shippingDiscount        Decimal?      @db.Decimal(10, 2)
-  shippingDiscountType    DiscountType?
-  discountedPrice Decimal?      @db.Decimal(10, 2)
-  finalPrice      Decimal?      @db.Decimal(10, 2)
+  shippingPrice        Decimal?      @db.Decimal(10, 2)
+  shippingDiscount     Decimal?      @db.Decimal(10, 2)
+  shippingDiscountType DiscountType?
+  discountedPrice      Decimal?      @db.Decimal(10, 2)
+  finalPrice           Decimal?      @db.Decimal(10, 2)
 
   // packaging relation
   packagingCharge     Decimal?      @db.Decimal(10, 2)
@@ -67,13 +67,13 @@ model ShipmentBooking {
   customerRef User? @relation("ShipmentCustomer", fields: [customerId], references: [id])
 
   // country & warehouse  relation
-  exportCountryId    Int
+  exportCountryId    Int?
   importCountryId    Int?
-  exportCountryRef   Country    @relation("ShipmentExportCountry", fields: [exportCountryId], references: [id])
+  exportCountryRef   Country?    @relation("ShipmentExportCountry", fields: [exportCountryId], references: [id])
   importCountryRef   Country?   @relation("ShipmentImportCountry", fields: [importCountryId], references: [id])
-  exportWarehouseId  String
+  exportWarehouseId  String?
   importWarehouseId  String?
-  exportWarehouseRef Warehouse  @relation("ShipmentExportWarehouse", fields: [exportWarehouseId], references: [id])
+  exportWarehouseRef Warehouse?  @relation("ShipmentExportWarehouse", fields: [exportWarehouseId], references: [id])
   importWarehouseRef Warehouse? @relation("ShipmentImportWarehouse", fields: [importWarehouseId], references: [id])
 
   // rate relation
@@ -91,10 +91,8 @@ model ShipmentBooking {
   shipmentCartons        ShipmentCarton[]
   localDeliveryInfo      LocalDeliveryInfo?
 
-
   createdAt DateTime @default(now())
-updatedAt DateTime @default(now()) @updatedAt
-
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@map("ShipmentBooking")
 }
@@ -307,13 +305,12 @@ model LocalDeliveryInfo {
   deliveryAddress     String
   specialInstructions String?
 
-  shipmentBookingId Int @unique
+  shipmentBookingId Int             @unique
   shipmentBooking   ShipmentBooking @relation(fields: [shipmentBookingId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 model ShipmentCarton {
   id Int @id @default(autoincrement())
@@ -321,7 +318,7 @@ model ShipmentCarton {
   shipmentBookingId Int
   shipmentBooking   ShipmentBooking @relation(fields: [shipmentBookingId], references: [id], onDelete: Cascade)
 
-    cartonNumber Int   // 1,2,3,4...
+  cartonNumber Int // 1,2,3,4...
 
   widthCm  Decimal @db.Decimal(10, 2)
   heightCm Decimal @db.Decimal(10, 2)
@@ -331,6 +328,6 @@ model ShipmentCarton {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@unique([shipmentBookingId, cartonNumber])
 }
-

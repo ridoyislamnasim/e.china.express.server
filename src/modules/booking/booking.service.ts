@@ -5,7 +5,7 @@ import BookingRepository from "./booking.repository";
 
 import ImgUploader from "../../middleware/upload/ImgUploder";
 import { bookingIdGenerate } from "../../utils/bookingIdGenerator";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { MainStatus, Prisma, PrismaClient } from "@prisma/client";
 import rateRepository from "../rate/rate.repository";
 import prisma from "../../config/prismadatabase";
 import { idGenerate } from "../../utils/IdGenerator";
@@ -111,7 +111,7 @@ export class BookingService extends BaseService<typeof BookingRepository> {
       throw new NotFoundError("Booking ID does not exist");
     }
     // check packaging Id Exits
-    const packageExists = await  this.packageRepository.getSinglePackage(String(packageId));
+    const packageExists = await this.packageRepository.getSinglePackage(String(packageId));
     console.log("Package Exists Check:", String(packageId), packageExists);
     if (!packageExists) {
       throw new NotFoundError("Package ID does not exist");
@@ -143,7 +143,7 @@ export class BookingService extends BaseService<typeof BookingRepository> {
       throw new Error("bookingId and trackingNumber are required");
     }
     console.log("Update Booking Tracking Number by Customer Payload:", payload);
-    const condition ={
+    const condition = {
       id: Number(bookingId),
       customerId: customerId ? Number(customerId) : undefined,
     }
@@ -161,21 +161,21 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     console.log("Update Booking Invoice by Customer Payload before file processing:", payload);
 
     const { files } = payloadFiles || {};
-        if (files?.length) {
-          const images = await ImgUploader(files);
-          // console.log('Images uploaded is images ater upload:', images);
-          for (const key in images) {
-            payload[key] = images[key];
-          }
-        }else {
-          return;
-        }
+    if (files?.length) {
+      const images = await ImgUploader(files);
+      // console.log('Images uploaded is images ater upload:', images);
+      for (const key in images) {
+        payload[key] = images[key];
+      }
+    } else {
+      return;
+    }
     // bookingid and invoice required
     if (!bookingId) {
       throw new Error("bookingId and invoice are required");
     }
     console.log("Update Booking Invoice by Customer Payload:", payload);
-    const condition ={
+    const condition = {
       id: Number(bookingId)
     }
     const updateData: any = {
@@ -191,21 +191,21 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     const { customerId, bookingId } = payload;
     console.log("Update Booking Product by Customer Payload before file processing:", payload);
     const { files } = payloadFiles || {};
-        if (files?.length) {
-          const images = await ImgUploader(files);
-          // console.log('Images uploaded is images ater upload:', images);
-          for (const key in images) {
-            payload[key] = images[key];
-          }
-        }else {
-          return;
-        }
+    if (files?.length) {
+      const images = await ImgUploader(files);
+      // console.log('Images uploaded is images ater upload:', images);
+      for (const key in images) {
+        payload[key] = images[key];
+      }
+    } else {
+      return;
+    }
     // bookingid and product required
     if (!bookingId) {
       throw new Error("bookingId and product are required");
     }
     console.log("Update Booking Product by Customer Payload:", payload);
-    const condition ={
+    const condition = {
       id: Number(bookingId)
     }
     const updateData: any = {
@@ -231,19 +231,19 @@ export class BookingService extends BaseService<typeof BookingRepository> {
   async updateBookingPackingListByCustomer(payload: any, payloadFiles: any, tx?: any) {
     const { customerId, bookingId } = payload;
     const { files } = payloadFiles || {};
-        if (files?.length) {
-          const images = await ImgUploader(files);
-          // console.log('Images uploaded is images ater upload:', images);
-          for (const key in images) {
-            payload[key] = images[key];
-          }
-        } 
+    if (files?.length) {
+      const images = await ImgUploader(files);
+      // console.log('Images uploaded is images ater upload:', images);
+      for (const key in images) {
+        payload[key] = images[key];
+      }
+    }
     // bookingid and packingList required
     if (!bookingId) {
       throw new Error("bookingId is required");
     }
     console.log("Update Booking Packing List by Customer Payload:", payload);
-    const condition ={
+    const condition = {
       id: Number(bookingId),
     }
     const updateData: any = {
@@ -253,6 +253,11 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     const BookingData = await this.repository.findByConditionAndUpdate(condition, updateData, tx);
     if (!BookingData) throw new NotFoundError("Booking Not Find");
     return BookingData;
+  }
+
+  async getAllBookingForWarehouseByFilterWithPagination(payload: any) {
+    const Bookings = await this.repository.getAllBookingForWarehouseByFilterWithPagination(payload);
+    return Bookings;
   }
 
   async getAllBookingForAdminByFilterWithPagination(payload: any) {
@@ -284,6 +289,108 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     if (!BookingData) throw new NotFoundError("Booking Not Find");
     return BookingData;
   }
+
+  async createInventoryStoredByWarehouse(payload: any, payloadFiles: any, tx?: any) {
+    const { warehouseId, bookingId, cartons } = payload;
+    console.log("Create Inventory Stored by Warehouse Payload before file processing:", payload);
+    const { files } = payloadFiles || {};
+    if (files?.length) {
+      const images = await ImgUploader(files);
+      // console.log('Images uploaded is images ater upload:', images);
+      for (const key in images) {
+        payload[key] = images[key];
+      }
+    }
+    // bookingid required
+    if (!bookingId) {
+      throw new Error("bookingId is required");
+    }
+    const condition = {
+      id: Number(bookingId),
+    }
+    const updateData: any = {
+      mainStatus: "STORED",
+      warehouseReceivingStatus: 'STORED',
+      // warehouseRef: warehouseId ? { connect: { id: Number(warehouseId) } } : undefined,
+    };
+    const BookingData = await this.repository.findByConditionAndUpdate(condition, updateData, tx);
+    console.log("Booking Update for Inventory Stored Result:", BookingData);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    // cartons create 
+    for (const [index, carton] of cartons.entries()) {
+      const cbm = (carton.length * carton.height * carton.width) / 1000000;
+      const cartonData = {
+        cartonNumber: index + 1,
+        heightCm: carton.height,
+        lengthCm: carton.length,
+        widthCm: carton.width,
+        cbm: cbm,
+        shipmentBookingId: Number(bookingId),
+      }
+      await this.repository.createCarton(cartonData, tx);
+    }
+    return BookingData;
+  }
+
+  async createInventoryReceiptByWarehouse(payload: any, payloadFiles: any, tx?: any) {
+    const { warehouseId, bookingId, cartons } = payload;
+    console.log("Create Inventory Receipt by Warehouse Payload before file processing:", payload);
+    const { files } = payloadFiles || {};
+    if (files?.length) {
+      const images = await ImgUploader(files);
+      // console.log('Images uploaded is images ater upload:', images);
+      for (const key in images) {
+        payload[key] = images[key];
+      }
+    }
+    // Use configured prisma client (avoid instantiating a new PrismaClient)
+    const shippingMethodName = payload.shippingMethodName ?? undefined;
+
+    const orderNumber = await bookingIdGenerate({
+      model: (tx?.shipmentBooking ?? prisma.shipmentBooking),
+      shippingMethodId: payload.shippingMethodId ? Number(payload.shippingMethodId) : undefined,
+      shippingMethodName: shippingMethodName,
+      prefix: 'WHB' // Force warehouse booking prefix for inventory receipt entries without shipping method
+    });
+    console.log("Generated Order Number for Inventory Receipt:", orderNumber);
+
+    const warehouseReceivingBookingPayload: any = {
+      orderNumber,
+      mainStatus: "RECEIVED_AT_WAREHOUSE",
+      warehouseReceivingStatus: 'RECEIVED_AT_WAREHOUSE',
+      warehouseReceivingNote: payload.warehouseReceivingNote || undefined,
+      weight: payload.totalWeightkg ? new Prisma.Decimal(payload.totalWeightkg) : undefined,
+      totalWeightkg: payload.totalWeightkg ? new Prisma.Decimal(payload.totalWeightkg) : undefined,
+      cartonQuantity: payload.cartonQuantity ? Number(payload.cartonQuantity) : undefined,
+      productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
+      bookingNo: Math.floor(Date.now() / 1000),
+      bookingDate: new Date(),
+      shippingPrice: payload.shippingRate ? new Prisma.Decimal(payload.shippingRate) : undefined,
+      packagingCharge: payload.packagingCharge ? new Prisma.Decimal(payload.packagingCharge) : undefined,
+      
+      // warehouseRef: warehouseId ? { connect: { id: Number(warehouseId) } } : undefined,
+    };
+    console.log("Warehouse Receiving Booking Payload for Update:", warehouseReceivingBookingPayload);
+    const BookingData = await this.repository.createWarehouseReceivingBooking(warehouseReceivingBookingPayload, tx);
+    console.log("Booking Update for Inventory Receipt Result:", BookingData);
+    if (!BookingData) throw new NotFoundError("Booking Not Find");
+    // cartons create
+    for (const [index, carton] of cartons.entries()) {
+      const cbm = (carton.length * carton.height * carton.width) / 1000000;
+      const cartonData = {
+        cartonNumber: index + 1,
+        heightCm: carton.height,
+        lengthCm: carton.length,
+        widthCm: carton.width,
+        cbm: cbm,
+        shipmentBookingId: Number(BookingData.id),
+      }
+      await this.repository.createCarton(cartonData, tx);
+    }
+    return BookingData;
+  }
+
+
 
 
   async getSingleBooking(id: string) {
