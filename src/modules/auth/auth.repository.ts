@@ -273,7 +273,21 @@ export class AuthRepository {
   }
   // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
   // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
-  // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+
+  async getAllUsersWithWallets() {
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        wallets: true, // Fetches the array of wallets
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
 }
 
 // Export a singleton instance, similar to module.exports = new AuthRepository(UserSchema)

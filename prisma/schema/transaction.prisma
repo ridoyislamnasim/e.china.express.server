@@ -1,0 +1,50 @@
+enum TransactionCategory {
+  LOCAL
+  CURRENCY
+  RUPEE
+  EXPENSE
+}
+
+model Transaction {
+  id          String              @id @default(cuid())
+  category    TransactionCategory
+  
+  fromId      Int
+  sender      User                @relation("Sender", fields: [fromId], references: [id])
+
+  toId        Int
+  receiver    User                @relation("Receiver", fields: [toId], references: [id])
+  
+  amount      Decimal             @db.Decimal(18, 2)
+  method      String?     
+  totalAmount String?        
+  dailyCost   String?        
+  expenseCategory   String?        
+  note        String?             @db.Text
+  
+  currency    String?             
+  buyRate     Decimal?            @db.Decimal(18, 4)
+  sellRate    Decimal?            @db.Decimal(18, 4)
+ 
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  
+  logs        TransactionLog[]
+
+  @@index([fromId])
+  @@index([toId])
+  @@index([category])
+}
+
+model TransactionLog {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  
+  action        String
+  oldValue      Json?
+  newValue      Json?
+  
+  createdAt     DateTime    @default(now())
+}
+

@@ -1,20 +1,19 @@
 // AuthService (TypeScript version)
-import authRepository, { AuthRepository } from './auth.repository';
-import bcrypt from 'bcryptjs';
-import { generateAccessToken, generateRefreshToken } from '../../utils/jwt';
-import { NotFoundError } from '../../utils/errors';
-import path from 'path';
+import authRepository, { AuthRepository } from "./auth.repository";
+import bcrypt from "bcryptjs";
+import { generateAccessToken, generateRefreshToken } from "../../utils/jwt";
+import { NotFoundError } from "../../utils/errors";
+import path from "path";
 // import { RoleRepository } from '../role/';
 
-import { idGenerate } from '../../utils/IdGenerator';
+import { idGenerate } from "../../utils/IdGenerator";
 
-import { AuthUserSignUpPayload } from '../../types/auth';
-import { BaseRepository } from '../base/base.repository';
-import Email from '../../utils/Email';
-import { generateOTP } from '../../utils/OTPGenerate';
-import { link } from 'fs';
-import roleRepository from '../role/role.repository';
-
+import { AuthUserSignUpPayload } from "../../types/auth";
+import { BaseRepository } from "../base/base.repository";
+import Email from "../../utils/Email";
+import { generateOTP } from "../../utils/OTPGenerate";
+import { link } from "fs";
+import roleRepository from "../role/role.repository";
 
 export class AuthService {
   private repository: AuthRepository;
@@ -27,37 +26,43 @@ export class AuthService {
   async authUserSignUp(payload: AuthUserSignUpPayload, tx?: any) {
     const { name, email, phone, password } = payload;
     if (!name || !phone || !password) {
-      const error = new Error('name, phone and password are required');
+      const error = new Error("name, phone and password are required");
       (error as any).statusCode = 400;
       throw error;
     }
     if (password.length < 5) {
-      const error = new Error('Password must be at least 5 characters');
+      const error = new Error("Password must be at least 5 characters");
       (error as any).statusCode = 400;
       throw error;
     }
     if (email) {
       const auth = await this.repository.getAuthByEmail(email);
       if (auth) {
-        const error = new Error('Email already exists');
+        const error = new Error("Email already exists");
         (error as any).statusCode = 409;
         throw error;
       }
     }
-    // create Role 
-    const role = await this.repository.createCustomRoleIfNotExists('customer', tx);
+    // create Role
+    const role = await this.repository.createCustomRoleIfNotExists(
+      "customer",
+      tx,
+    );
     payload.roleId = role.id;
 
     // Add phone unique check if phone is in schema
     const hashedPassword = await bcrypt.hash(String(password), 10);
-    const user = await this.repository.createUser({ ...payload, password: hashedPassword }, tx);
+    const user = await this.repository.createUser(
+      { ...payload, password: hashedPassword },
+      tx,
+    );
     return user;
   }
 
   async createUser(payload: any, session?: any) {
     const { name, email, password } = payload;
     if (!name || !password) {
-      const error = new Error('name and password are required');
+      const error = new Error("name and password are required");
       (error as any).statusCode = 400;
       throw error;
     }
@@ -78,15 +83,18 @@ export class AuthService {
   async authUserSignIn(payload: any) {
     const { email, phone, password } = payload;
     const user = await this.repository.getAuthByEmailOrPhone(email, phone);
-    console.log('AuthService - authUserSignIn - retrieved user:', user);
+    console.log("AuthService - authUserSignIn - retrieved user:", user);
     if (!user) {
-      const error = new Error('unauthorized access');
+      const error = new Error("unauthorized access");
       (error as any).statusCode = 401;
       throw error;
     }
-    const isPasswordMatch = await bcrypt.compare(String(password), user.password);
+    const isPasswordMatch = await bcrypt.compare(
+      String(password),
+      user.password,
+    );
     if (!isPasswordMatch) {
-      const error = new Error('unauthorized access');
+      const error = new Error("unauthorized access");
       (error as any).statusCode = 401;
       throw error;
     }
@@ -96,8 +104,12 @@ export class AuthService {
       email: user.email,
       roleId: user.role?.id || 0,
     };
-    const accessToken = generateAccessToken({ userInfo: { user_info_encrypted } });
-    const refreshToken = generateRefreshToken({ userInfo: { user_info_encrypted } });
+    const accessToken = generateAccessToken({
+      userInfo: { user_info_encrypted },
+    });
+    const refreshToken = generateRefreshToken({
+      userInfo: { user_info_encrypted },
+    });
     return {
       accessToken: `Bearer ${accessToken}`,
       refreshToken: `Bearer ${refreshToken}`,
@@ -108,7 +120,7 @@ export class AuthService {
   async getUserBy(userId: number, session?: any) {
     const user = await this.repository.getUserBy(userId);
     if (!user) {
-      const error = new Error('User not found');
+      const error = new Error("User not found");
       (error as any).statusCode = 404;
       throw error;
     }
@@ -117,33 +129,30 @@ export class AuthService {
 
   async authForgetPassword(payload: any) {
     // check if user exists
-    const { email, phone,ip,
-      browser,
-      os,
-      date,
-      time,
-      geoLocation } = payload;
+    const { email, phone, ip, browser, os, date, time, geoLocation } = payload;
     const user = await this.repository.getAuthByEmailOrPhone(email, phone);
     if (!user) {
-      const error = new Error('User not found');
+      const error = new Error("User not found");
       (error as any).statusCode = 404;
       throw error;
     }
     const lockStatus: any = await this.repository.isOTPLocked(user.id);
     if (lockStatus && lockStatus.locked) {
       const unlockTime = new Date(lockStatus.unlockTime).toLocaleString();
-      const error = new Error(`Too many failed OTP attempts. Try again after ${unlockTime}`);
+      const error = new Error(
+        `Too many failed OTP attempts. Try again after ${unlockTime}`,
+      );
       (error as any).statusCode = 429;
       throw error;
     }
 
-    const OTP = await generateOTP()
+    const OTP = await generateOTP();
 
     // if email than send otp to email
     // if phone than send otp to phone
     if (email) {
       // Send OTP to email
-      const emailObj = { email: user.email, name: user.name || '' };
+      const emailObj = { email: user.email, name: user.name || "" };
       // ip,
       // browser,
       // os,
@@ -156,20 +165,30 @@ export class AuthService {
         os,
         date,
         time,
-        geoLocation
+        geoLocation,
       };
       const imgArray = {
-        forgetpassword: "https://e-china-express-server-k3vi.onrender.com/public/social/forget-password.png", 
-        facebook: "https://e-china-express-server-k3vi.onrender.com/public/social/facebook.png",
-        youtube: "https://e-china-express-server-k3vi.onrender.com/public/social/youtube.png",
-        instagram: "https://e-china-express-server-k3vi.onrender.com/public/social/instagram.png",
-        linkedin: "https://e-china-express-server-k3vi.onrender.com/public/social/linkedin.png",
-        telegram: "https://e-china-express-server-k3vi.onrender.com/public/social/telegram.png",
-        whatsapp: "https://e-china-express-server-k3vi.onrender.com/public/social/whatsapp.png",
+        forgetpassword:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/forget-password.png",
+        facebook:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/facebook.png",
+        youtube:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/youtube.png",
+        instagram:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/instagram.png",
+        linkedin:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/linkedin.png",
+        telegram:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/telegram.png",
+        whatsapp:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/whatsapp.png",
 
-        locationIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/destination.png",
-        deviceIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/video-lesson.png",
-        dateIcon: "https://e-china-express-server-k3vi.onrender.com/public/social/time-management.png",
+        locationIcon:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/destination.png",
+        deviceIcon:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/video-lesson.png",
+        dateIcon:
+          "https://e-china-express-server-k3vi.onrender.com/public/social/time-management.png",
       };
 
       await new Email(emailObj, OTP).sendSignInAlert(
@@ -191,14 +210,14 @@ export class AuthService {
 
     // Basic validation
     if (!otp || !newPassword) {
-      const error = new Error('otp and newPassword are required');
+      const error = new Error("otp and newPassword are required");
       (error as any).statusCode = 400;
       throw error;
     }
 
     const user = await this.repository.getAuthByEmailOrPhone(email, phone);
     if (!user) {
-      const error = new Error('User not found');
+      const error = new Error("User not found");
       (error as any).statusCode = 404;
       throw error;
     }
@@ -206,8 +225,14 @@ export class AuthService {
     // Verify OTP via repository helper
     const verifyResult: any = await this.repository.verifyOTP(user.id, otp);
     if (!verifyResult || !verifyResult.success) {
-      const reason = verifyResult?.reason || 'OTP verification failed';
-      const error = new Error(reason === 'expired' ? 'OTP expired' : reason === 'invalid' ? 'Invalid OTP' : reason);
+      const reason = verifyResult?.reason || "OTP verification failed";
+      const error = new Error(
+        reason === "expired"
+          ? "OTP expired"
+          : reason === "invalid"
+            ? "Invalid OTP"
+            : reason,
+      );
       (error as any).statusCode = 400;
       throw error;
     }
@@ -218,7 +243,12 @@ export class AuthService {
     return newUser;
   }
 
-  async updateUser(userId: number, payloadFiles: any, payload: any, session?: any) {
+  async updateUser(
+    userId: number,
+    payloadFiles: any,
+    payload: any,
+    session?: any,
+  ) {
     // File upload logic can be added here if needed
     // You may want to add a repository method for update
     // For now, call Prisma directly if needed
@@ -233,63 +263,69 @@ export class AuthService {
 
   async getSingleUser(id: number, session?: any) {
     const user = await this.repository.getUserById(id);
-    if (!user) throw new NotFoundError('User not found');
+    if (!user) throw new NotFoundError("User not found");
     return user;
   }
 
   async getDeleteUser(userId: number) {
     const user = await this.repository.getUserById(userId);
-    if (!user) throw new NotFoundError('User not found');
+    if (!user) throw new NotFoundError("User not found");
     // You may want to add a repository method for delete
     // For now, call Prisma directly if needed
     // Example: await this.repository.deleteUser(userId)
     return null;
   }
 
-
   async createSuperAdminRole(session?: any) {
     // crarte super admin role
     const superAdminRole = await roleRepository.createSuperAdminRole();
-    const password = 'SuperAdmin@123';
+    const password = "SuperAdmin@123";
     const hashedPassword = await bcrypt.hash(String(password), 10);
     const superAdminUserPayload = {
-      name: 'Super Admin',
+      name: "Super Admin",
       password: hashedPassword,
-      email: 'superadmin@example.com',
+      email: "superadmin@example.com",
       roleId: superAdminRole.id,
-      phone: '0000000000',
+      phone: "0000000000",
     };
-    const role = await this.repository.createUser(superAdminUserPayload, session);
+    const role = await this.repository.createUser(
+      superAdminUserPayload,
+      session,
+    );
     return role;
   }
 
   // ====================================================
-// user services 
-// ====================================================
+  // user services
+  // ====================================================
 
-//  async getUserWithPagination(payload: any, session?: any) {
-//     const users = await this.repository.getUserWithPagination(payload);
-//     return users;
-//   }
+  //  async getUserWithPagination(payload: any, session?: any) {
+  //     const users = await this.repository.getUserWithPagination(payload);
+  //     return users;
+  //   }
 
   updateUserRole = async (payload: any) => {
     const { userId, roleId } = payload;
     // superAdmin role cannot be updated and assigned to any user
     if (!userId || !roleId) {
-      const error = new Error('userId and roleId are required');
+      const error = new Error("userId and roleId are required");
       (error as any).statusCode = 400;
       throw error;
     }
     // superAdmin role cannot be updated and assigned to any user
     // get superAdmin role id
-    const superAdminRole = await roleRepository.getRoleByName('superAdmin');
+    const superAdminRole = await roleRepository.getRoleByName("superAdmin");
     if (roleId === superAdminRole?.id) {
-      const error = new Error('Cannot assign superAdmin role to any user');
+      const error = new Error("Cannot assign superAdmin role to any user");
       (error as any).statusCode = 400;
       throw error;
     }
     // const user = await this.repository.updateUserRole(userId, roleId);
     // return user;
+  };
+
+  async getAllUsersWithWallets() {
+    const users = await this.repository.getAllUsersWithWallets();
+    return users;
   }
 }
-
