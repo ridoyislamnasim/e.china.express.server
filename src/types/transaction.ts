@@ -1,9 +1,8 @@
-// transaction.types.ts
 export enum TransactionCategory {
   LOCAL = "LOCAL",
   CURRENCY = "CURRENCY",
   RUPEE = "RUPEE",
-  EXPENSE = "EXPENSE"
+  EXPENSE = "EXPENSE",
 }
 
 export interface CreateTransactionDTO {
