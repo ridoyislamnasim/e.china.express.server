@@ -16,7 +16,7 @@ dotenv_1.default.config();
 // Create Express app instance
 const app = (0, express_1.default)();
 // Enable trust proxy to get real client IP behind reverse proxies
-app.set('trust proxy', true);
+app.set("trust proxy", true);
 app.use(cookieParser());
 // HTTP request logger middleware
 app.use((0, morgan_1.default)("dev"));
@@ -28,12 +28,12 @@ app.use("/public", express_1.default.static(path_1.default.join(__dirname, "..",
 // Enable Cross-Origin Resource Sharing
 // Allowlist for frontends that are allowed to make credentialed requests
 const allowedOrigins = [
-    'http://localhost:3010',
-    'http://localhost:3012',
-    'https://echinaexpress.com',
-    'http://echinaexpress.com',
-    'https://www.echinaexpress.com',
-    'https://admin.echinaexpress.com',
+    "http://localhost:3010",
+    "http://localhost:3012",
+    "https://echinaexpress.com",
+    "http://echinaexpress.com",
+    "https://www.echinaexpress.com",
+    "https://admin.echinaexpress.com",
 ];
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
@@ -42,11 +42,11 @@ app.use((0, cors_1.default)({
         if (allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
-        return callback(new Error('Not allowed by CORS'));
+        return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
 }));
-app.options('*', (0, cors_1.default)()); // 🔥 MUST
+app.options("*", (0, cors_1.default)()); // 🔥 MUST
 // Mount all API routers at /api
 app.use("/api/v1", index_1.default);
 // Health check or welcome endpoint

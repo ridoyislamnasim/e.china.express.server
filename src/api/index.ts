@@ -40,6 +40,7 @@ import carrierCompanyRouter from "./routes/carrierCompany.route";
 import WalletRoute from "./routes/wallet.route";
 import ExpressBookingRouter from "./routes/express.booking.route";
 import TransactionRoute from "./routes/transaction.routes";
+import AddressRouter from "./routes/address.route";
 
 // import other routers here
 
@@ -105,5 +106,8 @@ rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/guide", guideRoute);
 rootRouter.use("/contact-us", contactUsRoute);
 rootRouter.use("/team-management", teamManagementRoute);
+
+//Address Route done by Sourabh
+rootRouter.use("/address", AddressRouter);
 
 export default rootRouter;
