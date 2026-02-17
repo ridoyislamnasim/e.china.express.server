@@ -58,19 +58,21 @@ model Role {
 }
 
 model Address {
-  id             Int     @id @default(autoincrement())
+  id             Int      @id @default(autoincrement())
   userId         Int
-  user           User    @relation(fields: [userId], references: [id])
-  house          String
-  street         String
-  city           String
-  state          String
-  country        String
-  zipCode        String
-  recipientName  String
+  user           User     @relation(fields: [userId], references: [id])
+  house          String?
+  street         String?
+  city           String?
+  state          String?
+  country        String?
+  zipCode        String?
+  recipientName  String?
   recipientPhone String
   address        String
   defaultAddress Boolean
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@map("addresses")
 }

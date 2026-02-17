@@ -21,12 +21,27 @@ export class AddressRepository {
     });
   }
 
+  //===============Get All Address by UserId================
+  async getAllAddressByUserId(userId: number): Promise<any> {
+    return await this.prisma.address.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        user: { select: { id: true, name: true, email: true, phone: true } },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+  }
+
   //==============Get Address by Id===============
   async getAddressById(id: number): Promise<any> {
     return await this.prisma.address.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, email: true } },
+        user: { select: { id: true, name: true, email: true, phone: true } },
       },
     });
   }
@@ -40,9 +55,17 @@ export class AddressRepository {
     });
   }
 
-  //==============Count User Address=========
+  //==============Count User Address===============
   async countUserAddresses(userId: number): Promise<any> {
     return await this.prisma.address.count({ where: { userId } });
+  }
+
+  //=============Delete User Address=================
+  async deleteAddress(id: number, tx?: any): Promise<any> {
+    const prismaClient = tx || this.prisma;
+    return await prismaClient.address.delete({
+      where: { id },
+    });
   }
 }
 

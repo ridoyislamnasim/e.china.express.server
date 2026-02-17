@@ -10,21 +10,12 @@ export class AddressService {
 
   //==================Create Address================
   async createAddress(payload: AddressPayload, tx?: any): Promise<any> {
-    const { userId, defaultAddress } = payload;
+    const { userId } = payload;
 
-    //check if user has any default address
-    const addressCount = await this.repository.countUserAddresses(userId);
+    //at first make all the existing address undefault
+    await this.repository.unsetDefaultAddresses(userId, tx);
 
-    let isDefault = defaultAddress || false;
-    if (addressCount === 0) {
-      isDefault = true;
-    }
-
-    if (isDefault) {
-      await this.repository.unsetDefaultAddresses(userId, tx);
-    }
-
-    const finalPayload = { ...payload, defaultAddress: isDefault };
+    const finalPayload = { ...payload, defaultAddress: true };
 
     return await this.repository.createAddress(finalPayload, tx);
   }
@@ -56,5 +47,69 @@ export class AddressService {
     }
 
     return await this.repository.updateAddress(id, payload, tx);
+  }
+
+  //================Set an Address as Default=============
+  async setDefaultAddress(id: number, userId: number, tx?: any): Promise<any> {
+    //get the targeted address
+    const existingAddress = await this.repository.getAddressById(id);
+
+    if (!existingAddress) {
+      throw { statusCode: 404, message: "Address not found" };
+    }
+
+    //check address ownership
+    if (existingAddress.userId !== userId) {
+      throw {
+        statusCode: 403,
+        message: "Forbidden: You do not have permission to fetch this address",
+      };
+    }
+
+    //unset defaultaddress
+    await this.repository.unsetDefaultAddresses(userId, tx);
+
+    //update address defaultAddress
+    return await this.repository.updateAddress(
+      id,
+      { defaultAddress: true },
+      tx,
+    );
+  }
+
+  //================Get All Addresses by User Id=============
+  async getAddressesByUserId(userId: number): Promise<any> {
+    return await this.repository.getAllAddressByUserId(userId);
+  }
+
+  //==============Get Single Address by Id===============
+  async getAddressById(id: number, userId: number): Promise<any> {
+    const address = await this.repository.getAddressById(id);
+
+    if (address.userId !== userId) {
+      throw {
+        statusCode: 403,
+        message: "Forbidden: You do not have permission to fetch this address",
+      };
+    }
+
+    return address;
+  }
+
+  //==============Delete Address by Id =================
+  async deleteAddress(id: number, userId: number, tx?: any): Promise<any> {
+    const existingAddress = await this.repository.getAddressById(id);
+    if (!existingAddress)
+      throw { statusCode: 404, message: "Address not found" };
+
+    //check address ownership by userid
+    if (existingAddress.userId !== userId) {
+      throw {
+        statusCode: 403,
+        message: "Forbidden: You do not have permission to delete this address",
+      };
+    }
+
+    return await this.repository.deleteAddress(id, tx);
   }
 }
