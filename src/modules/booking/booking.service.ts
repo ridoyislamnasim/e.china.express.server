@@ -131,6 +131,35 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     return suppliers;
   }
 
+  async createLocalDeliveryInformation(payload: any, tx?: any) {
+    const {bookingId, contactPerson, phoneNumber, deliveryAddress, deliveryDate, timeSlot, specialInstructions } = payload;
+    console.log("Create Local Delivery Information Payload:", payload);
+    //  check bookingId Exits
+    const bookingExists = await this.repository.getSingleBooking(Number(bookingId));
+    console.log("Booking Exists Check:", bookingExists);
+    if (!bookingExists) {
+      throw new NotFoundError("Booking ID does not exist");
+    }
+    const createLocalDeliveryData: any = {
+      contactPerson: contactPerson || undefined,
+      phoneNumber: phoneNumber || undefined,
+      deliveryAddress: deliveryAddress || undefined,
+      deliveryDate: deliveryDate ? new Date(deliveryDate) : undefined,
+      timeSlot: timeSlot || undefined,
+      specialInstructions: specialInstructions || undefined,
+      shipmentBooking: { connect: { id: Number(bookingId) } },
+
+    };
+    // update Booking with local delivery information
+    const BookingData = await this.repository.createLocalDeliveryInformation(createLocalDeliveryData, tx);
+    return BookingData;
+  }
+
+    async getAllLocalDeliveryInformation(payload: any) {
+    const localDeliveryInfos = await this.repository.getAllLocalDeliveryInformation(payload);
+    return localDeliveryInfos;
+  }
+
   async getAllBookingByFilterWithPagination(payload: any) {
     const Bookings = await this.repository.getAllBookingByFilterWithPagination(payload);
     return Bookings;
@@ -390,8 +419,80 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     return BookingData;
   }
 
+  async calculateDiscountForAdminShippingDecision(bookingId: string, payload: any) {
+    const { discountTarget, discountType, discountValue } = payload;
+    console.log("Calculate Discount for Admin Shipping Decision Payload:", payload);
+      // allow discountValue === 0, so only reject if it is null or undefined
+      if (!bookingId || !discountTarget || !discountType || discountValue === undefined || discountValue === null) {
+        throw new Error("bookingId, discountTarget, discountType and discountValue are required");
+      }
+      // Fetch the booking to get current shipping price
+      const booking = await this.repository.getSingleBooking(Number(bookingId));
+      if (!booking) {
+        throw new NotFoundError("Booking Not Found");
+      }
+      // discountTarget wise maintain hobe - shipping, packaging, branding
+      let originalPrice: Prisma.Decimal = new Prisma.Decimal(0);
+      if (discountTarget === "shipping") {
+        originalPrice = booking.shippingPrice || new Prisma.Decimal(0);
+      } else if (discountTarget === "packaging") {
+        originalPrice = booking.packagingCharge || new Prisma.Decimal(0);
+      } else if (discountTarget === "branding") {
+        originalPrice = booking.brandingCharge || new Prisma.Decimal(0);
+      } else {
+        throw new Error("Invalid discountTarget. Must be 'shipping', 'packaging' or 'branding'.");
+      }
 
+      // Normalize discountType values from different callers
+      const t = (discountType || '').toString().toLowerCase();
+      let isPercent = false;
+      if (['percentage', 'percent', 'p', 'pct'].includes(t)) isPercent = true;
+      if (['fixed', 'flat', 'f'].includes(t)) isPercent = false;
 
+      let discountAmount: Prisma.Decimal;
+      if (isPercent) {
+        discountAmount = originalPrice.mul(new Prisma.Decimal(discountValue).div(100));
+      } else {
+        discountAmount = new Prisma.Decimal(discountValue);
+      }
+
+      let discountedPrice = originalPrice.sub(discountAmount);
+      // Ensure price doesn't go negative — avoid using chained `.max()` which may not be available on the runtime Decimal type
+      if (discountedPrice.toNumber() < 0) {
+        discountedPrice = new Prisma.Decimal(0);
+      }
+      console.log(`Original Price: ${originalPrice.toString()}, Discount Amount: ${discountAmount.toString()}, Discounted Price: ${discountedPrice.toString()}`);
+
+      // Prepare data to persist on booking based on target
+      const updateData: any = {};
+      const prismaDiscountType = isPercent ? 'PERCENT' : 'FIXED';
+
+      if (discountTarget === 'shipping') {
+        updateData.shippingDiscount = new Prisma.Decimal(discountValue);
+        updateData.shippingDiscountType = prismaDiscountType;
+        updateData.shippingDiscountAmount = discountAmount;
+      } else if (discountTarget === 'packaging') {
+        updateData.packageDiscount = new Prisma.Decimal(discountValue);
+        updateData.packageDiscountType = prismaDiscountType;
+        updateData.packagingDiscountAmount = discountAmount;
+      } else if (discountTarget === 'branding') {
+        updateData.brandingDiscount = new Prisma.Decimal(discountValue);
+        updateData.brandingDiscountType = prismaDiscountType;
+        updateData.brandingDiscountAmount = discountAmount;
+      }
+
+      // Persist the discount fields on the booking and return the updated booking + computed values
+      const updatedBooking = await this.repository.findByConditionAndUpdate({ id: Number(bookingId) }, updateData);
+      if (!updatedBooking) throw new NotFoundError('Booking Not Find');
+
+      return {
+        booking: updatedBooking,
+        originalPrice,
+        discountAmount,
+        discountedPrice,   
+      };
+    }
+    
 
   async getSingleBooking(id: string) {
     const numericId = Number(id);

@@ -403,6 +403,27 @@ class BookingRepository {
     return Booking;
   }
 
+  async getAllLocalDeliveryInformation(payload: any) {
+    const { search } = payload;
+    const filter: any = {};
+    if (search) {
+      filter.OR = [
+        { deliveryCompany: { contains: search, mode: 'insensitive' } },
+        { contactPerson: { contains: search, mode: 'insensitive' } },
+        { deliveryPhone: { contains: search, mode: 'insensitive' } },
+        { deliveryEmail: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    const localDeliveries = await this.prisma.localDeliveryInfo.findMany({
+      where: filter,
+      orderBy: {
+        id: 'desc',
+      },
+    });
+    return localDeliveries;
+  }
+
+
   async createCarton(cartonData: any, tx?: any) {
     const prismaClient: PrismaClient = tx || this.prisma;
     const newCarton = await prismaClient.shipmentCarton.create({
@@ -410,6 +431,15 @@ class BookingRepository {
     });
     return newCarton;
   }
+
+  async createLocalDeliveryInformation(localDeliveryData: any, tx?: any) {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    const newLocalDeliveryInfo = await prismaClient.localDeliveryInfo.create({
+      data: localDeliveryData,
+    });
+    return newLocalDeliveryInfo;
+  }
+  
 
   async findByConditionAndUpdate(where: object, data: Partial<BookingDoc>, tx?: any) {
     const prismaClient: PrismaClient = tx || this.prisma;

@@ -317,6 +317,49 @@ class BookingController {
     },
   );
 
+  createLocalDeliveryInformation = withTransaction(
+    async (req: Request, res: Response, next: NextFunction, tx: any) => {
+      const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
+
+  //     deliveryDate DateTime
+  // timeSlot     String // e.g. "Evening (3PM - 6PM)"
+
+  // contactPerson       String
+  // phoneNumber         String
+  // deliveryAddress     String
+  // specialInstructions String?
+
+  // shipmentBookingId Int             @unique
+  // shipmentBooking   ShipmentBooking @relation(fields: [shipmentBookingId], references: [id], onDelete: Cascade)
+
+      const payload = {
+        // local delivery fields
+        bookingId: req.body.bookingId,
+        contactPerson: req.body.contactPerson,
+        deliveryDate: req.body.deliveryDate,
+        timeSlot: req.body.timeSlot,
+        phoneNumber: req.body.phoneNumber,
+        deliveryAddress: req.body.deliveryAddress,
+        specialInstructions: req.body.specialInstructions,
+      };
+      const BookingResult =
+        await BookingService.createLocalDeliveryInformation(payload, tx);
+      const resDoc = responseHandler(201, "Local Delivery Information created", BookingResult);
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
+  getAllLocalDeliveryInformation = catchError(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const payload = {
+        search: req.query.search as string,
+      };
+      const BookingResult =
+        await BookingService.getAllLocalDeliveryInformation(payload);
+      const resDoc = responseHandler(200, "Get All Local Delivery Information", BookingResult);
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
+
   getAllBookingByFilterWithPagination = catchError(
     async (req: Request, res: Response, next: NextFunction) => {
       const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
@@ -378,6 +421,23 @@ class BookingController {
       const resDoc = responseHandler(
         201,
         "Single Booking successfully",
+        BookingResult,
+      );
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
+
+  calculateDiscountForAdminShippingDecision = catchError(async (req: Request, res: Response, next: NextFunction) => {
+      const bookingId = req.params.id as string;
+      const palyload = {
+        // discountTarget: "shipping" | "packaging" | "branding",
+        discountTarget: req.body.discountTarget as string,
+        discountType: req.body.discountType as string,
+        discountValue: req.body.discountValue as string,
+      };
+      const BookingResult = await BookingService.calculateDiscountForAdminShippingDecision(bookingId,palyload);
+      const resDoc = responseHandler( 201,
+        "Calculate Discount for Admin Shipping Decision successfully",
         BookingResult,
       );
       res.status(resDoc.statusCode).json(resDoc);

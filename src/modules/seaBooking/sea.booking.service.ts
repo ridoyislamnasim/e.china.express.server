@@ -85,8 +85,7 @@ export class SeaBookingService extends BaseService<typeof seaBookingRepository> 
       totalProductCost: payload.totalCost ? new Prisma.Decimal(payload.totalCost) : undefined,
       cartonQuantity: payload.cartonQuantity ? Number(payload.cartonQuantity) : undefined,
       productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
-      price: price ? new Prisma.Decimal(price) : undefined,
-      finalPrice: price ? new Prisma.Decimal(price) : undefined,
+      shippingPrice: price ? new Prisma.Decimal(price) : undefined,
       // totalProductCost: 
       // price: rate
     };

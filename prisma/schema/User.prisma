@@ -41,15 +41,10 @@ model User {
 
   cartProductShippings CartProductShipping[] @relation("CartProductShippingUser")
 
-<<<<<<< HEAD
   wallets   Wallet[] 
   sentTransactions     Transaction[] @relation("Sender")
   receivedTransactions Transaction[] @relation("Receiver")
-
-=======
-  wallets   Wallet[]
   addresses Address[]
->>>>>>> origin/sourabh
 }
 
 model Role {

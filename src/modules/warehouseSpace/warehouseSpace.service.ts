@@ -220,6 +220,24 @@ export class WarehouseSpaceRepository {
     });
   }
 
+  async getAllSpacesByWarehouseId(warehouseId: string, filter: any = {}): Promise<any> {
+    return await this.prisma.space.findMany({
+      where: {
+        warehouseSpace: {
+          warehouseId,
+        },
+        ...filter,
+      },
+      include: {
+        warehouseSpace: {
+          include: {
+            warehouse: true,
+          }
+        }
+      }
+    });
+  }
+
   async updateSpace(id: string, payload: any, tx?: any): Promise<any> {
     const prismaClient: PrismaClient = tx || this.prisma;
     return await prismaClient.space.update({
