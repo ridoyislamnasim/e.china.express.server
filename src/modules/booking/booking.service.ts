@@ -160,6 +160,29 @@ export class BookingService extends BaseService<typeof BookingRepository> {
     return localDeliveryInfos;
   }
 
+  async assignWarehouseSpaceToBooking(payload: any, tx?: any) {
+    const { bookingId, spaceId } = payload;
+    console.log("Assign Warehouse Space to Booking Payload:", payload);
+    //  check bookingId Exits
+    const bookingExists = await this.repository.getSingleBooking(Number(bookingId));
+    if (!bookingExists) {
+      throw new NotFoundError("Booking ID does not exist");
+    }
+    // check warehouseSpaceId Exits
+    const warehouseSpaceExists = await this.repository.getSpaceById(String(spaceId));
+    if (!warehouseSpaceExists) {
+      throw new NotFoundError("Warehouse Space ID does not exist");
+    }
+    // update Booking with warehouse space relation
+    const updateData: any = {
+      spaceRef: { connect: { id: String(spaceId) } },
+    };
+
+    const BookingData = await this.repository.updateBooking(Number(bookingId), updateData, tx);
+    return BookingData;
+  }
+
+
   async getAllBookingByFilterWithPagination(payload: any) {
     const Bookings = await this.repository.getAllBookingByFilterWithPagination(payload);
     return Bookings;

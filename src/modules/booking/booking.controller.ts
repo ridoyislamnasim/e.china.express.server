@@ -444,6 +444,19 @@ class BookingController {
     },
   );
 
+  assignWarehouseSpaceToBooking = catchError(async (req: Request, res: Response, next: NextFunction) => {
+    const payload = {
+      bookingId: req.body.bookingId,
+      spaceId: req.body.spaceId,
+    };
+    const BookingResult = await BookingService.assignWarehouseSpaceToBooking(payload);
+    const resDoc = responseHandler( 201,
+      "Assign Warehouse Space to Booking successfully",
+      BookingResult,
+    );
+    res.status(resDoc.statusCode).json(resDoc);
+  });
+
   updateBooking = catchError(
     async (req: Request, res: Response, next: NextFunction) => {
       const id = req.params.id as string;

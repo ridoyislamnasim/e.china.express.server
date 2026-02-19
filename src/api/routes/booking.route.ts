@@ -36,6 +36,10 @@ BookingRouter.get("/admin/pagination", jwtAuth(), controller.getAllBookingForAdm
 // discount calculation for admin shipping decision shipping, packing and brnding
 BookingRouter.post("/admin/discount-calculation/:id", jwtAuth(), controller.calculateDiscountForAdminShippingDecision);
 
+BookingRouter.route("/admin/assign-warehouse-space")
+  .post(jwtAuth(), controller.assignWarehouseSpaceToBooking)
+  // .get(jwtAuth(), controller.getAllBooking);
+
 
 BookingRouter.route("/:id")
   .get(jwtAuth(), controller.getSingleBooking)

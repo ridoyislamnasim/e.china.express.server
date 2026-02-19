@@ -29,6 +29,12 @@ class BookingRepository {
 
   }
 
+  async getSpaceById(id: string) {
+    const space = await prisma.space.findUnique({
+      where: { id: id },
+    });
+    return space;
+  }
   async createSupplierInformation(supplierData: any, tx?: any) {
     const prismaClient: PrismaClient = tx || this.prisma;
     const newBooking = await prismaClient.suppliers.create({
@@ -62,6 +68,7 @@ class BookingRepository {
             supplierRef: true,
             packageRef: true,
             shippingMethodRef: true,
+            localDeliveryInfo: true,
             rateRef: {
               include: {
                 category1688: true,
@@ -138,6 +145,9 @@ class BookingRepository {
           include: {
             supplierRef: true,
             packageRef: true,
+            shippingMethodRef: true,
+            localDeliveryInfo: true,
+            categoryRef: true,
             customerRef: {
               select: {
                 id: true,
@@ -239,6 +249,7 @@ class BookingRepository {
             supplierRef: true,
             packageRef: true,
             shippingMethodRef: true,
+            localDeliveryInfo: true,
             shipmentCartons: true,
             customerRef: {
               select: {

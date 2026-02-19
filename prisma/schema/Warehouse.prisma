@@ -71,11 +71,16 @@ model Space {
   occupied         Boolean?       @default(false)
   spaceNumber      Int?
   capacity         Int
+  usedCapacity     Int     @default(0)  // confirm হওয়া booking এর মোট use
+  status           SpaceStatus    @default(AVAILABLE)
   notes            String?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   warehouseSpaceId String
   warehouseSpace   WarehouseSpace @relation(fields: [warehouseSpaceId], references: [id], onDelete: Cascade)
+
+  // ShipmentBooking relation
+  shipmentBookings ShipmentBooking[]
 
   @@unique([warehouseSpaceId, type, spaceId])
   @@unique([warehouseSpaceId, type, spaceNumber])

@@ -8,7 +8,7 @@ model ShipmentBooking {
   invoice          String?
   packingList      String?
   totalWeightkg    Decimal? @db.Decimal(10, 2)
-  total_cbm        Decimal? @db.Decimal(10, 2)
+  totalCBM        Decimal? @db.Decimal(10, 2)
   totalProductCost Decimal? @db.Decimal(10, 2)
 
   cartonQuantity  Int?
@@ -17,8 +17,8 @@ model ShipmentBooking {
   shippingMark    String?
 
   // category
-  categoryId  Int?      @unique
-  categoryRef Category? @relation(fields: [categoryId], references: [id])
+  categoryId  Int?    
+  categoryRef Category1688? @relation(fields: [categoryId], references: [id])
 
   // files
   productPhotos     String?
@@ -83,6 +83,11 @@ model ShipmentBooking {
   importWarehouseId  String?
   exportWarehouseRef Warehouse?  @relation("ShipmentExportWarehouse", fields: [exportWarehouseId], references: [id])
   importWarehouseRef Warehouse? @relation("ShipmentImportWarehouse", fields: [importWarehouseId], references: [id])
+
+  // space relation
+  spaceId    String?
+  spaceRef   Space?  @relation(fields: [spaceId], references: [id])
+  spaceCapacity Int?     // confirm হওয়া booking এর space use
 
   // rate relation
   rateId         Int?

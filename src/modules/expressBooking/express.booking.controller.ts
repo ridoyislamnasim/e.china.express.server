@@ -13,6 +13,8 @@ class ExpressBookingController {
       const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
       const payload = {
         cartonQuantity: req.body.cartonQuantity,
+                totalCBM: req.body.totalCBM,
+        productQuantity: req.body.productQuantity,
 
         shippingRateId: req.body.shippingRateId,
         importCountryId: req.body.importCountryId,
@@ -32,7 +34,6 @@ class ExpressBookingController {
           : null,
         countryExportId: req.body.countryExportId,
         countryImportId: req.body.countryImportId,
-        productQuantity: req.body.productQuantity,
 
         // variants
         variants: req.body.variants ? JSON.parse(req.body.variants) : undefined,

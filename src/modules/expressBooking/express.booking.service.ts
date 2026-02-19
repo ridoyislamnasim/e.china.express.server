@@ -63,7 +63,11 @@ export class ExpressBookingService extends BaseService<typeof expressBookingRepo
 
     const expressBookingPayload = {
       expressRateRef: { connect: { id: Number(rate[0].id) } },
+      ...(payload.productPhotos ? { productPhotos: payload.productPhotos } : {}),
       shippingMethodRef: { connect: { id: Number(payload.shippingMethodId) } },
+            categoryRef: { connect: { id: Number(payload.subCategoryId ?? payload.category) } },
+      totalCBM: payload.totalCBM ? new Prisma.Decimal(payload.totalCBM) : undefined,
+      productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
 
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       orderNumber,
@@ -81,7 +85,6 @@ export class ExpressBookingService extends BaseService<typeof expressBookingRepo
       totalWeightkg: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       totalProductCost: payload.totalCost ? new Prisma.Decimal(payload.totalCost) : undefined,
       cartonQuantity: payload.cartonQuantity ? Number(payload.cartonQuantity) : undefined,
-      productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
       shippingPrice: price ? new Prisma.Decimal(price) : undefined,
       // totalProductCost: 
       // price: rate

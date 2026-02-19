@@ -13,6 +13,8 @@ class SeaBookingController {
       const userRef = req.user?.user_info_encrypted?.id?.toString() ?? null;
       const payload = {
         cartonQuantity: req.body.cartonQuantity,
+        totalCBM: req.body.totalCBM,
+        productQuantity: req.body.productQuantity,
 
         shippingRateId: req.body.shippingRateId,
         importCountryId: req.body.importCountryId,
@@ -34,7 +36,6 @@ class SeaBookingController {
           : null,
         countryExportId: req.body.countryExportId,
         countryImportId: req.body.countryImportId,
-        productQuantity: req.body.productQuantity,
       };
       console.log("SeaBooking Create request body:", payload);
       console.log("SeaBooking Create request files:", payloadFiles);
