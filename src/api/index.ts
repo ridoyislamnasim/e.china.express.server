@@ -8,7 +8,7 @@ import BannerRouter from "./routes/banner.route";
 import BlogRouter from "./routes/blog.route";
 import CartRouter from "./routes/cart.route";
 import CouponRouter from "./routes/coupon.route";
-import OrderRouter from "./routes/order.route";
+import ShoppingOrderRouter from "./routes/shoppingOrder.route";
 import WishlistRouter from "./routes/wishlist.route";
 import countryRouter from "./routes/country.route";
 import rateShippingMethodRoute from "./routes/rateShippingMethod.route";
@@ -58,7 +58,7 @@ rootRouter.use("/subcategory", SubCategoryRouter);
 rootRouter.use("/product", ProductRouter);
 // rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/coupon", CouponRouter);
-rootRouter.use("/order", OrderRouter);
+rootRouter.use("/order", ShoppingOrderRouter);
 
 rootRouter.use("/cart", CartRouter); // cart routes
 rootRouter.use("/country", countryRouter);
@@ -88,6 +88,9 @@ rootRouter.use("/booking/air", AirBookingRouter);
 rootRouter.use("/booking/sea", SeaBookingRouter);
 rootRouter.use("/booking/express", ExpressBookingRouter);
 rootRouter.use("/booking/inventory", WishlistRouter);
+
+// shopping order
+rootRouter.use("/shopping-order", ShoppingOrderRouter);
 
 // WarehouseSpace masud
 rootRouter.use("/warehouses", warehouseRoute);

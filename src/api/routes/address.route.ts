@@ -5,15 +5,15 @@ import jwtAuth from "../../middleware/auth/jwtAuth";
 
 const AddressRouter = Router();
 
-AddressRouter.post("/", jwtAuth(), addressController.createAddress);
-AddressRouter.patch("/:id", jwtAuth(), addressController.updateAddress);
-AddressRouter.get("/", jwtAuth(), addressController.getAddressesByUserId);
-AddressRouter.get("/:id", jwtAuth(), addressController.getAddressById);
+AddressRouter.route("/")
+  .post(jwtAuth(), addressController.createAddress)
+  .get(jwtAuth(), addressController.getAddressesByUserId);
+
+AddressRouter.route("/:id")
+  .patch(jwtAuth(), addressController.updateAddress)
+  .get(jwtAuth(), addressController.getAddressById);
+
 AddressRouter.delete("/delete/:id", jwtAuth(), addressController.deleteAddress);
-AddressRouter.patch(
-  "/default/:id",
-  jwtAuth(),
-  addressController.setDefaultAddress,
-);
+AddressRouter.patch("/default/:id",jwtAuth(), addressController.setDefaultAddress);
 
 export default AddressRouter;

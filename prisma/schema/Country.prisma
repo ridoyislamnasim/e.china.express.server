@@ -22,6 +22,12 @@ model Country {
   ShippingFromCountry                                        ShippingInfo[]        @relation("ShippingFromCountry")
   ShippingToCountry                                          ShippingInfo[]        @relation("ShippingToCountry")
   warehouses                                                   Warehouse[]
+
+  // Shopping Booking relation
+  shoppingBookingsExport                                     ShoppingBooking[]     @relation("ShoppingBookingExportCountry")
+  shoppingBookingsImport                                     ShoppingBooking[]     @relation("ShoppingBookingImportCountry")
+
+  
   countryZoneId                                             Int?
   countryZone                                               CountryZone?          @relation(fields: [countryZoneId], references: [id])
 

@@ -33,7 +33,10 @@ model Warehouse {
   shipmentBookingsExport                                        ShipmentBooking[]   @relation("ShipmentExportWarehouse")
   shipmentBookingsImport                                        ShipmentBooking[]   @relation("ShipmentImportWarehouse")
   shipmentBookingItems                                          BookingProduct[]
-  ShoppingBooking                                               ShoppingBooking[]
+  // Shopping Booking relation
+  shoppingBookingExport                                        ShoppingBooking[]   @relation("ShoppingBookingExportWarehouse")
+  shoppingBookingImport                                        ShoppingBooking[]   @relation("ShoppingBookingImportWarehouse")
+  
   fromWarehouseTransfers                                        WarehouseTransfer[] @relation("FromWarehouse")
   toWarehouseTransfers                                          WarehouseTransfer[] @relation("ToWarehouse")
   warehouseSpaces                                               WarehouseSpace?
@@ -70,8 +73,8 @@ model Space {
   duration         String?
   occupied         Boolean?       @default(false)
   spaceNumber      Int?
-  capacity         Int
-  usedCapacity     Int     @default(0)  // confirm হওয়া booking এর মোট use
+  capacity         Decimal? @db.Decimal(10, 2)
+  usedCapacity     Decimal? @db.Decimal(10, 2)     @default(0)  // confirm হওয়া booking এর মোট use
   status           SpaceStatus    @default(AVAILABLE)
   notes            String?
   createdAt        DateTime       @default(now())

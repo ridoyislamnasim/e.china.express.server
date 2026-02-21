@@ -202,7 +202,6 @@ class BookingController {
 
       const payload = {
         bookingId: toNumber(req.body.bookingId),
-        warehouseId: req.body.warehouseId,
         agentId: toNumber(req.body.agentId),
         customerId: toNumber(req.body.customerId),
         shippingMark: req.body.shippingMark,
@@ -212,7 +211,6 @@ class BookingController {
         packagingCharge: toFloat(req.body.packagingCharge),
         shippingRate: toFloat(req.body.shippingRate),
         warehouseReceivingNote: req.body.warehouseReceivingNote,
-        orderNumber: req.body.orderNumber,
         trackingNumber: req.body.trackingNumber,
         cartons: parsedCartons,
       };
@@ -220,7 +218,6 @@ class BookingController {
       console.log("Create Inventory Stored by Warehouse (parsed) request body:", payload);
       const BookingResult = await BookingService.createInventoryStoredByWarehouse(payload, req.files, tx); 
 
-      // NOTE: booking service method not implemented here — return parsed payload so client validation passes for now
       const resDoc = responseHandler(201, "Inventory Receipt received", payload);
       res.status(resDoc.statusCode).json(resDoc);
     },

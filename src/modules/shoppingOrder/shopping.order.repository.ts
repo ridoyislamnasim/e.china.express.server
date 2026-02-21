@@ -25,6 +25,11 @@ class OrderRepository {
         this.prisma = prisma;
     }
 
+    async createShoppingOrder(orderData: any, tx: any) {
+        return await tx.shoppingOrder.create({
+            data: orderData,
+        });
+    }
     
 
     //   delete

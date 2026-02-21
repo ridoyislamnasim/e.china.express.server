@@ -83,7 +83,7 @@ export class AuthRepository {
   async getUser(payload: any) {
     const { role } = payload;
     const whereClause: any = {};
-    if (role) whereClause.role = { role: role };
+    if (role) whereClause.role = { role: { equals: role, mode: "insensitive" } };
     return await this.prisma.user.findMany(
       {
         where: whereClause,
@@ -231,19 +231,27 @@ export class AuthRepository {
   // user repository services
   // ====================================================
   async getUserWithPagination(payload: any) {
+          const query: any = {}
+        if (payload.roleId) {
+          query.roleId = Number(payload.roleId);
+        }
+        
     return await pagination(
       payload,
       async (limit: number, offset: number, sortOrder: any) => {
         const [doc, totalDoc] = await Promise.all([
           this.prisma.user.findMany({
+            where: query,
             skip: offset,
             take: limit,
-            // orderBy: sortOrder,
+             orderBy: {
+            id: sortOrder,
+          },
             include: {
               role: true,
             },
           }),
-          this.prisma.user.count(),
+          this.prisma.user.count({ where: query }),
         ]);
         return { doc, totalDoc };
       },

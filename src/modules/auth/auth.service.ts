@@ -299,10 +299,10 @@ export class AuthService {
   // user services
   // ====================================================
 
-  //  async getUserWithPagination(payload: any, session?: any) {
-  //     const users = await this.repository.getUserWithPagination(payload);
-  //     return users;
-  //   }
+   async getUserWithPagination(payload: any, session?: any) {
+      const users = await this.repository.getUserWithPagination(payload);
+      return users;
+    }
 
   updateUserRole = async (payload: any) => {
     const { userId, roleId } = payload;
@@ -320,8 +320,8 @@ export class AuthService {
       (error as any).statusCode = 400;
       throw error;
     }
-    // const user = await this.repository.updateUserRole(userId, roleId);
-    // return user;
+    const user = await this.repository.updateUserRole(userId, roleId);
+    return user;
   };
 
   async getAllUsersWithWallets() {

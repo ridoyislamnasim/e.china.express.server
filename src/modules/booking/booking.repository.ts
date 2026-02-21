@@ -35,6 +35,16 @@ class BookingRepository {
     });
     return space;
   }
+
+  async updateSpace(id: string, data: any, tx?: any) {
+    const prismaClient: PrismaClient = tx || this.prisma;
+    const updatedSpace = await prismaClient.space.update({
+      where: { id: id },
+      data,
+    });
+    return updatedSpace;
+  }
+
   async createSupplierInformation(supplierData: any, tx?: any) {
     const prismaClient: PrismaClient = tx || this.prisma;
     const newBooking = await prismaClient.suppliers.create({
@@ -69,6 +79,7 @@ class BookingRepository {
             packageRef: true,
             shippingMethodRef: true,
             localDeliveryInfo: true,
+                        categoryRef: true,
             rateRef: {
               include: {
                 category1688: true,
@@ -250,6 +261,8 @@ class BookingRepository {
             packageRef: true,
             shippingMethodRef: true,
             localDeliveryInfo: true,
+                        categoryRef: true,
+           
             shipmentCartons: true,
             customerRef: {
               select: {
@@ -337,6 +350,9 @@ class BookingRepository {
   async getSingleBooking(id: number) {
     const Booking = await prisma.shipmentBooking.findUnique({
       where: { id },
+      include: {
+        spaceRef: true,
+      }
     });
     return Booking;
   }
@@ -354,6 +370,8 @@ class BookingRepository {
         supplierRef: true,
         packageRef: true,
         shippingMethodRef: true,
+        categoryRef: true,
+        spaceRef: true,
         customerRef: {
           select: {
             id: true,
