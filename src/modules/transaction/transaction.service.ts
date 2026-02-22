@@ -40,36 +40,90 @@ export class TransactionService {
   }
 
   async createCurrencyTransaction(payload: any, tx: any) {
-    const { fromWalletId, toWalletId, amount } = payload;
+    const {
+      fromId,
+      toId,
+      currency,
+      buyRate,
+      sellRate,
+      amount,
+      note,
+      category,
+    } = payload;
 
-    // if (!fromWalletId || !toWalletId)
-    //   throw new BadRequestError("Wallet ID required");
+    // Validate required fields
+    if (!fromId || !toId) {
+      throw new BadRequestError("Sender and recipient are required");
+    }
 
-    // const senderWallet = await tx.wallet.findUnique({
-    //   where: { id: fromWalletId },
-    // });
+    if (!amount || amount <= 0) {
+      throw new BadRequestError("Valid amount is required");
+    }
 
-    // if (!senderWallet) throw new NotFoundError("Sender wallet not found");
+    // Get sender's wallet (assuming users have a default wallet)
+    const senderWallet = await tx.wallet.findFirst({
+      where: {
+        userId: fromId,
+        // You might want to specify which wallet type/currency
+        // currency: currency // If wallets are currency-specific
+      },
+    });
 
-    // if (Number(senderWallet.balance) < Number(amount))
-    //   throw new BadRequestError("Insufficient balance");
+    if (!senderWallet) {
+      throw new NotFoundError("Sender wallet not found");
+    }
 
-    // await tx.wallet.update({
-    //   where: { id: fromWalletId },
-    //   data: {
-    //     balance: { decrement: Number(amount) },
-    //   },
-    // });
+    // Check if sender has sufficient balance
+    if (Number(senderWallet.balance) < Number(amount)) {
+      throw new BadRequestError("Insufficient balance");
+    }
 
-    // await tx.wallet.update({
-    //   where: { id: toWalletId },
-    //   data: {
-    //     balance: { increment: Number(amount) },
-    //   },
-    // });
+    // Get recipient's wallet
+    const recipientWallet = await tx.wallet.findFirst({
+      where: {
+        userId: toId,
+        // currency: currency // If wallets are currency-specific
+      },
+    });
 
+    if (!recipientWallet) {
+      throw new NotFoundError("Recipient wallet not found");
+    }
+
+    // Calculate total amount in BDT
+    const totalAmount =
+      Number(amount) * Number(buyRate) + Number(amount) * Number(sellRate);
+
+    // Perform the transfer in a transaction
+    // Update sender's wallet (decrement)
+    await tx.wallet.update({
+      where: { id: senderWallet.id },
+      data: {
+        balance: { decrement: Number(amount) },
+      },
+    });
+
+    // Update recipient's wallet (increment)
+    await tx.wallet.update({
+      where: { id: recipientWallet.id },
+      data: {
+        balance: { increment: Number(amount) },
+      },
+    });
+
+    // Create the transaction record
     return await tx.transaction.create({
-      data: payload,
+      data: {
+        fromId,
+        toId,
+        category: category || "CURRENCY",
+        currency,
+        buyRate: Number(buyRate),
+        sellRate: Number(sellRate),
+        amount: Number(amount),
+        totalAmount: totalAmount.toString(),
+        note,
+      },
     });
   }
 
