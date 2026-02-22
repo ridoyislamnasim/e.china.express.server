@@ -39,6 +39,40 @@ export class TransactionService {
     });
   }
 
+  async createCurrencyTransaction(payload: any, tx: any) {
+    const { fromWalletId, toWalletId, amount } = payload;
+
+    // if (!fromWalletId || !toWalletId)
+    //   throw new BadRequestError("Wallet ID required");
+
+    // const senderWallet = await tx.wallet.findUnique({
+    //   where: { id: fromWalletId },
+    // });
+
+    // if (!senderWallet) throw new NotFoundError("Sender wallet not found");
+
+    // if (Number(senderWallet.balance) < Number(amount))
+    //   throw new BadRequestError("Insufficient balance");
+
+    // await tx.wallet.update({
+    //   where: { id: fromWalletId },
+    //   data: {
+    //     balance: { decrement: Number(amount) },
+    //   },
+    // });
+
+    // await tx.wallet.update({
+    //   where: { id: toWalletId },
+    //   data: {
+    //     balance: { increment: Number(amount) },
+    //   },
+    // });
+
+    return await tx.transaction.create({
+      data: payload,
+    });
+  }
+
   async createExpenseTransaction(payload: any) {
     const { amount } = payload;
 

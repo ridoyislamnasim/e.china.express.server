@@ -11,6 +11,13 @@ class TransactionRepository {
     });
   }
 
+  async createCurrencyTransaction(data: any, tx?: any) {
+    const client = tx || prisma;
+    return await client.transaction.create({
+      data,
+    });
+  }
+
   async createExpenseTransaction(data: any, tx?: any) {
     const client = tx || prisma;
 
