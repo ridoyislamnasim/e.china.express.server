@@ -35,7 +35,6 @@ model Cart {
   products        CartProduct[]
   productShipping CartProductShipping[]
   Order           Order[]
-  ProductShipping ProductShipping[]
 }
 
 model CartProduct {
@@ -59,7 +58,6 @@ model CartProduct {
   priceRanges      CartProductPriceRange[]
   productShipping  CartProductShipping[]
   variants         CartProductVariant[]
-  ProductShipping  ProductShipping[]
 }
 
 model CartProductPriceRange {
@@ -96,8 +94,6 @@ model CartProductShipping {
   cartProductId      Int
   rateId             Int?
   userId             Int?
-  fromCountryId      Int?
-  toCountryId        Int?
   totalQuantity      Int                 @default(0)
   approxWeight       Decimal             @default(0) @db.Decimal(10, 3)
   weightRange        Decimal             @default(0) @db.Decimal(10, 3)
@@ -121,9 +117,12 @@ model CartProductShipping {
   updatedAt          DateTime            @updatedAt
   cart               Cart                @relation(fields: [cartId], references: [id], onDelete: Cascade)
   cartProduct        CartProduct         @relation(fields: [cartProductId], references: [id], onDelete: Cascade)
-  fromCountry        Country?            @relation("FromCountry", fields: [fromCountryId], references: [id])
   rate               Rate?               @relation(fields: [rateId], references: [id])
   shippingMethod     RateShippingMethod? @relation(fields: [shippingMethodId], references: [id])
-  toCountry          Country?            @relation("ToCountry", fields: [toCountryId], references: [id])
   user               User?               @relation("CartProductShippingUser", fields: [userId], references: [id])
+  // country relations for shipping
+  fromCountryId      Int?
+  fromCountry        Country?            @relation("FromCountry", fields: [fromCountryId], references: [id])
+  toCountryId        Int?
+  toCountry          Country?            @relation("ToCountry", fields: [toCountryId], references: [id])
 }

@@ -15,7 +15,7 @@ model User {
   createdWarehouses Warehouse[]     @relation("UserCreatedWarehouses")
   updatedWarehouses Warehouse[]     @relation("UserUpdatedWarehouses")
 
-  bookingProductsAsAgent BookingProduct[] @relation("UserAgentBookingProducts")
+  bookingProductsAsAgent BookingProduct[] @relation("PaymentAgentBookingProducts")
 
   // CustomerBookingProduct
   bookingProductsAsCustomer BookingProduct[] @relation("CustomerBookingProduct")
@@ -28,7 +28,6 @@ model User {
   updatedAt                  DateTime          @updatedAt
   // shopping 
   shoppingBookingsAsCustomer ShoppingBooking[] @relation("ShoppingBookingCustomer")
-  shoppingBookings           ShoppingBooking[] @relation("ShoppingBookingUser")
 
   // shipping 
 
@@ -76,7 +75,7 @@ model Address {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  // ShoppingBooking
+  // ShoppingBooking ShoppingBooking
   shoppingBooking ShoppingBooking?
 
   // InventoryBooking

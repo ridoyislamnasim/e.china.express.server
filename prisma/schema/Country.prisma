@@ -15,8 +15,8 @@ model Country {
   OrderShipping_OrderShipping_fromCountryIdTorecountries       OrderShipping[]       @relation("OrderShipping_fromCountryIdTocountries")
   OrderShipping_OrderShipping_toCountryIdTocountries         OrderShipping[]       @relation("OrderShipping_toCountryIdTocountries")
   ports                                                      Ports[]
-  ProductShipping_ProductShipping_fromCountryIdTocountries   ProductShipping[]     @relation("ProductShipping_fromCountryIdTocountries")
-  ProductShipping_ProductShipping_toCountryIdTocountries     ProductShipping[]     @relation("ProductShipping_toCountryIdTocountries")
+  productShippingFromCountry  ProductShipping[]     @relation("ProductShippingFromCountry")
+  productShippingToCountry    ProductShipping[]     @relation("ProductShippingToCountry")
   shipmentBookingsExport                                     ShipmentBooking[]     @relation("ShipmentExportCountry")
   shipmentBookingsImport                                     ShipmentBooking[]     @relation("ShipmentImportCountry")
   ShippingFromCountry                                        ShippingInfo[]        @relation("ShippingFromCountry")

@@ -16,8 +16,8 @@ ShoppingOrderRoute.route("/")
 // ShoppingOrderRoute.route("/user/:id").get(controller.getUserAllOrder);
 // ShoppingOrderRoute.route("/track").get(controller.orderTracking);
 
-// ShoppingOrderRoute.get("/pagination", controller.getOrderWithPagination);
-// ShoppingOrderRoute.get("/incomplete/pagination", controller.getIncompleteOrderWithPagination);
+ShoppingOrderRoute.get("/pagination", jwtAuth(), controller.getShoppingOrderWithPagination);
+ShoppingOrderRoute.get("/admin/pagination",jwtAuth(), controller.getAllShoppingOrdersWithPaginationForAdmin);
 
 // ShoppingOrderRoute.route(":id")
 //   .get(controller.getSingleOrder)
