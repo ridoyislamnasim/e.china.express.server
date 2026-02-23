@@ -30,6 +30,29 @@ class TransactionController {
       res.status(resDoc.statusCode).json(resDoc);
     },
   );
+  createCurrencyTransaction = withTransaction(
+    async (req: Request, res: Response, next: NextFunction, tx: any) => {
+      const userId = getAuthUserId(req);
+
+      const payload = {
+        ...req.body,
+        fromId: userId,
+      };
+
+      const transaction = await transactionService.createCurrencyTransaction(
+        payload,
+        tx,
+      );
+
+      const resDoc = responseHandler(
+        201,
+        "Currency transaction completed successfully",
+        transaction,
+      );
+
+      res.status(resDoc.statusCode).json(resDoc);
+    },
+  );
 
   createExpenseTransaction = catchError(
     async (req: Request, res: Response, next: NextFunction) => {

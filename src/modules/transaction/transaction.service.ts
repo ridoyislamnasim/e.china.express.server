@@ -39,6 +39,94 @@ export class TransactionService {
     });
   }
 
+  async createCurrencyTransaction(payload: any, tx: any) {
+    const {
+      fromId,
+      toId,
+      currency,
+      buyRate,
+      sellRate,
+      amount,
+      note,
+      category,
+    } = payload;
+
+    // Validate required fields
+    if (!fromId || !toId) {
+      throw new BadRequestError("Sender and recipient are required");
+    }
+
+    if (!amount || amount <= 0) {
+      throw new BadRequestError("Valid amount is required");
+    }
+
+    // Get sender's wallet (assuming users have a default wallet)
+    const senderWallet = await tx.wallet.findFirst({
+      where: {
+        userId: fromId,
+        // You might want to specify which wallet type/currency
+        // currency: currency // If wallets are currency-specific
+      },
+    });
+
+    if (!senderWallet) {
+      throw new NotFoundError("Sender wallet not found");
+    }
+
+    // Check if sender has sufficient balance
+    if (Number(senderWallet.balance) < Number(amount)) {
+      throw new BadRequestError("Insufficient balance");
+    }
+
+    // Get recipient's wallet
+    const recipientWallet = await tx.wallet.findFirst({
+      where: {
+        userId: toId,
+        // currency: currency // If wallets are currency-specific
+      },
+    });
+
+    if (!recipientWallet) {
+      throw new NotFoundError("Recipient wallet not found");
+    }
+
+    // Calculate total amount in BDT
+    const totalAmount =
+      Number(amount) * Number(buyRate) + Number(amount) * Number(sellRate);
+
+    // Perform the transfer in a transaction
+    // Update sender's wallet (decrement)
+    await tx.wallet.update({
+      where: { id: senderWallet.id },
+      data: {
+        balance: { decrement: Number(amount) },
+      },
+    });
+
+    // Update recipient's wallet (increment)
+    await tx.wallet.update({
+      where: { id: recipientWallet.id },
+      data: {
+        balance: { increment: Number(amount) },
+      },
+    });
+
+    // Create the transaction record
+    return await tx.transaction.create({
+      data: {
+        fromId,
+        toId,
+        category: category || "CURRENCY",
+        currency,
+        buyRate: Number(buyRate),
+        sellRate: Number(sellRate),
+        amount: Number(amount),
+        totalAmount: totalAmount.toString(),
+        note,
+      },
+    });
+  }
+
   async createExpenseTransaction(payload: any) {
     const { amount } = payload;
 
