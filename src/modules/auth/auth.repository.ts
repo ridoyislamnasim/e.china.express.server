@@ -25,45 +25,10 @@ export class AuthRepository {
     return role;
   };
 
-  // async createUser(payload: AuthUserSignUpPayload, tx?: any) {
-  //   const { name, email, password, roleId, phone } = payload;
-  //   const prismaClient = tx || this.prisma; // Use transaction client if provided
-
-  //   const userData: any = {
-  //     name,
-  //     email: email || "",
-  //     password,
-  //     wallets: {
-  //       create: {
-  //         name: "Default RMB Wallet",
-  //         currency: "RMB",
-  //         balance: 0,
-  //         status: "active",
-  //         monthlyLimit: 50000,
-  //         category: "Main",
-  //         cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`,
-  //         expiryDate: "12/29",
-  //         cvv: "123",
-  //       },
-  //     },
-  //   };
-
-  //   if (phone) userData.phone = phone;
-  //   if (roleId) userData.roleId = roleId;
-
-  //   const newUser = await prismaClient.user.create({
-  //     data: userData,
-  //     include: { wallets: true }, // Return user with their new wallet
-  //   });
-
-  //   return newUser;
-  // }
-
   async createUser(payload: any, tx?: any) {
     const { name, email, password, roleId, phone, countryCode } = payload;
     const prismaClient = tx || this.prisma;
 
-    // SUPER SIMPLE: Direct if-else mapping
     let currency = "RMB";
     let category = "personal";
 
