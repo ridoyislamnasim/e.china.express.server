@@ -30,12 +30,9 @@ const authService = new AuthServiceClass(authRepository);
 export const authUserSignUp = withTransaction(
   async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
-      const { name, email, phone, password } = req.body;
+      const { name, email, phone, password, countryCode } = req.body;
 
-      // Get client IP automatically
-      const clientIP = getClientIP(req);
-
-      console.log("Signup from IP:", clientIP);
+      console.log("Registration with country code:", countryCode);
 
       const user = await authService.authUserSignUp(
         {
@@ -43,7 +40,7 @@ export const authUserSignUp = withTransaction(
           email,
           phone,
           password,
-          ip: clientIP,
+          countryCode, // This comes from your frontend
         },
         tx,
       );
@@ -52,6 +49,8 @@ export const authUserSignUp = withTransaction(
         id: user.id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
+        countryCode: user.countryCode,
         wallet: user.wallets[0],
       });
 

@@ -1,9 +1,10 @@
 model User {   
   id                Int             @id @default(autoincrement())
   email             String          @unique
-  phone             String?         @unique
+  phone             String          @unique
   password          String
   name              String?
+  countryCode       String          @default("")
   isVerified        Boolean         @default(false)
   // Relations
   wishlist          Wishlist[]

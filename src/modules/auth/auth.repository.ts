@@ -60,26 +60,41 @@ export class AuthRepository {
   // }
 
   async createUser(payload: any, tx?: any) {
-    const { name, email, password, roleId, phone, ip } = payload;
+    const { name, email, password, roleId, phone, countryCode } = payload;
     const prismaClient = tx || this.prisma;
 
-    // Get location-based config
-    const location = await getLocationFromIP(ip);
+    // SUPER SIMPLE: Direct if-else mapping
+    let currency = "RMB";
+    let category = "personal";
+
+    if (countryCode === "BD") {
+      currency = "BDT";
+      category = "local";
+    } else if (countryCode === "IN") {
+      currency = "INA";
+      category = "local";
+    } else if (countryCode === "PK") {
+      currency = "PAK";
+      category = "local";
+    } else if (countryCode === "SA") {
+      currency = "SUA";
+      category = "local";
+    }
 
     const userData = {
       name,
       email: email || "",
       password,
       phone,
-      roleId,
+      countryCode: countryCode,
       wallets: {
         create: {
-          name: `Default ${location.currency} Wallet`,
-          currency: location.currency,
+          name: `Default ${currency} Wallet`,
+          currency: currency,
           balance: 0,
           status: "active",
           monthlyLimit: 50000,
-          category: location.category,
+          category: category,
           cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`.slice(
             0,
             16,
@@ -90,14 +105,11 @@ export class AuthRepository {
       },
     };
 
-    const newUser = await prismaClient.user.create({
+    return await prismaClient.user.create({
       data: userData,
       include: { wallets: true },
     });
-
-    return newUser;
   }
-
   async getUser() {
     return await this.prisma.user.findMany();
   }

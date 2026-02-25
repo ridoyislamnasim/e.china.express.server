@@ -60,8 +60,9 @@ export class AuthService {
   // }
 
   async authUserSignUp(payload: any, tx?: any) {
-    const { name, email, phone, password, ip } = payload;
+    const { name, email, phone, password, countryCode } = payload;
 
+    // Validation
     if (!name || !phone || !password) {
       const error = new Error("name, phone and password are required");
       (error as any).statusCode = 400;
@@ -96,7 +97,7 @@ export class AuthService {
         phone,
         password: hashedPassword,
         roleId: role.id,
-        ip, // Pass IP for location detection
+        countryCode, // Pass the country code from registration
       },
       tx,
     );
