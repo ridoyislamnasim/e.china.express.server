@@ -19,7 +19,7 @@ class WalletRepository {
     return await prisma.wallet.findFirst({
       where: {
         userId,
-        category: "main",
+        category: "personal",
         status: "active",
       },
       include: {
