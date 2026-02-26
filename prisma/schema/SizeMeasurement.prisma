@@ -1,0 +1,22 @@
+
+model SizeMeasurementType {
+  id               Int               @id @default(autoincrement())
+  title            String            @unique @db.VarChar(150)
+  slug             String            @unique @db.VarChar(100)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  sizeMeasurements SizeMeasurement[]
+}
+
+model SizeMeasurement {
+  id                    Int                 @id @default(autoincrement())
+  title                 String
+  description           String?
+  sizeMeasurementTypeId Int
+  helpfulCount          Int                 @default(0)
+  notHelpfulCount       Int                 @default(0)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  sizeMeasurement       SizeMeasurementType @relation(fields: [sizeMeasurementTypeId], references: [id])
+}
+
