@@ -23,18 +23,22 @@ export class AuthService {
     this.repository = repository;
   }
 
-  async authUserSignUp(payload: AuthUserSignUpPayload, tx?: any) {
-    const { name, email, phone, password } = payload;
+  async authUserSignUp(payload: any, tx?: any) {
+    const { name, email, phone, password, countryCode } = payload;
+
+    // Validation
     if (!name || !phone || !password) {
       const error = new Error("name, phone and password are required");
       (error as any).statusCode = 400;
       throw error;
     }
+
     if (password.length < 5) {
       const error = new Error("Password must be at least 5 characters");
       (error as any).statusCode = 400;
       throw error;
     }
+
     if (email) {
       const auth = await this.repository.getAuthByEmail(email);
       if (auth) {
@@ -43,19 +47,25 @@ export class AuthService {
         throw error;
       }
     }
-    // create Role
+
     const role = await this.repository.createCustomRoleIfNotExists(
       "customer",
       tx,
     );
-    payload.roleId = role.id;
-
-    // Add phone unique check if phone is in schema
     const hashedPassword = await bcrypt.hash(String(password), 10);
+
     const user = await this.repository.createUser(
-      { ...payload, password: hashedPassword },
+      {
+        name,
+        email,
+        phone,
+        password: hashedPassword,
+        roleId: role.id,
+        countryCode, // Pass the country code from registration
+      },
       tx,
     );
+
     return user;
   }
 

@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { AuthUserSignUpPayload } from "../../types/auth";
 import { hashOTP } from "../../utils/OTPGenerate";
 import { copyFile } from "fs";
+import { getLocationFromIP } from "../../utils/location.helper";
 
 export class AuthRepository {
   private prisma = prisma;
@@ -24,60 +25,55 @@ export class AuthRepository {
     return role;
   };
 
-  // async createUser(payload: AuthUserSignUpPayload, tx?: any) {
-  //   const { name, email, password, roleId, phone } = payload;
-  //   if (!name || !password) {
-  //     const error = new Error('name and password are required');
-  //     (error as any).statusCode = 400;
-  //     throw error;
-  //   }
-  //   const userData: any = {
-  //     name,
-  //     email: email || '',
-  //     password,
-  //   };
-  //   if (phone) userData.phone = phone;
-  //   if (roleId) userData.roleId = roleId;
-  //   console.log('Creating user with data:', userData);
-  //   const newUser = await this.prisma.user.create({
-  //     data: userData,
-  //   });
-  //   console.log('User created successfully:', newUser);
-  //   return newUser;
-  // }
+  async createUser(payload: any, tx?: any) {
+    const { name, email, password, roleId, phone, countryCode } = payload;
+    const prismaClient = tx || this.prisma;
 
-  async createUser(payload: AuthUserSignUpPayload, tx?: any) {
-    const { name, email, password, roleId, phone } = payload;
-    const prismaClient = tx || this.prisma; // Use transaction client if provided
+    let currency = "RMB";
+    let category = "personal";
 
-    const userData: any = {
+    if (countryCode === "BD") {
+      currency = "BDT";
+      category = "local";
+    } else if (countryCode === "IN") {
+      currency = "INA";
+      category = "local";
+    } else if (countryCode === "PK") {
+      currency = "PAK";
+      category = "local";
+    } else if (countryCode === "SA") {
+      currency = "SUA";
+      category = "local";
+    }
+
+    const userData = {
       name,
       email: email || "",
       password,
+      phone,
+      countryCode: countryCode,
       wallets: {
         create: {
-          name: "Default RMB Wallet",
-          currency: "RMB",
+          name: `Default ${currency} Wallet`,
+          currency: currency,
           balance: 0,
           status: "active",
           monthlyLimit: 50000,
-          category: "Main",
-          cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`,
+          category: category,
+          cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`.slice(
+            0,
+            16,
+          ),
           expiryDate: "12/29",
           cvv: "123",
         },
       },
     };
 
-    if (phone) userData.phone = phone;
-    if (roleId) userData.roleId = roleId;
-
-    const newUser = await prismaClient.user.create({
+    return await prismaClient.user.create({
       data: userData,
-      include: { wallets: true }, // Return user with their new wallet
+      include: { wallets: true },
     });
-
-    return newUser;
   }
 
   async getUser(payload: any) {

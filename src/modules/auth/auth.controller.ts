@@ -8,17 +8,36 @@ import { responseHandler } from "../../utils/responseHandler";
 import config from "../../config/config";
 import withTransaction from "../../middleware/transactions/withTransaction";
 import { getRequestInfo } from "../../utils/requestInfo";
+import { getClientIP } from "../../utils/location.helper";
 const authService = new AuthServiceClass(authRepository);
 
 export const authUserSignUp = withTransaction(
   async (req: Request, res: Response, next: NextFunction, tx: any) => {
     try {
-      const { name, email, phone, password } = req.body;
-      // console.log('Received signup request with data:', { name, email, phone, role, password });
-      const payload = { name, email, phone, password };
-      console.log("SignUp request payload:", payload);
-      const user = await authService.authUserSignUp(payload, tx);
-      const resDoc = responseHandler(201, "User Created successfully", user);
+      const { name, email, phone, password, countryCode } = req.body;
+
+      console.log("Registration with country code:", countryCode);
+
+      const user = await authService.authUserSignUp(
+        {
+          name,
+          email,
+          phone,
+          password,
+          countryCode, // This comes from your frontend
+        },
+        tx,
+      );
+
+      const resDoc = responseHandler(201, "User Created successfully", {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        countryCode: user.countryCode,
+        wallet: user.wallets[0],
+      });
+
       res.status(resDoc.statusCode).json(resDoc);
     } catch (error) {
       next(error);
