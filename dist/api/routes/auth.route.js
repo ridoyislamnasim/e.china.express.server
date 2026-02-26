@@ -38,24 +38,31 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const controller = __importStar(require("../../modules/auth/auth.controller"));
-// import { upload } from "../../middleware/upload/upload";
 const jwtAuth_1 = __importDefault(require("../../middleware/auth/jwtAuth"));
+const upload_1 = require("../../middleware/upload/upload");
 const AuthRouter = (0, express_1.Router)();
-AuthRouter
-    .post('/signup', controller.authUserSignUp)
-    .post('/signin', controller.authUserSignIn)
-    .post('/signout', controller.authUserSignOut)
-    .post('/create', controller.createUser)
+AuthRouter.post("/signup", controller.authUserSignUp)
+    .post("/signin", controller.authUserSignIn)
+    .post("/signout", controller.authUserSignOut)
+    .post("/create", controller.createUser)
     // .get('/create', controller.getUser)
     .post('/forget-password', controller.authForgetPassword)
     .post('/forget-password/otp-verification', controller.authForgetPasswordVarification)
-    .get('/', (0, jwtAuth_1.default)(), controller.getUserBy);
+    .get('/', (0, jwtAuth_1.default)(), controller.getUserBy)
+    .put('/', upload_1.upload, (0, jwtAuth_1.default)(), controller.updateUser); // Uncomment if upload middleware is ready
 AuthRouter.post("/super-admin", (0, jwtAuth_1.default)(), controller.createSuperAdminRole);
 // user routes
-// AuthRouter.get('/users/pagination', jwtAuth(), controller.getUserWithPagination)
+AuthRouter.get('/users/pagination', (0, jwtAuth_1.default)(["superAdmin"]), controller.getUserWithPagination);
 AuthRouter.put('/user/role', (0, jwtAuth_1.default)(["superAdmin"]), controller.updateUserRole);
-// .put('/', upload.any(), jwtAuth('admin', 'student'), controller.updateUser) // Uncomment if upload middleware is ready
 AuthRouter.get('/user', (0, jwtAuth_1.default)(["superAdmin"]), controller.getAllUser);
 // .get('/user/:id', controller.getSingleUser)
 // .delete('/user/:id', controller.getDeleteUser);
+AuthRouter.post("/super-admin", (0, jwtAuth_1.default)(), controller.createSuperAdminRole);
+// user routes
+// AuthRouter.get('/users/pagination', jwtAuth(), controller.getUserWithPagination)
+// .put('/', upload.any(), jwtAuth('admin', 'student'), controller.updateUser) // Uncomment if upload middleware is ready
+// .get('/user',jwtAuth(["superAdmin"]), controller.getAllUser)
+// .get('/user/:id', controller.getSingleUser)
+// .delete('/user/:id', controller.getDeleteUser);
+AuthRouter.get("/users-wallets", controller.getAllUsersWithWallets);
 exports.default = AuthRouter;

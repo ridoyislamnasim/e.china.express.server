@@ -41,6 +41,7 @@ import WalletRoute from "./routes/wallet.route";
 import ExpressBookingRouter from "./routes/express.booking.route";
 import TransactionRoute from "./routes/transaction.routes";
 import AddressRouter from "./routes/address.route";
+import sizeMeasurementRoute from "./routes/size-measurement.route";
 
 // import other routers here
 
@@ -104,6 +105,8 @@ rootRouter.use("/transactions", TransactionRoute);
 
 //done by rafi
 rootRouter.use("/policies", policiesRoute);
+rootRouter.use("/size-measurements", sizeMeasurementRoute);
+
 rootRouter.use("/services", servicesRoute);
 rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/guide", guideRoute);

@@ -14,8 +14,8 @@ const ProductRoute = (0, express_1.Router)();
 ProductRoute.post("/1688/category-translation", product_controller_1.default.getCategoryTranslation);
 ProductRoute.get("/agent/1688/product/filter", product_controller_1.default.get1688ProductFilterForAgent); //for production agent
 ProductRoute.get("/1688/product/filter", product_controller_1.default.get1688ProductFilter); //for production use
-ProductRoute.get("/agent/1688/details/:productId", product_controller_1.default.get1688ProductDetailsForAgent); // for production use
-ProductRoute.get("/1688/details/:productId", product_controller_1.default.get1688ProductDetails); // for production agent
+ProductRoute.get("/agent/1688/details/:productId", product_controller_1.default.get1688ProductDetailsForAgent); // for production aget
+ProductRoute.get("/1688/details/:productId", product_controller_1.default.get1688ProductDetails); // for production use
 ProductRoute.get("/1688/details/test/:productId", product_controller_1.default.get1688ProductDetailsTest);
 ProductRoute.post("/1688/image-search", upload_1.upload, product_controller_1.default.get1688ProductImageSearch); // for production use - POST for file upload
 // ProductRoute.route("/")

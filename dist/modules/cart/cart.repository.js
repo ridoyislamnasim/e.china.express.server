@@ -348,6 +348,70 @@ class CartRepository extends base_repository_1.BaseRepository {
         });
         return carts;
     }
+    async findCheckoutCartByUser(userId, products, tx) {
+        //  products: [{ productId: 9, variantIds: [ 10 ] },
+        //   { productId: 10, variantIds: [ 11 ] }
+        // ]
+        // Normalize inputs and build typed lists for Prisma
+        // product IDs for 1688/Alibaba fields are strings in the DB, local product IDs are numbers
+        const productIdList = Array.isArray(products) ? products.map((p) => String(p.productId)) : [];
+        const productLocalIdList = Array.isArray(products)
+            ? products.map((p) => (p.productLocalId != null ? Number(p.productLocalId) : null)).filter((n) => n !== null)
+            : [];
+        const variantIdList = Array.isArray(products)
+            ? products.flatMap((p) => (Array.isArray(p.variantIds) ? p.variantIds.map((v) => Number(v)).filter((n) => !Number.isNaN(n)) : []))
+            : [];
+        const client = tx || this.prisma;
+        // also accept numeric product ids (cartProduct.id) if client sends them
+        const productIdNumericList = Array.isArray(products)
+            ? products.map((p) => {
+                const n = Number(p.productId);
+                return Number.isFinite(n) ? n : null;
+            }).filter((n) => n !== null)
+            : [];
+        console.log("Finding checkout cart for user:", userId, "Product ID List:", productIdList, "Product ID Numeric List:", productIdNumericList, "Variant ID List:", variantIdList);
+        // build product where clause used both in `where.products.some` and `include.products.where`
+        const productWhere = { confirm: true, OR: [] };
+        if (productIdList.length > 0) {
+            productWhere.OR.push({ product1688Id: { in: productIdList } });
+            productWhere.OR.push({ productAlibabaId: { in: productIdList } });
+        }
+        if (productLocalIdList.length > 0) {
+            productWhere.OR.push({ productLocalId: { in: productLocalIdList } });
+        }
+        if (productIdNumericList.length > 0) {
+            productWhere.OR.push({ id: { in: productIdNumericList } });
+        }
+        // include productLocalId condition if needed in future
+        if (!productWhere.OR.length)
+            return [];
+        console.log("Product where clause for checkout cart query:", productWhere);
+        const carts = await client.cart.findMany({
+            where: {
+                userId: Number(userId),
+                products: { some: productWhere },
+            },
+            include: {
+                products: {
+                    where: productWhere,
+                    include: {
+                        variants: variantIdList.length > 0 ? { where: { id: { in: variantIdList } } } : true,
+                        priceRanges: true,
+                        productShipping: {
+                            include: {
+                                rate: true,
+                                fromCountry: true,
+                                toCountry: true,
+                                shippingMethod: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        console.log("Checkout carts found:", carts.length);
+        return carts;
+    }
     async deleteCartById(cartId, tx) {
         const client = tx || this.prisma;
         return await client.cart.delete({

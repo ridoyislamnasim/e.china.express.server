@@ -24,67 +24,65 @@ class AuthRepository {
             });
             return role;
         };
-        // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
-        // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
-        // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
     }
-    // async createUser(payload: AuthUserSignUpPayload, tx?: any) {
-    //   const { name, email, password, roleId, phone } = payload;
-    //   if (!name || !password) {
-    //     const error = new Error('name and password are required');
-    //     (error as any).statusCode = 400;
-    //     throw error;
-    //   }
-    //   const userData: any = {
-    //     name,
-    //     email: email || '',
-    //     password,
-    //   };
-    //   if (phone) userData.phone = phone;
-    //   if (roleId) userData.roleId = roleId;
-    //   console.log('Creating user with data:', userData);
-    //   const newUser = await this.prisma.user.create({
-    //     data: userData,
-    //   });
-    //   console.log('User created successfully:', newUser);
-    //   return newUser;
-    // }
     async createUser(payload, tx) {
-        const { name, email, password, roleId, phone } = payload;
-        const prismaClient = tx || this.prisma; // Use transaction client if provided
+        const { name, email, password, roleId, phone, countryCode } = payload;
+        const prismaClient = tx || this.prisma;
+        let currency = "RMB";
+        let category = "personal";
+        if (countryCode === "BD") {
+            currency = "BDT";
+            category = "local";
+        }
+        else if (countryCode === "IN") {
+            currency = "INA";
+            category = "local";
+        }
+        else if (countryCode === "PK") {
+            currency = "PAK";
+            category = "local";
+        }
+        else if (countryCode === "SA") {
+            currency = "SUA";
+            category = "local";
+        }
         const userData = {
             name,
             email: email || "",
             password,
+            phone,
+            countryCode: countryCode,
             wallets: {
                 create: {
-                    name: "Default RMB Wallet",
-                    currency: "RMB",
+                    name: `Default ${currency} Wallet`,
+                    currency: currency,
                     balance: 0,
                     status: "active",
                     monthlyLimit: 50000,
-                    category: "Main",
-                    cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`,
+                    category: category,
+                    cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`.slice(0, 16),
                     expiryDate: "12/29",
                     cvv: "123",
                 },
             },
         };
-        if (phone)
-            userData.phone = phone;
-        if (roleId)
-            userData.roleId = roleId;
-        const newUser = await prismaClient.user.create({
+        return await prismaClient.user.create({
             data: userData,
-            include: { wallets: true }, // Return user with their new wallet
+            include: { wallets: true },
         });
-        return newUser;
+    }
+    async updateUserById(userId, payload, tx) {
+        const prismaClient = tx || this.prisma;
+        return await prismaClient.user.update({
+            where: { id: userId },
+            data: payload,
+        });
     }
     async getUser(payload) {
         const { role } = payload;
         const whereClause = {};
         if (role)
-            whereClause.role = { role: role };
+            whereClause.role = { role: { equals: role, mode: "insensitive" } };
         return await this.prisma.user.findMany({
             where: whereClause,
             select: {
@@ -105,9 +103,46 @@ class AuthRepository {
     }
     async getUserBy(id) {
         console.log("Fetching user by ID:", id);
+        // "id": 6,
+        //     "email": "superadmin@example.com",
+        //     "phone": "0000000000",
+        //     "password": "$2b$10$mOeRQ8Qd17zlVt1yVQQe3uKi1I9cV8hMCDufknD2KR3WX1fPP5VvS",
+        //     "name": "Super Admin",
+        //     "avatar": null,
+        //     "bio": null,
+        //     "countryCode": "",
+        //     "isVerified": false,
+        //     "language": "us",
+        //     "languageName": "English",
+        //     "currencyCode": "USD",
+        //     "currencyName": "US Dollar",
+        //     "currencySymbol": "$",
+        //     "roleId": 2,
         return await this.prisma.user.findUnique({
             where: { id },
-            include: {
+            // include: {
+            //   wallets: true,
+            //   role: {
+            //     include: {
+            //       permission: true,
+            //     },
+            //   },
+            // },
+            select: {
+                id: true,
+                email: true,
+                phone: true,
+                name: true,
+                avatar: true,
+                bio: true,
+                countryCode: true,
+                language: true,
+                languageName: true,
+                currencyCode: true,
+                currencyName: true,
+                currencySymbol: true,
+                isVerified: true,
+                wallets: true,
                 role: {
                     include: {
                         permission: true,
@@ -220,17 +255,24 @@ class AuthRepository {
     // user repository services
     // ====================================================
     async getUserWithPagination(payload) {
+        const query = {};
+        if (payload.roleId) {
+            query.roleId = Number(payload.roleId);
+        }
         return await (0, pagination_1.pagination)(payload, async (limit, offset, sortOrder) => {
             const [doc, totalDoc] = await Promise.all([
                 this.prisma.user.findMany({
+                    where: query,
                     skip: offset,
                     take: limit,
-                    // orderBy: sortOrder,
+                    orderBy: {
+                        id: sortOrder,
+                    },
                     include: {
                         role: true,
                     },
                 }),
-                this.prisma.user.count(),
+                this.prisma.user.count({ where: query }),
             ]);
             return { doc, totalDoc };
         });
@@ -254,6 +296,22 @@ class AuthRepository {
             },
         });
         return user === null || user === void 0 ? void 0 : user.role;
+    }
+    // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+    // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+    async getAllUsersWithWallets() {
+        return await this.prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                wallets: true, // Fetches the array of wallets
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
     }
 }
 exports.AuthRepository = AuthRepository;

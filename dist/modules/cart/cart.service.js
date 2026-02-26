@@ -18,7 +18,7 @@ class CartService extends base_service_1.BaseService {
         this.createCartItem = async (payload, tx) => {
             var _a, _b, _c, _d, _e, _f, _g;
             const items = Array.isArray(payload) ? payload : [payload];
-            console.log("Creating cart items with payload: ", items);
+            // console.log("Creating cart items with payload: ", items);
             if (!items || items.length === 0)
                 return [];
             const first = items[0];
@@ -74,7 +74,7 @@ class CartService extends base_service_1.BaseService {
                 totalPrice += price * qty;
                 totalWeight += weight * qty;
             }
-            console.log(`Total Price: ${totalPrice}, Total Weight: ${totalWeight}`);
+            // console.log(`Total Price: ${totalPrice}, Total Weight: ${totalWeight}`);
             // create cart
             const cartPaylod = {
                 userId: Number(userId),
@@ -84,12 +84,12 @@ class CartService extends base_service_1.BaseService {
                 status: 'active',
             };
             const cart = await this.repository.createCart(cartPaylod, tx);
-            console.log("Created Cart: ", cart);
+            // console.log("Created Cart: ", cart);
             const createdProducts = [];
             for (const it of items) {
                 const qty = Number(it.quantity) || 0;
                 const productTotalQty = items.reduce((sum, item) => { var _a; return sum + ((_a = item.quantity) !== null && _a !== void 0 ? _a : 0); }, 0); // Calculate total quantity of all products
-                console.log("Product Total Quantity for all items: ", productTotalQty);
+                // console.log("Product Total Quantity for all items: ", productTotalQty);
                 const price = (() => {
                     var _a, _b, _c, _d, _e, _f;
                     if (it.skuId && ((_a = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _a === void 0 ? void 0 : _a.priceRangeList)) {
@@ -136,9 +136,9 @@ class CartService extends base_service_1.BaseService {
                     totalWeight: (weight !== null && weight !== void 0 ? weight : 0) * productTotalQty,
                     mainSkuImageUrl: product.images && product.images.length > 0 ? product.images[0] : null,
                 };
-                console.log("Creating Cart Product with payload -------- ", cartProductPayload);
+                // console.log("Creating Cart Product with payload -------- ", cartProductPayload);
                 const cartProduct = await this.repository.createCartProduct(cartProductPayload, product === null || product === void 0 ? void 0 : product.saleInfo, tx);
-                console.log("Created Cart Product: ", cartProduct);
+                // console.log("Created Cart Product: ", cartProduct);
                 const variantPayload = {
                     cartProductId: cartProduct.id,
                     skuId: it.skuId != null ? String(it.skuId) : undefined,
@@ -263,18 +263,18 @@ class CartService extends base_service_1.BaseService {
                     })(),
                 };
                 const variant = await this.repository.createCartProductVariant(variantPayload, tx);
-                console.log("Created Cart Product Variant: ", variant);
+                // console.log("Created Cart Product Variant: ", variant);
                 createdProducts.push({ cartProduct, variant });
             }
             // return created cart with products
             const result = await this.repository.findCartItemByUserAndProduct(userId, productId, tx);
-            console.log("Final Cart with Products: ", result);
+            // console.log("Final Cart with Products: ", result);
             return result;
         };
         this.updateCartItem = async (payload, tx) => {
             var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
             const items = Array.isArray(payload) ? payload : [payload];
-            console.log("Creating cart items with payload: ", items);
+            // console.log("Creating cart items with payload: ", items);
             if (!items || items.length === 0)
                 return [];
             const first = items[0];
@@ -330,7 +330,7 @@ class CartService extends base_service_1.BaseService {
                 totalPrice += price * qty;
                 totalWeight += weight * qty;
             }
-            console.log(`Total Price: ${totalPrice}, Total Weight: ${totalWeight}`);
+            // console.log(`Total Price: ${totalPrice}, Total Weight: ${totalWeight}`);
             // create cart
             const cartPaylod = {
                 userId: Number(userId),
@@ -340,12 +340,12 @@ class CartService extends base_service_1.BaseService {
                 status: 'active',
             };
             const cart = await this.repository.createCart(cartPaylod, tx);
-            console.log("Created Cart: ", cart);
+            // console.log("Created Cart: ", cart);
             const createdProducts = [];
             for (const it of items) {
                 const qty = Number(it.quantity) || 0;
                 const productTotalQty = items.reduce((sum, item) => { var _a; return sum + ((_a = item.quantity) !== null && _a !== void 0 ? _a : 0); }, 0); // Calculate total quantity of all products
-                console.log("Product Total Quantity for all items: ", productTotalQty);
+                // console.log("Product Total Quantity for all items: ", productTotalQty);
                 const price = (() => {
                     var _a, _b, _c, _d, _e, _f;
                     if (it.skuId && ((_a = product === null || product === void 0 ? void 0 : product.saleInfo) === null || _a === void 0 ? void 0 : _a.priceRangeList)) {
@@ -392,9 +392,9 @@ class CartService extends base_service_1.BaseService {
                     totalWeight: (weight !== null && weight !== void 0 ? weight : 0) * productTotalQty,
                     mainSkuImageUrl: product.images && product.images.length > 0 ? product.images[0] : null,
                 };
-                console.log("Creating Cart Product with payload -------- ", cartProductPayload);
+                // console.log("Creating Cart Product with payload -------- ", cartProductPayload);
                 const cartProduct = await this.repository.createCartProduct(cartProductPayload, product === null || product === void 0 ? void 0 : product.saleInfo, tx);
-                console.log("Created Cart Product: ", cartProduct);
+                // console.log("Created Cart Product: ", cartProduct);
                 const variantPayload = {
                     cartProductId: cartProduct.id,
                     skuId: it.skuId != null ? String(it.skuId) : undefined,
@@ -519,13 +519,13 @@ class CartService extends base_service_1.BaseService {
                     })(),
                 };
                 const variant = await this.repository.createCartProductVariant(variantPayload, tx);
-                console.log("Created Cart Product Variant: ", variant);
+                // console.log("Created Cart Product Variant: ", variant);
                 createdProducts.push({ cartProduct, variant });
             }
-            console.log("All created cart products: ", createdProducts);
+            // console.log("All created cart products: ", createdProducts);
             const cartProductAllVariants = await this.repository.findConfirmVariantsByTCartProductId(createdProducts[0].cartProduct.id, tx);
-            console.log("Cart Products to be confirmed: ", cartProductAllVariants);
-            console.log("Cart Products to be confirmed: ", cartProductAllVariants[0].productShipping);
+            // console.log("Cart Products to be confirmed: ", cartProductAllVariants);
+            // console.log("Cart Products to be confirmed: ", cartProductAllVariants[0].productShipping);
             // weight and quantity check before shipping creation can be added here
             const productTotalWeight = cartProductAllVariants[0].variants.reduce((sum, cp) => { var _a, _b; return sum + ((_a = cp.weight) !== null && _a !== void 0 ? _a : 0) * ((_b = cp.quantity) !== null && _b !== void 0 ? _b : 0); }, 0);
             const weightCategory = await this.rateRepository.findWeightCategoryByWeight(productTotalWeight);
@@ -535,15 +535,15 @@ class CartService extends base_service_1.BaseService {
                 shippingMethodId: (_j = cartProductAllVariants[0].productShipping[0].rate) === null || _j === void 0 ? void 0 : _j.shippingMethodId,
                 category1688Id: (_k = cartProductAllVariants[0].productShipping[0].rate) === null || _k === void 0 ? void 0 : _k.category1688Id,
             };
-            console.log("Rate Search Payload Info: ", payloadInfo);
+            // console.log("Rate Search Payload Info: ", payloadInfo); 
             const findRateByCriteria = await this.rateRepository.findRateByCriteria(payloadInfo, tx);
-            console.log("Found Rate by Criteria: ", findRateByCriteria);
+            // console.log("Found Rate by Criteria: ", findRateByCriteria);
             const cartProductShippingPayload = {
                 rateId: (_l = findRateByCriteria[0]) === null || _l === void 0 ? void 0 : _l.id,
             };
             const updateCartProductShippingRate = await this.repository.updateCartProductShipping(cartProductAllVariants[0].productShipping[0].id, cartProductShippingPayload, tx);
-            console.log("Updated Cart Product Shipping with Rate Id: ", updateCartProductShippingRate);
-            console.log("Total Weight for all variants: ", productTotalWeight);
+            // console.log("Updated Cart Product Shipping with Rate Id: ", updateCartProductShippingRate);
+            // console.log("Total Weight for all variants: ", productTotalWeight);
             //     const productShippingPayload: ProductShippingPayload = {
             //   cartId: cart.id,
             //   cartProductId: createdProducts[0].cartProduct.id,
@@ -565,21 +565,21 @@ class CartService extends base_service_1.BaseService {
             // };
             // return created cart with products
             const result = await this.repository.findCartItemByUserAndProduct(userId, productId, tx);
-            console.log("Final Cart with Products: ", result);
+            // console.log("Final Cart with Products: ", result);
             return result;
         };
         this.getUserAllCart = async (userId, tx) => {
-            console.log(`Fetching all cart items for userId: ${userId}`);
+            // console.log(`Fetching all cart items for userId: ${userId}`);
             const cartItems = await this.repository.findAllCartByUser(userId, tx);
             return cartItems;
         };
         this.deleteCartById = async (cartId, tx) => {
-            console.log(`Deleting cart with id: ${cartId}`);
+            // console.log(`Deleting cart with id: ${cartId}`);
             const deletedCart = await this.repository.deleteCartById(cartId, tx);
             return deletedCart;
         };
         this.delteCartProductTId = async (productTId, tx) => {
-            console.log(`Deleting cart products with productTId: ${productTId}`);
+            // console.log(`Deleting cart products with productTId: ${productTId}`);
             const deletedProducts = await this.repository.deleteCartProductByProductTId(productTId, tx);
             if (!deletedProducts || deletedProducts.count === 0) {
                 throw new errors_1.NotFoundError(`No cart products found with productTId: ${productTId}`);
@@ -587,7 +587,7 @@ class CartService extends base_service_1.BaseService {
             return deletedProducts;
         };
         this.delteCartProductVariantByTId = async (variantTId, tx) => {
-            console.log(`Deleting cart product variant with id: ${variantTId}`);
+            // console.log(`Deleting cart product variant with id: ${variantTId}`);
             const deletedVariant = await this.repository.delteCartProductVariantByTId(variantTId, tx);
             return deletedVariant;
         };
@@ -596,15 +596,15 @@ class CartService extends base_service_1.BaseService {
     }
     //  cartProductConfirm = async (payload: any, tx: any) => { 
     async cartProductConfirm(payload, tx) {
+        // console.log("cartProductConfirm method called with payload:", payload);
         var _a;
-        console.log("cartProductConfirm method called with payload:", payload);
         const { userId, productId, rateId } = payload;
         if (!userId) {
-            console.error("Error: Missing user id in cart product confirm payload");
+            // console.error("Error: Missing user id in cart product confirm payload");
             throw new Error('Missing user id in cart product confirm payload');
         }
         const cartItem = await this.repository.findCartItemByUserAndProductForRate(userId, productId);
-        console.log("Cart item found for confirmation:", cartItem);
+        // console.log("Cart item found for confirmation:", cartItem);
         if (!cartItem) {
             console.error("Error: Cart item not found for the given user and product");
             throw new errors_1.NotFoundError('Cart item not found for the given user and product');
@@ -615,7 +615,7 @@ class CartService extends base_service_1.BaseService {
             console.error("Error: Rate not found for the given rateId:", rateId);
             throw new errors_1.NotFoundError('Rate not found for the given rateId');
         }
-        console.log("Rate info found:", rateInfo);
+        // console.log("Rate info found:", rateInfo);
         // // Prepare payload for ProductShipping
         // return;
         const productShippingPayload = {
@@ -639,14 +639,14 @@ class CartService extends base_service_1.BaseService {
             // estDeliveryDays: rateInfo.estDeliveryDays,
             shippingStatus: "pending",
         };
-        console.log("Prepared ProductShipping payload:", productShippingPayload);
+        // console.log("Prepared ProductShipping payload:", productShippingPayload);
         await this.repository.createCartProductShipping(productShippingPayload, tx);
         await this.repository.updateCartProductShippingConfirm(cartItem.products[0].id, tx);
-        console.log("Prepared ProductShipping payload:", productShippingPayload);
+        // console.log("Prepared ProductShipping payload:", productShippingPayload);
         return productShippingPayload;
     }
     async getUserCartByProductId(userId, productId, tx) {
-        console.log(`Fetching cart item for userId: ${userId}, productId: ${productId}`);
+        // console.log(`Fetching cart item for userId: ${userId}, productId: ${productId}`);
         const cartItem = await this.repository.findCartItemByUserAndProduct(userId, productId, tx);
         if (!cartItem) {
             throw new errors_1.NotFoundError('Cart item not found for the given user and product');

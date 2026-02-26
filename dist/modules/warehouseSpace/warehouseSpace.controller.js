@@ -120,6 +120,24 @@ class WarehouseSpaceController {
                 next(error);
             }
         };
+        this.getAllSpacesByWarehouseId = async (req, res, next) => {
+            try {
+                const { warehouseId } = req.params;
+                const filter = {
+                    type: req.query.type,
+                    occupied: req.query.occupied
+                        ? req.query.occupied === "true"
+                        : undefined,
+                    search: req.query.search,
+                };
+                const spaces = await warehouseSpaceService.getAllSpacesByWarehouseId(warehouseId, filter);
+                const resDoc = (0, responseHandler_1.responseHandler)(200, "Spaces retrieved successfully", spaces);
+                res.status(resDoc.statusCode).json(resDoc);
+            }
+            catch (error) {
+                next(error);
+            }
+        };
         this.getSpaceById = async (req, res, next) => {
             try {
                 const { spaceId } = req.params;
