@@ -76,6 +76,15 @@ export class AuthRepository {
     });
   }
 
+  async updateUserById(userId: number, payload: any, tx?: any) {
+    const prismaClient = tx || this.prisma;
+    return await prismaClient.user.update({
+      where: { id: userId },
+      data: payload,
+    });
+  }
+
+
   async getUser(payload: any) {
     const { role } = payload;
     const whereClause: any = {};
@@ -104,15 +113,55 @@ export class AuthRepository {
 
   async getUserBy(id: number) {
     console.log("Fetching user by ID:", id);
+
+    // "id": 6,
+    //     "email": "superadmin@example.com",
+    //     "phone": "0000000000",
+    //     "password": "$2b$10$mOeRQ8Qd17zlVt1yVQQe3uKi1I9cV8hMCDufknD2KR3WX1fPP5VvS",
+    //     "name": "Super Admin",
+    //     "avatar": null,
+    //     "bio": null,
+    //     "countryCode": "",
+    //     "isVerified": false,
+    //     "language": "us",
+    //     "languageName": "English",
+    //     "currencyCode": "USD",
+    //     "currencyName": "US Dollar",
+    //     "currencySymbol": "$",
+    //     "roleId": 2,
     return await this.prisma.user.findUnique({
       where: { id },
+      // include: {
+        
+      //   wallets: true,
+      //   role: {
+      //     include: {
+      //       permission: true,
+      //     },
+      //   },
+      // },
+
+      select: {
+    id: true,
+    email: true,
+    phone: true,
+    name: true,
+    avatar: true,
+    bio: true,
+    countryCode: true,
+    language: true,
+    languageName: true,
+    currencyCode: true,
+    currencyName: true,
+    currencySymbol: true,
+    isVerified: true,
+    wallets: true,
+    role: {
       include: {
-        role: {
-          include: {
-            permission: true,
-          },
-        },
+        permission: true,
       },
+    },
+  },
     });
   }
 

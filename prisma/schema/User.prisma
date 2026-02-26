@@ -1,14 +1,22 @@
 model User {
-  id                Int             @id @default(autoincrement())
-  email             String          @unique
-  phone             String          @unique
-  password          String
-  name              String?
-  avatar            String?
-  bio               String?
-  countryCode       String          @default("")
-  isVerified        Boolean         @default(false)
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
+  phone       String  @unique
+  password    String
+  name        String?
+  avatar      String?
+  bio         String?
+  countryCode String  @default("")
+  isVerified  Boolean @default(false)
 
+  // -- Language & Translation
+  language     String? @db.VarChar(10) //      -- e.g. "en", "bn", "fr"
+  languageName String? @db.VarChar(100) //   -- e.g. "Bengali", "English"
+
+  // -- Currency
+  currencyCode   String? @db.VarChar(10) // -- e.g. "AFN"
+  currencyName   String? @db.VarChar(100) //-- e.g. "Afghani"
+  currencySymbol String? @db.VarChar(10) //-- e.g. "$", "৳", "€"
 
   // Relations
   wishlist          Wishlist[]
@@ -29,9 +37,10 @@ model User {
   otp                        OTP[]
   createdAt                  DateTime          @default(now())
   updatedAt                  DateTime          @updatedAt
+
   // shopping 
   shoppingBookingsAsCustomer ShoppingBooking[] @relation("ShoppingBookingCustomer")
-  shoppingBookingsAsAgent ShoppingBooking[] @relation("PaymentAgentShoppingBooking")
+  shoppingBookingsAsAgent    ShoppingBooking[] @relation("PaymentAgentShoppingBooking")
 
   // shipping 
 
@@ -44,10 +53,10 @@ model User {
 
   cartProductShippings CartProductShipping[] @relation("CartProductShippingUser")
 
-  wallets   Wallet[] 
+  wallets              Wallet[]
   sentTransactions     Transaction[] @relation("Sender")
   receivedTransactions Transaction[] @relation("Receiver")
-  addresses Address[]
+  addresses            Address[]
 }
 
 model Role {

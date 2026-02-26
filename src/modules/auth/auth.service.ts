@@ -14,6 +14,7 @@ import Email from "../../utils/Email";
 import { generateOTP } from "../../utils/OTPGenerate";
 import { link } from "fs";
 import roleRepository from "../role/role.repository";
+import ImgUploader from "../../middleware/upload/ImgUploder";
 
 export class AuthService {
   private repository: AuthRepository;
@@ -253,18 +254,40 @@ export class AuthService {
     return newUser;
   }
 
-  async updateUser(
-    userId: number,
-    payloadFiles: any,
-    payload: any,
-    session?: any,
-  ) {
-    // File upload logic can be added here if needed
-    // You may want to add a repository method for update
-    // For now, call Prisma directly if needed
-    // Example: await this.repository.updateUser(userId, payload)
-    return null;
+ async updateUser(userId: number, payloadFiles: any, payload: any, tx: any) {
+  const { name, phone, bio, language, languageName, currencyCode, currencyName, currencySymbol } = payload;
+    const user = await this.repository.getUserById(userId);
+    if (!user) {
+      const error = new Error("User not found");
+      (error as any).statusCode = 404;
+      throw error;
+    }
+
+     const { files } = payloadFiles;
+        if (files) {
+        const images = await ImgUploader(files);
+        for (const key in images) {
+          payload[key] = images[key];
+        }
+        }
+
+      const updatePayload: any = {
+        ...(name && { name }),
+        ...(phone && { phone }),
+        ...(bio && { bio }),
+        ...(language && { language }),
+        ...(languageName && { languageName }),
+        ...(currencyCode && { currencyCode }),
+        ...(currencyName && { currencyName }),
+        ...(currencySymbol && { currencySymbol }),
+      };
+
+    const updatedUser = await this.repository.updateUserById(userId, updatePayload, tx);
+    return updatedUser;
   }
+       
+    // Handle file upload if files are provided
+    
 
   async getAllUser(payload: any) {
     const users = await this.repository.getUser(payload);

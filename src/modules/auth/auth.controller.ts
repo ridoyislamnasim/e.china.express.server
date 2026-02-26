@@ -254,26 +254,31 @@ export const getUserBy = withTransaction(
   },
 );
 
-export const updateUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    // @ts-ignore
+export const updateUser = withTransaction(
+  async (req: Request, res: Response, next: NextFunction, tx: any) => {
+    try {
+      // @ts-ignore
+      const payloadFiles = {
+        files: req.files,
+      };
     const userId = req.user?.user_info_encrypted?.id;
-    // TODO: Add file upload support if needed
     const payload = {
-      phone: req.body?.phone,
-      name: req.body?.name,
-      address: req.body?.address,
+      ...(req.body?.phone && { phone: req.body.phone }),
+      ...(req.body?.name && { name: req.body.name }),
+      ...(req.body?.bio && { bio: req.body.bio }),
+      ...(req.body?.language && { language: req.body.language }),
+      ...(req.body?.languageName && { languageName: req.body.languageName }),
+      ...(req.body?.currencyCode && { currencyCode: req.body.currencyCode }),
+      ...(req.body?.currencyName && { currencyName: req.body.currencyName }),
+      ...(req.body?.currencySymbol && { currencySymbol: req.body.currencySymbol }),
+
     };
-    const user = await authService.updateUser(userId, undefined, payload);
+    const user = await authService.updateUser(userId, payloadFiles, payload, tx);
     res.status(201).json({ message: "User updated successfully", user });
   } catch (error) {
     next(error);
   }
-};
+});
 
 export const getAllUser = async (
   req: Request,
