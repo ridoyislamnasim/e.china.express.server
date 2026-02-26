@@ -155,9 +155,16 @@ model ShoppingBooking {
 
   
   // status
-  mainStatus               MainStatus?
+  mainStatus               OrderMainStatus?
   paymentStatus            PaymentStatus            @default(UNPAID)
   warehouseReceivingStatus WarehouseReceivingStatus
+
+
+    // payment agent & customer relation
+  paymentMethod                PaymentMethod?
+  paymentAgentId        Int?
+  paymentAgentRef          User?                   @relation("PaymentAgentShoppingBooking", fields: [paymentAgentId], references: [id])
+ 
 
   // product price 
   totalProductCost Decimal? @db.Decimal(10, 2)
@@ -301,6 +308,10 @@ model BookingProduct {
   suppliersId            Int?
   suppliers              Suppliers?              @relation(fields: [suppliersId], references: [id])
   warehouse              Warehouse?              @relation(fields: [warehouseId], references: [id])
+
+  // Purchase relation
+  purchaseId             Int?
+  purchase               Purchase?               @relation(fields: [purchaseId], references: [id])
 
   @@map("ShipmentBookingItems")
 }
@@ -453,7 +464,7 @@ model ProductShipping {
   shippingMethodId Int?
   shippingMethod   RateShippingMethod? @relation(fields: [shippingMethodId], references: [id])
 
-  rateId                                             Int? @unique
+  rateId                                             Int?
   rate                                               Rate?    @relation(fields: [rateId], references: [id])
   // country relations for shipping
   fromCountryId                                      Int?

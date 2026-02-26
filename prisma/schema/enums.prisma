@@ -101,13 +101,21 @@ enum PaymentMethod {
   AGENT_PAYMENT
 }
 
+enum PaymentMethodForPurchase {
+  ALIPAY
+  WECHAT
+  BANK_TRANSFER
+  CASH
+  OTHER
+}
+
 enum ProductFor {
   FROM1688
   LOCAL
   ALIBABA
 }
 
-enum MainStatus{
+enum MainStatus {
   PENDING
   APPROVE
   CANCELLED_BY_CUSTOMER
@@ -131,6 +139,35 @@ enum WarehouseReceivingStatus {
   RECEIVED_AT_WAREHOUSE
   STORED
   REJECTED_AT_WAREHOUSE
+}
+
+enum OrderMainStatus {
+  PENDING // অর্ডার তৈরি হয়েছে 
+  APPROVE // অর্ডার অ্যাপ্রুভ হয়েছে
+  CANCELLED_BY_CUSTOMER // কাস্টমার দ্বারা বাতিল করা হয়েছে
+
+  // Product sourcing status
+  SOURCING // Product sourcing চলছে
+  SOURCED // Product found
+  PRICE_CHECKING // Supplier price verify করা হচ্ছে
+  PRICE_CONFIRMED // Price confirmed
+
+  //Product Purchasing status
+  PURCHASING // Purchasing process চলছে
+  PURCHASED // Product purchased
+  WAITING_PAYMENT // Supplier payment pending
+  PAID // Supplier কে payment করা হয়েছে
+  ORDER_PLACED // Supplier এর কাছে order place হয়েছে
+  PROCESSING // Supplier processing করছে
+  FAILED // Purchase fail হয়েছে
+
+  PICKED_UP // পিকআপ করা হয়েছে
+  IN_TRANSIT_LOCAL_ORIGIN // স্থানীয় উৎসে ট্রানজিটে
+  PARTIALLY_RECEIVED_AT_WAREHOUSE // আংশিকভাবে গুদামে প্রাপ্ত
+  DAMAGED // ক্ষতিগ্রস্ত
+  RECEIVED_AT_WAREHOUSE // গুদামে প্রাপ্ত
+  STORED // সংরক্ষিত
+  REJECTED_AT_WAREHOUSE // গুদামে প্রত্যাখ্যাত
 }
 
 enum ContainerClass {
@@ -157,12 +194,11 @@ enum DiscountType {
 }
 
 enum SpaceStatus {
-  AVAILABLE   // কোনো CBM এখনো ব্যবহার হয়নি
-  PARTIAL     // কিছু CBM ব্যবহার হয়েছে
-  FULL        // সম্পূর্ণ ভর্তি
-  BLOCKED     // অ্যাডমিন ব্লক
+  AVAILABLE // কোনো CBM এখনো ব্যবহার হয়নি
+  PARTIAL // কিছু CBM ব্যবহার হয়েছে
+  FULL // সম্পূর্ণ ভর্তি
+  BLOCKED // অ্যাডমিন ব্লক
 }
-
 
 enum OrderStatus {
   PENDING

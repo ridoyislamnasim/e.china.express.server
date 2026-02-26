@@ -45,7 +45,7 @@ model Rate {
   // shopping bookings
   ShoppingBookings   ShoppingBooking[]
   // ProductShipping relation
-  ProductShipping    ProductShipping?
+  ProductShipping    ProductShipping[]
 }
 
 model ExpressRate {

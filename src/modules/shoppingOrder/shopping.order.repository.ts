@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { pagination } from '../../utils/pagination';
-import { BookingProduct, BookingProductVariant, ProductShippingData } from '../../types/shoppingOrder.type';
+import { BookingProduct, BookingProductVariant, ProductShippingData, ShoppingOrder } from '../../types/shoppingOrder.type';
+import { BookingDoc } from '../booking/booking.repository';
 
 
 interface OrderProduct {
@@ -91,22 +92,60 @@ class shoppingOrderRepository {
         return createProductShipping;
     }
 
-
-
+    async createPurchaseForShoppingOrderByAdmin(payload: any, tx: any) {
+        const prismaClient: PrismaClient = tx || this.prisma;
+        const createPurchase = await prismaClient.purchase.create({
+            data: payload,
+        });
+        return createPurchase;
+    }
     // -------------------------
+    async connectPurchaseToBookingProducts(purchaseId: number, bookingProductIds: number[], tx: any) {
+        const prismaClient: PrismaClient = tx || this.prisma;
+        const updateResult = await prismaClient.bookingProduct.updateMany({
+            where: {
+                id: { in: bookingProductIds },
+            },
+            data: {
+                purchaseId: purchaseId,
+            },
+        });
+        console.log(`Connected purchase ${purchaseId} to booking products:`, updateResult); 
+        return updateResult;
+    }
+
     async getShoppingOrderWithPagination(payload: any) {
         const { userId, limit, offset } = payload;
+        const filter: any = { customerId: userId };
+        if (payload.status) {
+            if (payload.status === "PENDING_REJECTED_AT_WAREHOUSE_APPROVE") {
+                filter.mainStatus = { in: ["PENDING", "REJECTED_AT_WAREHOUSE", "APPROVE"] };
+            } else if (payload.status === "MY_ORDERS") {
+                filter.mainStatus = { notIn:["PENDING"] }; // Example: exclude rejected orders if needed
+            } else {
+                filter.mainStatus = payload.status.toUpperCase();
+            }
+        }
+        console.log("Repository received payload for pagination:", payload, "Constructed filter:", filter);
         // pagination logic
         return await pagination(payload, async (limit: number, offset: number, sortOrder: string) => {
             const [doc, totalDoc] = await Promise.all([
                 this.prisma.shoppingBooking.findMany({
-                    where: { customerId: userId },
+                    where: filter,
                     skip: offset,
                     take: limit,
                     orderBy: {
                         createdAt: sortOrder as 'asc' | 'desc',
                     },
                     include: {
+                        paymentAgentRef: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                            }
+                        },
                         bookingProduct: {
                             include: {
                                 bookingProductVariants: true,
@@ -122,7 +161,7 @@ class shoppingOrderRepository {
                     },
                 }),
                 this.prisma.shoppingBooking.count({
-                    where: { customerId: userId },
+                    where: filter,
                 }),
             ]);
             return { doc, totalDoc };
@@ -130,19 +169,80 @@ class shoppingOrderRepository {
 
     }
 
+
+    async getSingleShoppingOrder(id: number) {
+        const order = await this.prisma.shoppingBooking.findUnique({
+            where: { id },
+            include: {
+                bookingProduct: {
+                    include: {
+                        bookingProductVariants: true,
+                        priceRanges: true,
+                        productShipping: {
+                            include: {
+                                fromCountry: true,
+                                toCountry: true,
+                            }
+                        },
+                    },
+                },
+            },
+        });
+        return order;
+    }
+
+
+    async findByConditionAndUpdate(where: object, data: Partial<ShoppingOrder>, tx?: any) {
+        const prismaClient: PrismaClient = tx || this.prisma;
+        const updatedBooking = await prismaClient.shoppingBooking.updateMany({
+            where,
+            data,
+        });
+        return updatedBooking;
+    }
+
     async getAllShoppingOrdersWithPaginationForAdmin(payload: any) {
         // pagination logic
+        const { status } = payload;
+        console.log("Repository received payload for admin pagination:", status, payload);
+        const filter: any = {};
+        if (status) {
+            if (status === "PENDING_REJECTED_AT_WAREHOUSE_APPROVE") {
+                filter.mainStatus = { in: ["PENDING", "REJECTED_AT_WAREHOUSE", "APPROVE"] };
+            } else {
+                filter.mainStatus = status.toUpperCase();
+            }
+        }
+
         return await pagination(payload, async (limit: number, offset: number, sortOrder: string) => {
             const [doc, totalDoc] = await Promise.all([
                 this.prisma.shoppingBooking.findMany({
+                    where: filter,
                     skip: offset,
                     take: limit,
                     orderBy: {
                         createdAt: sortOrder as 'asc' | 'desc',
                     },
                     include: {
+                        customerRef: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                            }
+                        },
+                        paymentAgentRef: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                            }
+                        },
                         bookingProduct: {
                             include: {
+                                purchase: true,
                                 bookingProductVariants: true,
                                 priceRanges: true,
                                 productShipping: {
@@ -153,9 +253,85 @@ class shoppingOrderRepository {
                                 },
                             },
                         },
+
                     },
                 }),
-                this.prisma.shoppingBooking.count(),
+                this.prisma.shoppingBooking.count( { where: filter } ),
+            ]);
+            return { doc, totalDoc };
+        });
+    }
+
+    async getAllShoppingOrderForAdminByFilterWithPagination(payload: any) {
+        const { bookingStatus } = payload;
+        const filter: any = {};
+        if (bookingStatus == "PENDING_REJECTED_AT_WAREHOUSE_APPROVE") {
+            filter.warehouseReceivingStatus = { in: ["PENDING", "REJECTED_AT_WAREHOUSE", "APPROVE"] };
+        } else {
+            filter.warehouseReceivingStatus = bookingStatus.toUpperCase();
+        }
+
+        return await pagination(payload, async (limit: number, offset: number, sortOrder: any) => {
+            const [doc, totalDoc] = await Promise.all([
+                this.prisma.shipmentBooking.findMany({
+                    where: filter,
+                    skip: offset,
+                    take: limit,
+                    orderBy: {
+                        id: sortOrder,
+                    },
+                    include: {
+                        supplierRef: true,
+                        packageRef: true,
+                        shippingMethodRef: true,
+                        localDeliveryInfo: true,
+                        categoryRef: true,
+                        customerRef: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                phone: true,
+                            }
+                        },
+                        rateRef: {
+                            include: {
+                                category1688: true,
+                                shippingMethod: true,
+                            },
+                        },
+                        importWarehouseRef: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                        exportWarehouseRef: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                        importCountryRef: {
+                            select: {
+                                id: true,
+                                name: true,
+                                isoCode: true,
+                                zone: true,
+                            },
+                        },
+                        exportCountryRef: {
+                            select: {
+                                id: true,
+                                name: true,
+                                isoCode: true,
+                                zone: true,
+                            },
+                        },
+                        // customer: true,
+                    },
+                }),
+                this.prisma.shipmentBooking.count({ where: filter }), // total count with filter
             ]);
             return { doc, totalDoc };
         });

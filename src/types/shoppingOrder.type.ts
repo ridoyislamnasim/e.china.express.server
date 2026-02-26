@@ -55,3 +55,13 @@ export interface ProductShippingData {
     fromCountryId?: number | null;
 }
 
+
+export interface ShoppingOrder {
+  title: string;
+  details: string;
+  type: string;
+  BookingCategory: string;
+  status: string;
+  link: string;
+  // add other fields as needed
+}

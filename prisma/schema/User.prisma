@@ -7,6 +7,8 @@ model User {
   avatar            String?
   bio               String?
   isVerified        Boolean         @default(false)
+
+  
   // Relations
   wishlist          Wishlist[]
   cart              Cart[]
@@ -28,6 +30,7 @@ model User {
   updatedAt                  DateTime          @updatedAt
   // shopping 
   shoppingBookingsAsCustomer ShoppingBooking[] @relation("ShoppingBookingCustomer")
+  shoppingBookingsAsAgent ShoppingBooking[] @relation("PaymentAgentShoppingBooking")
 
   // shipping 
 
