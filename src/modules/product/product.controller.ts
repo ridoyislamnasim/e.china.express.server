@@ -121,6 +121,7 @@ class ProductController {
   get1688ProductDetails = catchError(async (req: Request, res: Response) => {
     const payload = {
       productId: req.params.productId,
+      currencyCode: req.query.currencyCode,
     };
     const productResult = await ProductService.get1688ProductDetails(payload);
     // console.log("productResult", productResult);

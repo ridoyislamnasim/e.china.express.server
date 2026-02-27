@@ -3,11 +3,24 @@
 // raw response (the nested `result.result` or similar) and returns a
 // normalized object with the main fields used by the application.
 
-export function process1688ProductDetail(raw: any) {
+import { convertCurrency, getExchangeRate, getRates } from "./currency/currencyConverter";
+
+export async function process1688ProductDetail(raw: any, currencyCode?: string) {
 	if (!raw) return null;
 
 	// The API often nests the useful payload at raw.result.result or raw.result
 	const payload = raw?.result?.result ?? raw?.result ?? raw;
+
+	// getRates
+	console.log("------", "Fetching exchange rates for currency code:", currencyCode);
+	console.log("------", "Available exchange rates:", await getRates(currencyCode || "USD"));
+	// getExchangeRate
+	console.log("------", `Fetching exchange rate from CNY to ${currencyCode ?? "USD"}`);
+	console.log("------", "Exchange rate result:", await getExchangeRate("CNY", currencyCode ?? "USD"));
+// convertCurrency
+	console.log("------", `Converting price from CNY to ${currencyCode ?? "USD"}`);
+	console.log("------", "Converted price:", await convertCurrency("CNY", currencyCode ?? "USD", 10));
+
 
 	const product: any = {
 		offerId: payload?.offerId ?? payload?.offerId,

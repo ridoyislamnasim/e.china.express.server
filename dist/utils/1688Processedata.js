@@ -5,12 +5,22 @@
 // normalized object with the main fields used by the application.
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.process1688ProductDetail = process1688ProductDetail;
-function process1688ProductDetail(raw) {
+const currencyConverter_1 = require("./currency/currencyConverter");
+async function process1688ProductDetail(raw, currencyCode) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
     if (!raw)
         return null;
     // The API often nests the useful payload at raw.result.result or raw.result
     const payload = (_c = (_b = (_a = raw === null || raw === void 0 ? void 0 : raw.result) === null || _a === void 0 ? void 0 : _a.result) !== null && _b !== void 0 ? _b : raw === null || raw === void 0 ? void 0 : raw.result) !== null && _c !== void 0 ? _c : raw;
+    // getRates
+    console.log("------", "Fetching exchange rates for currency code:", currencyCode);
+    console.log("------", "Available exchange rates:", await (0, currencyConverter_1.getRates)(currencyCode || "USD"));
+    // getExchangeRate
+    console.log("------", `Fetching exchange rate from CNY to ${currencyCode !== null && currencyCode !== void 0 ? currencyCode : "USD"}`);
+    console.log("------", "Exchange rate result:", await (0, currencyConverter_1.getExchangeRate)("CNY", currencyCode !== null && currencyCode !== void 0 ? currencyCode : "USD"));
+    // convertCurrency
+    console.log("------", `Converting price from CNY to ${currencyCode !== null && currencyCode !== void 0 ? currencyCode : "USD"}`);
+    console.log("------", "Converted price:", await (0, currencyConverter_1.convertCurrency)("CNY", currencyCode !== null && currencyCode !== void 0 ? currencyCode : "USD", 10));
     const product = {
         offerId: (_d = payload === null || payload === void 0 ? void 0 : payload.offerId) !== null && _d !== void 0 ? _d : payload === null || payload === void 0 ? void 0 : payload.offerId,
         categoryId: payload === null || payload === void 0 ? void 0 : payload.categoryId,

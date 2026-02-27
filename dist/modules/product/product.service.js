@@ -124,7 +124,7 @@ class ProductService {
     // 1688 API Service
     async get1688ProductDetails(payload) {
         try {
-            const { productId } = payload; // your product / offer ID
+            const { productId, currencyCode } = payload; // your product / offer ID
             console.log('Fetching 1688 product details for productId:', productId);
             // === Setup Required Values (from config with sensible fallbacks) ===
             const appSecret = config_1.default.e1688AppSecret || "U1IH8T6UoQxf";
@@ -145,7 +145,7 @@ class ProductService {
             // Use shared util to call 1688 API (generates signature and sends request)
             const responseData = await e1688_1.default.call1688(apiBaseUrl, uriPath, params, appSecret);
             // Process the external payload into a compact product shape
-            const processed = (0, _1688Processedata_1.default)(responseData);
+            const processed = (0, _1688Processedata_1.default)(responseData, currencyCode);
             return processed;
         }
         catch (error) {
