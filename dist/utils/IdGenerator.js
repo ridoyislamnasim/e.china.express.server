@@ -5,7 +5,7 @@ async function idGenerate(prefix, identifyer, model) {
     // Direct Prisma query for last item by identifyer
     // model should be a Prisma repository with a .findFirst method
     // console.log("Model in idGenerate:", model); // Log the model for debugging
-    console.log("Identifyer in idGenerate:", identifyer);
+    console.log("Identifyer in idGenerate:", identifyer, "Prefix:");
     const result = await model.findFirst({
         orderBy: { [identifyer]: 'desc' },
         select: { [identifyer]: true },

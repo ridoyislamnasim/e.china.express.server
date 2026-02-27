@@ -96,6 +96,9 @@ class WarehouseSpaceService {
     async getAllSpaces(warehouseSpaceId, filter = {}) {
         return await this.repository.getAllSpaces(warehouseSpaceId, filter);
     }
+    async getAllSpacesByWarehouseId(warehouseId, filter = {}) {
+        return await this.repository.getAllSpacesByWarehouseId(warehouseId, filter);
+    }
     async getSpaceById(id) {
         const space = await this.repository.getSpaceById(id);
         if (!space) {

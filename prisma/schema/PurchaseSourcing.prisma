@@ -1,0 +1,19 @@
+model Purchase {
+  id              Int            @id @default(autoincrement())
+  supplierName    String
+
+  paymentMethod   PaymentMethodForPurchase
+  purchaseLink    String?
+
+  sourcingPrice   Float          // for all selected products
+  courierFee      Float          // for all selected products
+  totalAmount     Float
+  purchaseImages String[]
+
+//   BookingProduct
+    bookingProducts BookingProduct[]
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+}

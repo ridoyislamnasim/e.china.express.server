@@ -22,6 +22,7 @@ warehouseSpaceRoute.route("/:id")
 warehouseSpaceRoute.post("/spaces/:warehouseSpaceId", controller.createSpace);
 warehouseSpaceRoute.post("/inventories/:warehouseSpaceId", controller.createInventory);
 warehouseSpaceRoute.get("/spaces/:warehouseSpaceId", controller.getAllSpaces);
+warehouseSpaceRoute.get("/spaces/warehouse/:warehouseId", controller.getAllSpacesByWarehouseId);
 warehouseSpaceRoute.get("/inventories/:warehouseSpaceId", controller.getAllInventories);
 
 warehouseSpaceRoute.route("/spaces/:spaceId")

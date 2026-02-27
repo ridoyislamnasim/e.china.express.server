@@ -8,7 +8,7 @@ import BannerRouter from "./routes/banner.route";
 import BlogRouter from "./routes/blog.route";
 import CartRouter from "./routes/cart.route";
 import CouponRouter from "./routes/coupon.route";
-import OrderRouter from "./routes/order.route";
+import ShoppingOrderRouter from "./routes/shoppingOrder.route";
 import WishlistRouter from "./routes/wishlist.route";
 import countryRouter from "./routes/country.route";
 import rateShippingMethodRoute from "./routes/rateShippingMethod.route";
@@ -39,6 +39,9 @@ import rateFreightRouter from "./routes/rateFreight.route";
 import carrierCompanyRouter from "./routes/carrierCompany.route";
 import WalletRoute from "./routes/wallet.route";
 import ExpressBookingRouter from "./routes/express.booking.route";
+import TransactionRoute from "./routes/transaction.routes";
+import AddressRouter from "./routes/address.route";
+import sizeMeasurementRoute from "./routes/size-measurement.route";
 
 // import other routers here
 
@@ -56,7 +59,7 @@ rootRouter.use("/subcategory", SubCategoryRouter);
 rootRouter.use("/product", ProductRouter);
 // rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/coupon", CouponRouter);
-rootRouter.use("/order", OrderRouter);
+rootRouter.use("/order", ShoppingOrderRouter);
 
 rootRouter.use("/cart", CartRouter); // cart routes
 rootRouter.use("/country", countryRouter);
@@ -74,7 +77,6 @@ rootRouter.use("/rate/express", rateExpressRouter);
 rootRouter.use("/rate/freight", rateFreightRouter);
 
 // booking
-rootRouter.use("/booking", BookingRouter);
 rootRouter.use("/country", countryRouter);
 rootRouter.use("/rate/shippingmethod", rateShippingMethodRoute);
 rootRouter.use("/rate/weightcategories", rateWeightCategoriesRoute);
@@ -88,6 +90,9 @@ rootRouter.use("/booking/sea", SeaBookingRouter);
 rootRouter.use("/booking/express", ExpressBookingRouter);
 rootRouter.use("/booking/inventory", WishlistRouter);
 
+// shopping order
+rootRouter.use("/shopping-order", ShoppingOrderRouter);
+
 // WarehouseSpace masud
 rootRouter.use("/warehouses", warehouseRoute);
 rootRouter.use("/warehouse-spaces", warehouseSpaceRoute);
@@ -96,13 +101,19 @@ rootRouter.use("/packages", PackageRoute);
 rootRouter.use("/banding", BandingRoute);
 
 rootRouter.use("/wallets", WalletRoute);
+rootRouter.use("/transactions", TransactionRoute);
 
 //done by rafi
 rootRouter.use("/policies", policiesRoute);
+rootRouter.use("/size-measurements", sizeMeasurementRoute);
+
 rootRouter.use("/services", servicesRoute);
 rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/guide", guideRoute);
 rootRouter.use("/contact-us", contactUsRoute);
 rootRouter.use("/team-management", teamManagementRoute);
+
+//Address Route done by Sourabh
+rootRouter.use("/address", AddressRouter);
 
 export default rootRouter;

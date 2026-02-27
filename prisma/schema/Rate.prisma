@@ -11,6 +11,7 @@ model RateShippingMethod {
   expressRates    ExpressRate[]
   freightRates   FreightRate[]
   shipmentBookings ShipmentBooking[]
+  productShippings  ProductShipping[]
 }
 
 model RateWeightCategorie {
@@ -43,6 +44,8 @@ model Rate {
   ShipmentBookings   ShipmentBooking[]
   // shopping bookings
   ShoppingBookings   ShoppingBooking[]
+  // ProductShipping relation
+  ProductShipping    ProductShipping[]
 }
 
 model ExpressRate {
@@ -119,6 +122,8 @@ model Category1688 {
 
   // Country specific HS codes (one-to-many)
   countryHsCodes CountryHsCode[]
+
+  shipmentBookings  ShipmentBooking[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -17,6 +17,8 @@ model Package {
   type      PackageType
   // relationsShipmentBooking
   ShipmentBookings ShipmentBooking[]  
+  // ShoppingBooking relation
+  ShoppingBookings ShoppingBooking[]
 
   @@index([status])
   @@index([type, status])

@@ -13,7 +13,7 @@ const banner_route_1 = __importDefault(require("./routes/banner.route"));
 const blog_route_1 = __importDefault(require("./routes/blog.route"));
 const cart_route_1 = __importDefault(require("./routes/cart.route"));
 const coupon_route_1 = __importDefault(require("./routes/coupon.route"));
-const order_route_1 = __importDefault(require("./routes/order.route"));
+const shoppingOrder_route_1 = __importDefault(require("./routes/shoppingOrder.route"));
 const wishlist_route_1 = __importDefault(require("./routes/wishlist.route"));
 const country_route_1 = __importDefault(require("./routes/country.route"));
 const rateShippingMethod_route_1 = __importDefault(require("./routes/rateShippingMethod.route"));
@@ -43,6 +43,9 @@ const rateFreight_route_1 = __importDefault(require("./routes/rateFreight.route"
 const carrierCompany_route_1 = __importDefault(require("./routes/carrierCompany.route"));
 const wallet_route_1 = __importDefault(require("./routes/wallet.route"));
 const express_booking_route_1 = __importDefault(require("./routes/express.booking.route"));
+const transaction_routes_1 = __importDefault(require("./routes/transaction.routes"));
+const address_route_1 = __importDefault(require("./routes/address.route"));
+const size_measurement_route_1 = __importDefault(require("./routes/size-measurement.route"));
 // import other routers here
 const rootRouter = (0, express_1.Router)();
 rootRouter.use("/example", example_route_1.default);
@@ -55,7 +58,7 @@ rootRouter.use("/subcategory", subCategory_route_1.default);
 rootRouter.use("/product", product_route_1.default);
 // rootRouter.use("/blog", BlogRouter);
 rootRouter.use("/coupon", coupon_route_1.default);
-rootRouter.use("/order", order_route_1.default);
+rootRouter.use("/order", shoppingOrder_route_1.default);
 rootRouter.use("/cart", cart_route_1.default); // cart routes
 rootRouter.use("/country", country_route_1.default);
 rootRouter.use("/country/zone", countryZone_route_1.default);
@@ -71,7 +74,10 @@ rootRouter.use("/rate", rate_route_1.default);
 rootRouter.use("/rate/express", rateExpress_route_1.default);
 rootRouter.use("/rate/freight", rateFreight_route_1.default);
 // booking
+<<<<<<< HEAD
 rootRouter.use("/booking", booking_route_1.default);
+=======
+>>>>>>> 5844e17091087556f432e55a9af8795fef6e3ae3
 rootRouter.use("/country", country_route_1.default);
 rootRouter.use("/rate/shippingmethod", rateShippingMethod_route_1.default);
 rootRouter.use("/rate/weightcategories", rateWaightCategories_route_1.default);
@@ -83,17 +89,23 @@ rootRouter.use("/booking/air", air_booking_route_1.default);
 rootRouter.use("/booking/sea", sea_booking_route_1.default);
 rootRouter.use("/booking/express", express_booking_route_1.default);
 rootRouter.use("/booking/inventory", wishlist_route_1.default);
+// shopping order
+rootRouter.use("/shopping-order", shoppingOrder_route_1.default);
 // WarehouseSpace masud
 rootRouter.use("/warehouses", warehouse_route_1.default);
 rootRouter.use("/warehouse-spaces", warehouseSpace_route_1.default);
 rootRouter.use("/packages", package_route_1.default);
 rootRouter.use("/banding", banding_route_1.default);
 rootRouter.use("/wallets", wallet_route_1.default);
+rootRouter.use("/transactions", transaction_routes_1.default);
 //done by rafi
 rootRouter.use("/policies", policies_route_1.default);
+rootRouter.use("/size-measurements", size_measurement_route_1.default);
 rootRouter.use("/services", services_route_1.default);
 rootRouter.use("/blog", blog_route_1.default);
 rootRouter.use("/guide", guide_route_1.default);
 rootRouter.use("/contact-us", companyContact_route_1.default);
 rootRouter.use("/team-management", teamManagement_route_1.default);
+//Address Route done by Sourabh
+rootRouter.use("/address", address_route_1.default);
 exports.default = rootRouter;

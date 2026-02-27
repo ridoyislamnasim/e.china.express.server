@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { AuthUserSignUpPayload } from "../../types/auth";
 import { hashOTP } from "../../utils/OTPGenerate";
 import { copyFile } from "fs";
+import { getLocationFromIP } from "../../utils/location.helper";
 
 export class AuthRepository {
   private prisma = prisma;
@@ -24,66 +25,70 @@ export class AuthRepository {
     return role;
   };
 
-  // async createUser(payload: AuthUserSignUpPayload, tx?: any) {
-  //   const { name, email, password, roleId, phone } = payload;
-  //   if (!name || !password) {
-  //     const error = new Error('name and password are required');
-  //     (error as any).statusCode = 400;
-  //     throw error;
-  //   }
-  //   const userData: any = {
-  //     name,
-  //     email: email || '',
-  //     password,
-  //   };
-  //   if (phone) userData.phone = phone;
-  //   if (roleId) userData.roleId = roleId;
-  //   console.log('Creating user with data:', userData);
-  //   const newUser = await this.prisma.user.create({
-  //     data: userData,
-  //   });
-  //   console.log('User created successfully:', newUser);
-  //   return newUser;
-  // }
+  async createUser(payload: any, tx?: any) {
+    const { name, email, password, roleId, phone, countryCode } = payload;
+    const prismaClient = tx || this.prisma;
 
-  async createUser(payload: AuthUserSignUpPayload, tx?: any) {
-    const { name, email, password, roleId, phone } = payload;
-    const prismaClient = tx || this.prisma; // Use transaction client if provided
+    let currency = "RMB";
+    let category = "personal";
 
-    const userData: any = {
+    if (countryCode === "BD") {
+      currency = "BDT";
+      category = "local";
+    } else if (countryCode === "IN") {
+      currency = "INA";
+      category = "local";
+    } else if (countryCode === "PK") {
+      currency = "PAK";
+      category = "local";
+    } else if (countryCode === "SA") {
+      currency = "SUA";
+      category = "local";
+    }
+
+    const userData = {
       name,
       email: email || "",
       password,
+      phone,
+      countryCode: countryCode,
       wallets: {
         create: {
-          name: "Default RMB Wallet",
-          currency: "RMB",
+          name: `Default ${currency} Wallet`,
+          currency: currency,
           balance: 0,
           status: "active",
           monthlyLimit: 50000,
-          category: "Main",
-          cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`,
+          category: category,
+          cardNumber: `62${Math.floor(Math.random() * 10000000000000)}`.slice(
+            0,
+            16,
+          ),
           expiryDate: "12/29",
           cvv: "123",
         },
       },
     };
 
-    if (phone) userData.phone = phone;
-    if (roleId) userData.roleId = roleId;
-
-    const newUser = await prismaClient.user.create({
+    return await prismaClient.user.create({
       data: userData,
-      include: { wallets: true }, // Return user with their new wallet
+      include: { wallets: true },
     });
-
-    return newUser;
   }
+
+  async updateUserById(userId: number, payload: any, tx?: any) {
+    const prismaClient = tx || this.prisma;
+    return await prismaClient.user.update({
+      where: { id: userId },
+      data: payload,
+    });
+  }
+
 
   async getUser(payload: any) {
     const { role } = payload;
     const whereClause: any = {};
-    if (role) whereClause.role = { role: role };
+    if (role) whereClause.role = { role: { equals: role, mode: "insensitive" } };
     return await this.prisma.user.findMany(
       {
         where: whereClause,
@@ -108,15 +113,55 @@ export class AuthRepository {
 
   async getUserBy(id: number) {
     console.log("Fetching user by ID:", id);
+
+    // "id": 6,
+    //     "email": "superadmin@example.com",
+    //     "phone": "0000000000",
+    //     "password": "$2b$10$mOeRQ8Qd17zlVt1yVQQe3uKi1I9cV8hMCDufknD2KR3WX1fPP5VvS",
+    //     "name": "Super Admin",
+    //     "avatar": null,
+    //     "bio": null,
+    //     "countryCode": "",
+    //     "isVerified": false,
+    //     "language": "us",
+    //     "languageName": "English",
+    //     "currencyCode": "USD",
+    //     "currencyName": "US Dollar",
+    //     "currencySymbol": "$",
+    //     "roleId": 2,
     return await this.prisma.user.findUnique({
       where: { id },
+      // include: {
+        
+      //   wallets: true,
+      //   role: {
+      //     include: {
+      //       permission: true,
+      //     },
+      //   },
+      // },
+
+      select: {
+    id: true,
+    email: true,
+    phone: true,
+    name: true,
+    avatar: true,
+    bio: true,
+    countryCode: true,
+    language: true,
+    languageName: true,
+    currencyCode: true,
+    currencyName: true,
+    currencySymbol: true,
+    isVerified: true,
+    wallets: true,
+    role: {
       include: {
-        role: {
-          include: {
-            permission: true,
-          },
-        },
+        permission: true,
       },
+    },
+  },
     });
   }
 
@@ -231,19 +276,27 @@ export class AuthRepository {
   // user repository services
   // ====================================================
   async getUserWithPagination(payload: any) {
+          const query: any = {}
+        if (payload.roleId) {
+          query.roleId = Number(payload.roleId);
+        }
+        
     return await pagination(
       payload,
       async (limit: number, offset: number, sortOrder: any) => {
         const [doc, totalDoc] = await Promise.all([
           this.prisma.user.findMany({
+            where: query,
             skip: offset,
             take: limit,
-            // orderBy: sortOrder,
+             orderBy: {
+            id: sortOrder,
+          },
             include: {
               role: true,
             },
           }),
-          this.prisma.user.count(),
+          this.prisma.user.count({ where: query }),
         ]);
         return { doc, totalDoc };
       },
@@ -273,7 +326,21 @@ export class AuthRepository {
   }
   // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
   // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
-  // Add more methods as needed, e.g., setUserOTP, getAllUser, etc.
+
+  async getAllUsersWithWallets() {
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        wallets: true, // Fetches the array of wallets
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
 }
 
 // Export a singleton instance, similar to module.exports = new AuthRepository(UserSchema)

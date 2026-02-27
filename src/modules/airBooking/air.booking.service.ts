@@ -54,18 +54,12 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
       shippingMethodName,
     });
 
-    // shippingRateId: payload.shippingRateId,
-    // bookerName: payload.bookerName,
-    // bookerPhone: payload.bookerPhone,
-    // bookerEmail: payload.bookerEmail,
-    // bookerAddress: payload.bookerAddress,
-    // shippingMethodId: payload.shippingMethodId,
-    // category1688Id: payload.category1688Id,
-    // categoryId: payload.categoryId,
-    // subCategoryId: payload.subCategoryId,
-
     const airBookingPayload = {
       rateRef: { connect: { id: Number(payload.rateId) } },
+      ...(payload.productPhotos ? { productPhotos: payload.productPhotos } : {}),
+      categoryRef: { connect: { id: Number(payload.subCategoryId ?? payload.category) } },
+      totalCBM: payload.totalCBM ? new Prisma.Decimal(payload.totalCBM) : undefined,
+      productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
       shippingMethodRef: { connect: { id: Number(payload.shippingMethodId) } },
       weight: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       orderNumber,
@@ -83,9 +77,7 @@ export class AirBookingService extends BaseService<typeof airBookingRepository> 
       totalWeightkg: payload.weight ? new Prisma.Decimal(payload.weight) : undefined,
       totalProductCost: payload.totalCost ? new Prisma.Decimal(payload.totalCost) : undefined,
       cartonQuantity: payload.cartonQuantity ? Number(payload.cartonQuantity) : undefined,
-      productQuantity: payload.productQuantity ? Number(payload.productQuantity) : undefined,
-      price: price ? new Prisma.Decimal(price) : undefined,
-            finalPrice: price ? new Prisma.Decimal(price) : undefined,
+      shippingPrice: price ? new Prisma.Decimal(price) : undefined,
       // totalProductCost: 
       // price: rate
     };

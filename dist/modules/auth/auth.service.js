@@ -12,69 +12,68 @@ const errors_1 = require("../../utils/errors");
 const Email_1 = __importDefault(require("../../utils/Email"));
 const OTPGenerate_1 = require("../../utils/OTPGenerate");
 const role_repository_1 = __importDefault(require("../role/role.repository"));
+const ImgUploder_1 = __importDefault(require("../../middleware/upload/ImgUploder"));
 class AuthService {
     // private roleRepository: RoleRepository;
     constructor(repository = auth_repository_1.default) {
-        // ====================================================
-        // user services 
-        // ====================================================
-        //  async getUserWithPagination(payload: any, session?: any) {
-        //     const users = await this.repository.getUserWithPagination(payload);
-        //     return users;
-        //   }
         this.updateUserRole = async (payload) => {
             const { userId, roleId } = payload;
             // superAdmin role cannot be updated and assigned to any user
             if (!userId || !roleId) {
-                const error = new Error('userId and roleId are required');
+                const error = new Error("userId and roleId are required");
                 error.statusCode = 400;
                 throw error;
             }
             // superAdmin role cannot be updated and assigned to any user
             // get superAdmin role id
-            const superAdminRole = await role_repository_1.default.getRoleByName('superAdmin');
+            const superAdminRole = await role_repository_1.default.getRoleByName("superAdmin");
             if (roleId === (superAdminRole === null || superAdminRole === void 0 ? void 0 : superAdminRole.id)) {
-                const error = new Error('Cannot assign superAdmin role to any user');
+                const error = new Error("Cannot assign superAdmin role to any user");
                 error.statusCode = 400;
                 throw error;
             }
-            // const user = await this.repository.updateUserRole(userId, roleId);
-            // return user;
+            const user = await this.repository.updateUserRole(userId, roleId);
+            return user;
         };
         this.repository = repository;
     }
     async authUserSignUp(payload, tx) {
-        const { name, email, phone, password } = payload;
+        const { name, email, phone, password, countryCode } = payload;
+        // Validation
         if (!name || !phone || !password) {
-            const error = new Error('name, phone and password are required');
+            const error = new Error("name, phone and password are required");
             error.statusCode = 400;
             throw error;
         }
         if (password.length < 5) {
-            const error = new Error('Password must be at least 5 characters');
+            const error = new Error("Password must be at least 5 characters");
             error.statusCode = 400;
             throw error;
         }
         if (email) {
             const auth = await this.repository.getAuthByEmail(email);
             if (auth) {
-                const error = new Error('Email already exists');
+                const error = new Error("Email already exists");
                 error.statusCode = 409;
                 throw error;
             }
         }
-        // create Role 
-        const role = await this.repository.createCustomRoleIfNotExists('customer', tx);
-        payload.roleId = role.id;
-        // Add phone unique check if phone is in schema
+        const role = await this.repository.createCustomRoleIfNotExists("customer", tx);
         const hashedPassword = await bcryptjs_1.default.hash(String(password), 10);
-        const user = await this.repository.createUser({ ...payload, password: hashedPassword }, tx);
+        const user = await this.repository.createUser({
+            name,
+            email,
+            phone,
+            password: hashedPassword,
+            roleId: role.id,
+            countryCode, // Pass the country code from registration
+        }, tx);
         return user;
     }
     async createUser(payload, session) {
         const { name, email, password } = payload;
         if (!name || !password) {
-            const error = new Error('name and password are required');
+            const error = new Error("name and password are required");
             error.statusCode = 400;
             throw error;
         }
@@ -94,15 +93,15 @@ class AuthService {
         var _a;
         const { email, phone, password } = payload;
         const user = await this.repository.getAuthByEmailOrPhone(email, phone);
-        console.log('AuthService - authUserSignIn - retrieved user:', user);
+        console.log("AuthService - authUserSignIn - retrieved user:", user);
         if (!user) {
-            const error = new Error('unauthorized access');
+            const error = new Error("unauthorized access");
             error.statusCode = 401;
             throw error;
         }
         const isPasswordMatch = await bcryptjs_1.default.compare(String(password), user.password);
         if (!isPasswordMatch) {
-            const error = new Error('unauthorized access');
+            const error = new Error("unauthorized access");
             error.statusCode = 401;
             throw error;
         }
@@ -112,8 +111,12 @@ class AuthService {
             email: user.email,
             roleId: ((_a = user.role) === null || _a === void 0 ? void 0 : _a.id) || 0,
         };
-        const accessToken = (0, jwt_1.generateAccessToken)({ userInfo: { user_info_encrypted } });
-        const refreshToken = (0, jwt_1.generateRefreshToken)({ userInfo: { user_info_encrypted } });
+        const accessToken = (0, jwt_1.generateAccessToken)({
+            userInfo: { user_info_encrypted },
+        });
+        const refreshToken = (0, jwt_1.generateRefreshToken)({
+            userInfo: { user_info_encrypted },
+        });
         return {
             accessToken: `Bearer ${accessToken}`,
             refreshToken: `Bearer ${refreshToken}`,
@@ -123,7 +126,7 @@ class AuthService {
     async getUserBy(userId, session) {
         const user = await this.repository.getUserBy(userId);
         if (!user) {
-            const error = new Error('User not found');
+            const error = new Error("User not found");
             error.statusCode = 404;
             throw error;
         }
@@ -134,7 +137,7 @@ class AuthService {
         const { email, phone, ip, browser, os, date, time, geoLocation } = payload;
         const user = await this.repository.getAuthByEmailOrPhone(email, phone);
         if (!user) {
-            const error = new Error('User not found');
+            const error = new Error("User not found");
             error.statusCode = 404;
             throw error;
         }
@@ -150,7 +153,7 @@ class AuthService {
         // if phone than send otp to phone
         if (email) {
             // Send OTP to email
-            const emailObj = { email: user.email, name: user.name || '' };
+            const emailObj = { email: user.email, name: user.name || "" };
             // ip,
             // browser,
             // os,
@@ -163,7 +166,7 @@ class AuthService {
                 os,
                 date,
                 time,
-                geoLocation
+                geoLocation,
             };
             const imgArray = {
                 forgetpassword: "https://e-china-express-server-k3vi.onrender.com/public/social/forget-password.png",
@@ -190,21 +193,25 @@ class AuthService {
         const { email, phone, otp, newPassword } = payload;
         // Basic validation
         if (!otp || !newPassword) {
-            const error = new Error('otp and newPassword are required');
+            const error = new Error("otp and newPassword are required");
             error.statusCode = 400;
             throw error;
         }
         const user = await this.repository.getAuthByEmailOrPhone(email, phone);
         if (!user) {
-            const error = new Error('User not found');
+            const error = new Error("User not found");
             error.statusCode = 404;
             throw error;
         }
         // Verify OTP via repository helper
         const verifyResult = await this.repository.verifyOTP(user.id, otp);
         if (!verifyResult || !verifyResult.success) {
-            const reason = (verifyResult === null || verifyResult === void 0 ? void 0 : verifyResult.reason) || 'OTP verification failed';
-            const error = new Error(reason === 'expired' ? 'OTP expired' : reason === 'invalid' ? 'Invalid OTP' : reason);
+            const reason = (verifyResult === null || verifyResult === void 0 ? void 0 : verifyResult.reason) || "OTP verification failed";
+            const error = new Error(reason === "expired"
+                ? "OTP expired"
+                : reason === "invalid"
+                    ? "Invalid OTP"
+                    : reason);
             error.statusCode = 400;
             throw error;
         }
@@ -213,13 +220,35 @@ class AuthService {
         const newUser = await this.repository.updateUserPassword(user.id, hashed);
         return newUser;
     }
-    async updateUser(userId, payloadFiles, payload, session) {
-        // File upload logic can be added here if needed
-        // You may want to add a repository method for update
-        // For now, call Prisma directly if needed
-        // Example: await this.repository.updateUser(userId, payload)
-        return null;
+    async updateUser(userId, payloadFiles, payload, tx) {
+        const { name, phone, bio, language, languageName, currencyCode, currencyName, currencySymbol } = payload;
+        const user = await this.repository.getUserById(userId);
+        if (!user) {
+            const error = new Error("User not found");
+            error.statusCode = 404;
+            throw error;
+        }
+        const { files } = payloadFiles;
+        if (files) {
+            const images = await (0, ImgUploder_1.default)(files);
+            for (const key in images) {
+                payload[key] = images[key];
+            }
+        }
+        const updatePayload = {
+            ...(name && { name }),
+            ...(phone && { phone }),
+            ...(bio && { bio }),
+            ...(language && { language }),
+            ...(languageName && { languageName }),
+            ...(currencyCode && { currencyCode }),
+            ...(currencyName && { currencyName }),
+            ...(currencySymbol && { currencySymbol }),
+        };
+        const updatedUser = await this.repository.updateUserById(userId, updatePayload, tx);
+        return updatedUser;
     }
+    // Handle file upload if files are provided
     async getAllUser(payload) {
         const users = await this.repository.getUser(payload);
         return users;
@@ -227,13 +256,13 @@ class AuthService {
     async getSingleUser(id, session) {
         const user = await this.repository.getUserById(id);
         if (!user)
-            throw new errors_1.NotFoundError('User not found');
+            throw new errors_1.NotFoundError("User not found");
         return user;
     }
     async getDeleteUser(userId) {
         const user = await this.repository.getUserById(userId);
         if (!user)
-            throw new errors_1.NotFoundError('User not found');
+            throw new errors_1.NotFoundError("User not found");
         // You may want to add a repository method for delete
         // For now, call Prisma directly if needed
         // Example: await this.repository.deleteUser(userId)
@@ -242,17 +271,28 @@ class AuthService {
     async createSuperAdminRole(session) {
         // crarte super admin role
         const superAdminRole = await role_repository_1.default.createSuperAdminRole();
-        const password = 'SuperAdmin@123';
+        const password = "SuperAdmin@123";
         const hashedPassword = await bcryptjs_1.default.hash(String(password), 10);
         const superAdminUserPayload = {
-            name: 'Super Admin',
+            name: "Super Admin",
             password: hashedPassword,
-            email: 'superadmin@example.com',
+            email: "superadmin@example.com",
             roleId: superAdminRole.id,
-            phone: '0000000000',
+            phone: "0000000000",
         };
         const role = await this.repository.createUser(superAdminUserPayload, session);
         return role;
+    }
+    // ====================================================
+    // user services
+    // ====================================================
+    async getUserWithPagination(payload, session) {
+        const users = await this.repository.getUserWithPagination(payload);
+        return users;
+    }
+    async getAllUsersWithWallets() {
+        const users = await this.repository.getAllUsersWithWallets();
+        return users;
     }
 }
 exports.AuthService = AuthService;

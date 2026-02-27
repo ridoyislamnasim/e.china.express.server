@@ -201,6 +201,23 @@ class WarehouseSpaceRepository {
             ]
         });
     }
+    async getAllSpacesByWarehouseId(warehouseId, filter = {}) {
+        return await this.prisma.space.findMany({
+            where: {
+                warehouseSpace: {
+                    warehouseId,
+                },
+                ...filter,
+            },
+            include: {
+                warehouseSpace: {
+                    include: {
+                        warehouse: true,
+                    }
+                }
+            }
+        });
+    }
     async updateSpace(id, payload, tx) {
         const prismaClient = tx || this.prisma;
         return await prismaClient.space.update({

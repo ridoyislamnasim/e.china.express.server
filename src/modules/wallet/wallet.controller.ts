@@ -60,7 +60,7 @@ class WalletController {
 
   getSingleWallet = catchError(
     async (req: Request, res: Response, next: NextFunction) => {
-      const id = req.params.id;
+      const id = req.params.id as string;
       const userId = getAuthUserId(req);
 
       const wallet = await walletService.getSingleWallet(id, userId);
@@ -71,7 +71,7 @@ class WalletController {
 
   updateWalletStatus = catchError(
     async (req: Request, res: Response, next: NextFunction) => {
-      const id = req.params.id;
+      const id = req.params.id as string;
       const { status } = req.body;
       const wallet = await walletService.updateWalletStatus(id, status);
       const resDoc = responseHandler(

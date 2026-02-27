@@ -1,12 +1,23 @@
-model User {   
-  id                Int             @id @default(autoincrement())
-  email             String          @unique
-  phone             String?         @unique
-  password          String
-  name              String?
-  avatar            String?
-  bio               String?
-  isVerified        Boolean         @default(false)
+model User {
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
+  phone       String  @unique
+  password    String
+  name        String?
+  avatar      String?
+  bio         String?
+  countryCode String  @default("")
+  isVerified  Boolean @default(false)
+
+  // -- Language & Translation
+  language     String? @db.VarChar(10) //      -- e.g. "en", "bn", "fr"
+  languageName String? @db.VarChar(100) //   -- e.g. "Bengali", "English"
+
+  // -- Currency
+  currencyCode   String? @db.VarChar(10) // -- e.g. "AFN"
+  currencyName   String? @db.VarChar(100) //-- e.g. "Afghani"
+  currencySymbol String? @db.VarChar(10) //-- e.g. "$", "৳", "€"
+
   // Relations
   wishlist          Wishlist[]
   cart              Cart[]
@@ -15,22 +26,21 @@ model User {
   createdWarehouses Warehouse[]     @relation("UserCreatedWarehouses")
   updatedWarehouses Warehouse[]     @relation("UserUpdatedWarehouses")
 
-  bookingProductsAsAgent BookingProduct[] @relation("UserAgentBookingProducts")
+  bookingProductsAsAgent BookingProduct[] @relation("PaymentAgentBookingProducts")
 
   // CustomerBookingProduct
   bookingProductsAsCustomer BookingProduct[] @relation("CustomerBookingProduct")
 
   roleId                     Int?
   role                       Role?             @relation(fields: [roleId], references: [id])
-  addressId                  Int?
-  address                    Address?          @relation(fields: [addressId], references: [id])
   buyNowCarts                BuyNowCart[]
   otp                        OTP[]
   createdAt                  DateTime          @default(now())
   updatedAt                  DateTime          @updatedAt
+
   // shopping 
   shoppingBookingsAsCustomer ShoppingBooking[] @relation("ShoppingBookingCustomer")
-  shoppingBookings           ShoppingBooking[] @relation("ShoppingBookingUser")
+  shoppingBookingsAsAgent    ShoppingBooking[] @relation("PaymentAgentShoppingBooking")
 
   // shipping 
 
@@ -43,7 +53,10 @@ model User {
 
   cartProductShippings CartProductShipping[] @relation("CartProductShippingUser")
 
-  wallets   Wallet[]
+  wallets              Wallet[]
+  sentTransactions     Transaction[] @relation("Sender")
+  receivedTransactions Transaction[] @relation("Receiver")
+  addresses            Address[]
 }
 
 model Role {
@@ -53,20 +66,33 @@ model Role {
   permission   Permission? @relation(fields: [permissionId], references: [id])
   users        User[]
   text         String?
-  text2        String?  
+  text2        String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }
 
-
 model Address {
-  id      Int    @id @default(autoincrement())
-  street  String
-  city    String
-  state   String
-  country String
-  zipCode String
-  users   User[]
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id])
+  house          String?
+  street         String?
+  city           String?
+  state          String?
+  country        String?
+  zipCode        String?
+  recipientName  String?
+  recipientPhone String
+  address        String
+  defaultAddress Boolean
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // ShoppingBooking ShoppingBooking
+  shoppingBooking ShoppingBooking?
+
+  // InventoryBooking
+  // inventoryBooking InventoryBooking?
 
   @@map("addresses")
 }
@@ -105,7 +131,7 @@ model OTP {
 // 20. Category1688
 
 model Permission {
-  id Int @id @default(autoincrement())
+  id               Int     @id @default(autoincrement())
   // 0. permission permissions
   permissionAccess Boolean @default(false)
   permissionCreate Boolean @default(false)
@@ -258,5 +284,3 @@ model Permission {
 
   roles Role[]
 }
-
-

@@ -75,7 +75,7 @@ exports.default = new (class GuideController {
                 url,
                 shortDes,
                 videoLength,
-                videoSerial: Number(videoSerial)
+                videoSerial: Number(videoSerial),
             };
             const result = await guide_service_1.default.createGuideVideo(payload, payloadFiles);
             res.status(201).json({

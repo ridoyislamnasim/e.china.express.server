@@ -11,8 +11,8 @@ const ProductRoute = Router();
 ProductRoute.post("/1688/category-translation", controller.getCategoryTranslation);
 ProductRoute.get("/agent/1688/product/filter", controller.get1688ProductFilterForAgent); //for production agent
 ProductRoute.get("/1688/product/filter", controller.get1688ProductFilter); //for production use
-ProductRoute.get("/agent/1688/details/:productId", controller.get1688ProductDetailsForAgent); // for production use
-ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails); // for production agent
+ProductRoute.get("/agent/1688/details/:productId", controller.get1688ProductDetailsForAgent); // for production aget
+ProductRoute.get("/1688/details/:productId", controller.get1688ProductDetails); // for production use
 ProductRoute.get("/1688/details/test/:productId", controller.get1688ProductDetailsTest);
 ProductRoute.post("/1688/image-search", upload, controller.get1688ProductImageSearch); // for production use - POST for file upload
 

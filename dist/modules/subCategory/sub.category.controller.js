@@ -20,12 +20,12 @@ class SubCategoryController {
                 categoryRef: Number(req.body.categoryRef),
             };
             const subCategoryResult = await sub_category_service_1.default.createSubCategory(payloadFiles, payload, tx);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'SubCategory Created successfully', subCategoryResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "SubCategory Created successfully", subCategoryResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getAllSubCategory = (0, catchError_1.default)(async (req, res, next) => {
             const subCategoryResult = await sub_category_service_1.default.getAllSubCategory();
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'Get All SubCategorys', subCategoryResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "Get All SubCategorys", subCategoryResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getSubCategoryWithPagination = (0, catchError_1.default)(async (req, res, next) => {
@@ -35,13 +35,13 @@ class SubCategoryController {
                 order: req.query.order,
             };
             const subCategory = await sub_category_service_1.default.getSubCategoryWithPagination(payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'SubCategorys get successfully', subCategory);
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "SubCategorys get successfully", subCategory);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.getSingleSubCategory = (0, catchError_1.default)(async (req, res, next) => {
             const slug = req.params.slug;
             const subCategoryResult = await sub_category_service_1.default.getSingleSubCategory(slug);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'Single SubCategory successfully', subCategoryResult);
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "Single SubCategory successfully", subCategoryResult);
             res.status(resDoc.statusCode).json(resDoc);
         });
         this.updateSubCategory = (0, catchError_1.default)(async (req, res, next) => {
@@ -51,11 +51,13 @@ class SubCategoryController {
             };
             const payload = {
                 name: req.body.name,
-                status: typeof req.body.status === 'boolean' ? req.body.status : req.body.status === 'true' || req.body.status === true,
+                status: typeof req.body.status === "boolean"
+                    ? req.body.status
+                    : req.body.status === "true" || req.body.status === true,
                 categoryRef: Number(req.body.categoryRef),
             };
             const subCategoryResult = await sub_category_service_1.default.updateSubCategory(slug, payloadFiles, payload);
-            const resDoc = (0, responseHandler_1.responseHandler)(201, 'SubCategory Update successfully');
+            const resDoc = (0, responseHandler_1.responseHandler)(201, "SubCategory Update successfully");
             res.status(resDoc.statusCode).json(resDoc);
         });
         //   updateSubCategoryStatus = catchError(async (req: Request, res: Response, next: NextFunction) => {
@@ -63,7 +65,7 @@ class SubCategoryController {
         //     const status = req.query.status === 'true' ? true : req.query.status === 'false' ? false : true;
         //     const subCategoryResult = await SubCategoryService.updateSubCategoryStatus(
         //       slug,
-        //       status
+        //       statu
         //     );
         //     const resDoc = responseHandler(
         //       201,
@@ -74,7 +76,7 @@ class SubCategoryController {
         this.deleteSubCategory = (0, catchError_1.default)(async (req, res, next) => {
             const slug = req.params.slug;
             const subCategoryResult = await sub_category_service_1.default.deleteSubCategory(slug);
-            const resDoc = (0, responseHandler_1.responseHandler)(200, 'SubCategory Deleted successfully');
+            const resDoc = (0, responseHandler_1.responseHandler)(200, "SubCategory Deleted successfully");
             res.status(resDoc.statusCode).json(resDoc);
         });
     }

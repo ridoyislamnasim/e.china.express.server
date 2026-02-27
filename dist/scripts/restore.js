@@ -46,12 +46,17 @@ if (!NEON_DATABASE_URL) {
     process.exit(1);
 }
 const FILE_TO_RESTORE = process.argv[2]; // file name from CLI
-const pgRestorePath = `"C:\\Program Files\\PostgreSQL\\18\\bin\\pg_restore"`; // change if needed
+//Detect the OS and set the os based on the OS(windows or mac or linux)
+const isWindows = process.platform === "win32";
+const pgRestorePath = isWindows
+    ? `"C:\\Program Files\\PostgreSQL\\18\\bin\\pg_restore"`
+    : `"/opt/homebrew/opt/postgresql@18/bin/pg_restore"`;
+// const pgRestorePath = `"C:\\Program Files\\PostgreSQL\\18\\bin\\pg_restore"`; // change if needed
 if (!FILE_TO_RESTORE) {
     console.error("❌ Please provide a backup filename.\nUsage: npm run db:restore <filename>");
     process.exit(1);
 }
-const BACKUP_DIR = path.join(__dirname, '..', 'backups');
+const BACKUP_DIR = path.join(__dirname, "..", "backups");
 const BACKUP_PATH = path.join(BACKUP_DIR, FILE_TO_RESTORE);
 const QUOTED_BACKUP_PATH = `"${BACKUP_PATH}"`;
 if (!fs.existsSync(BACKUP_PATH)) {
@@ -67,7 +72,7 @@ function restoreDB(connectionUrl) {
     const envVars = {
         ...process.env,
         PGPASSWORD: config.password,
-        PGSSLMODE: "require"
+        PGSSLMODE: "require",
     };
     const command = `${pgRestorePath} -h ${config.host} -U ${config.user} -d ${config.database} -v -c ${QUOTED_BACKUP_PATH}`;
     console.log("🔄 Restoring Database...");

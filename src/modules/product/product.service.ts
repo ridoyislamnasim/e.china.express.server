@@ -135,7 +135,7 @@ export class ProductService {
   // 1688 API Service
   async get1688ProductDetails(payload: any) {
     try {
-      const { productId } = payload; // your product / offer ID
+      const { productId, currencyCode} = payload; // your product / offer ID
       console.log('Fetching 1688 product details for productId:', productId);
       // === Setup Required Values (from config with sensible fallbacks) ===
       const appSecret = config.e1688AppSecret || "U1IH8T6UoQxf";
@@ -161,7 +161,7 @@ export class ProductService {
       const responseData = await e1688.call1688(apiBaseUrl, uriPath, params, appSecret);
 
       // Process the external payload into a compact product shape
-      const processed = process1688ProductDetail(responseData);
+      const processed = process1688ProductDetail(responseData, currencyCode);
 
       return processed;
     } catch (error) {

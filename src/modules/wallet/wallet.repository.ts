@@ -19,14 +19,14 @@ class WalletRepository {
     return await prisma.wallet.findFirst({
       where: {
         userId,
-        category: "main",
+        category: "personal",
         status: "active",
       },
       include: {
-        transactions: {
-          take: 5,
-          orderBy: { createdAt: "desc" },
-        },
+        // transactions: {
+        //   take: 5,
+        //   orderBy: { createdAt: "desc" },
+        // },
       },
     });
   }
@@ -34,14 +34,14 @@ class WalletRepository {
   async getWalletsByUser(userId: number) {
     return await prisma.wallet.findMany({
       where: { userId },
-      include: { transactions: { take: 5, orderBy: { createdAt: "desc" } } },
+      // include: { transactions: { take: 5, orderBy: { createdAt: "desc" } } },
     });
   }
 
   async getWalletById(id: string) {
     return await prisma.wallet.findUnique({
       where: { id },
-      include: { transactions: true },
+      // include: { transactions: true },
     });
   }
 

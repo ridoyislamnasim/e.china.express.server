@@ -30,7 +30,7 @@ class BlogController {
             const payloadFiles = {
                 files: req.files,
             };
-            const { title, details, tagIds, industryId, topicId, status, trendingContent, featured } = req.body;
+            const { title, details, tagIds, industryId, topicId, status, trendingContent, featured, } = req.body;
             const payload = {
                 user,
                 title,
@@ -53,7 +53,7 @@ class BlogController {
             const payloadFiles = {
                 files: req.files,
             };
-            const { title, details, tagIds, industryId, topicId, status, featured, trendingContent } = req.body;
+            const { title, details, tagIds, industryId, topicId, status, featured, trendingContent, } = req.body;
             const payload = {
                 user,
                 title: title !== null && title !== void 0 ? title : undefined,
@@ -92,7 +92,9 @@ class BlogController {
                 if (!value)
                     return undefined;
                 const arr = Array.isArray(value) ? value : [value];
-                return arr.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+                return arr
+                    .map((id) => parseInt(id, 10))
+                    .filter((id) => !isNaN(id));
             };
             let payload = {
                 page: req.query.page,
@@ -153,7 +155,9 @@ class BlogController {
         this.getBlogsByTags = (0, withTransaction_1.default)(async (req, res, next, tx) => {
             const { tags } = req.body; // expect array of strings from checkboxes
             if (!tags || !Array.isArray(tags) || tags.length === 0) {
-                return res.status(400).json((0, responseHandler_1.responseHandler)(400, "Tags array is required"));
+                return res
+                    .status(400)
+                    .json((0, responseHandler_1.responseHandler)(400, "Tags array is required"));
             }
             console.log("Filtering blogs by tags:", tags);
             // call service with tx (optional, in case you want transaction for complex logic)
@@ -198,7 +202,7 @@ class BlogController {
             const topicId = Number(req.params.id);
             const { title } = req.body;
             const payload = {
-                title
+                title,
             };
             const result = await blog_service_1.default.updateTopic(topicId, payload);
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Topic updated successfully", result);
@@ -248,7 +252,7 @@ class BlogController {
             const topicId = Number(req.params.id);
             const { title } = req.body;
             const payload = {
-                title
+                title,
             };
             const result = await blog_service_1.default.updateIndustries(topicId, payload);
             const resDoc = (0, responseHandler_1.responseHandler)(200, "Industries updated successfully", result);

@@ -125,6 +125,10 @@ export class WarehouseSpaceService {
     return await this.repository.getAllSpaces(warehouseSpaceId, filter);
   }
 
+  async getAllSpacesByWarehouseId(warehouseId: string, filter: any = {}): Promise<any> {
+    return await this.repository.getAllSpacesByWarehouseId(warehouseId, filter);
+  }
+
   async getSpaceById(id: string): Promise<any> {
     const space = await this.repository.getSpaceById(id);
     if (!space) {

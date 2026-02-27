@@ -23,6 +23,9 @@ export async function bookingIdGenerate(opts: {
   // Determine prefix
   let p = prefix || undefined;
   if (!p) {
+    // Air D2D Booking: AD2DB, Sea D2D Booking: SD2DB, Express Booking: EXPSB,
+    //  Air Freight Booking: AFRTB, Sea Freight Booking: SFRTB, 
+    // Warehouse Booking: WHB
     const name = String(shippingMethodName || '').toLowerCase();
     if (name.includes('air') && name.includes('d2d')) p = 'AD2DB';
     else if (name.includes('sea') && name.includes('d2d')) p = 'SD2DB';
@@ -31,6 +34,8 @@ export async function bookingIdGenerate(opts: {
       if (name.includes('sea')) p = 'SFRTB';
       else if (name.includes('air')) p = 'AFRTB';
       else p = 'FRT';
+    } else if (name.includes('warehouse')) {
+      p = 'WHB';
     } else {
       p = 'ABK';
     }
