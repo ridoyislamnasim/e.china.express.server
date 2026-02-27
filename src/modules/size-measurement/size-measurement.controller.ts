@@ -70,7 +70,6 @@ export default new (class SizeMeasurementController {
   });
 
   createSizeMeasurement = catchError(async (req: Request, res: Response) => {
-    console.log("🚀 ~ size-measurement.controller.ts:74 ~ req.body:", req.body);
     const newSizeMeasurement = await sizeMeasurementService.createSizeMeasurement(req.body);
 
     const resDoc = responseHandler(201, "New size-measurement created successfully.", newSizeMeasurement);
@@ -79,7 +78,6 @@ export default new (class SizeMeasurementController {
 
   getSizeMeasurementById = catchError(async (req: Request, res: Response) => {
     const slug = req.params.slug;
-    console.log("🚀 ~ size-measurement.controller.ts:81 ~ slug:", slug);
     const sizeMeasurement = await sizeMeasurementService.getSizeMeasurementById(slug);
     const resDoc = responseHandler(200, "Size-measurement fetched successfully.", sizeMeasurement);
     res.status(resDoc.statusCode).json(resDoc);

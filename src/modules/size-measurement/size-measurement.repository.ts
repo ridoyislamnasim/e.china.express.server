@@ -94,7 +94,9 @@ export default new (class SizeMeasurementRepository {
   };
 
   getAllSizeMeasurementTitlesRepository = async () => {
-    const sizeMeasurementTypes = await this.prisma.sizeMeasurementType.findMany();
+    const sizeMeasurementTypes = await this.prisma.sizeMeasurementType.findMany({ 
+      orderBy: { title: "asc", }, 
+    });
     const sizeMeasurement = await this.prisma.sizeMeasurement.findMany({
       select: {
         id: true,
@@ -103,7 +105,11 @@ export default new (class SizeMeasurementRepository {
         createdAt: true,
         updatedAt: true,
       },
+      orderBy: {
+        title: "asc",
+      },
     });
+
     return { sizeMeasurement, sizeMeasurementTypes };
   };
 
